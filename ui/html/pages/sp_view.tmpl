@@ -1,0 +1,159 @@
+{{define "title"}}
+Server detail
+{{end}}
+
+{{define "content"}}
+<div class="row p-2">
+    <div class="col">
+        <div class="card ">
+            <div class="card-header">
+                <p class="h3">
+                     Stored Proc Details        <a class="btn btn-ghost-info float-right" href="/sp">Back to Stored Proc list</a>   
+                    </p>
+            </div>
+            <div class="card-body">
+    <div class="row">
+        <div class="col">
+            <table class="table table-bordered table-striped">
+                <tbody>
+                    <tr>
+                        <td>EndPoint name</td>
+                        <td>{{.StoredProc.EndPointName}}</td>
+                    </tr>
+
+                    <tr>
+                        <td>Http Method</td>
+                        <td>{{.StoredProc.HttpMethod}}</td>
+                    </tr>
+
+                    <tr>
+                        <td>Stored Proc</td>
+                        <td>{{.StoredProc.Name}}</td>
+                    </tr>
+                    <tr>
+                        <td>Stored Proc Lib</td>
+                        <td>{{.StoredProc.Lib}}</td>
+                    </tr>
+                    <tr>
+                        <td>Use specific name</td>
+                        <td>{{.StoredProc.UseSpecificName}}</td>
+                    </tr>
+                    <tr>
+                        <td>Call</td>
+                        <td>{{.StoredProc.CallStatement}}</td>
+                    </tr>
+
+                    <tr>
+                        <td>Result sets</td>
+                        <td>{{.StoredProc.ResultSets}}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div></div>
+
+        <!-- Parameter -->
+
+
+
+
+    
+</div></div></div></div>
+
+        <!-- Parameter -->
+
+<div class="row p-2">
+    <div class="col">
+        <form action="/sp/call" method="POST"> 
+        <div class="card ">
+            <div class="card-header">
+                <p class="h3">
+                      Parameters   <button type="submit" class="btn btn-primary  float-right">Call</button>
+                    </p>
+            </div>
+            <div class="card-body">
+<div class="row">
+    <div class="col">
+   
+     
+            <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+            <input type="hidden" name="id" value="{{.StoredProc.ID}}">
+
+         
+        <table id="savedqlist" class="table table-bordered table-striped">
+            <thead>
+              <tr>
+                <th>Seq</th>
+                <th>Mode</th>
+                <th>Name</th>
+                <th>Data Type</th>
+                <th>Precision</th>
+                <th>Scale</th>
+                <th>MaxLength</th>
+                <th>Default Value</th>
+                <th>Test Value</th>
+              </tr>
+            </thead>
+            <tbody>
+              {{if .StoredProc.Parameters}}
+              {{range .StoredProc.Parameters}}
+              <tr>
+                <td>{{.Position}}</td>
+                <td>{{.Mode}}</td>
+                <td>{{.Name}}</td>
+                <td>{{.Datatype}}</td>
+                <td>{{.Precision}}</td>
+                <td>{{.Scale}}</td>
+                <td>{{.MaxLength}}</td>
+                <td>{{.GetDefaultValue}}</td>
+                
+                <td>
+                    {{if ne .Mode "OUT"}}
+                    <div class="form-group">
+                         
+                        <input id="{{.Name}}" class="form-control  " type="text"
+                            name="{{.Name}}" aria-describedby="{{.Name}}help" placeholder="{{.Name}}" value='{{.GivenValue}}'
+                            required></input>
+              
+              
+                        
+              
+              
+              
+                    </div>
+                    {{end}}
+                </td>
+
+              
+          
+              </tr>
+              {{end}}
+          
+              {{else}}
+               {{end}}
+            </tbody>
+          </table>
+        </form>  
+    </div>
+</div>
+
+</div></div> </form>  </div></div>
+
+        <!-- response struc -->
+        <div class="row p-2">
+            <div class="col-6">
+                <div class="card ">
+                    <div class="card-header">
+                        <p class="h3">
+                            Response Structure
+                            </p>
+                    </div>
+                    <div class="card-body">
+<div class="row">
+    <div class="col">
+        <pre>{{.StoredProc.ResponseFormat}}</pre> 
+        
+    </div>
+</div>
+</div></div></div></div>
+ 
+{{end}}

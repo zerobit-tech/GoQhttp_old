@@ -1,0 +1,93 @@
+{{define "title"}}
+Logs
+{{end}}
+
+{{define "content"}}
+<br />
+ 
+ 
+ 
+
+
+
+
+<div class="row p-2">
+  <div class="col">
+    <div class="card ">
+      <div class="card-header">
+   
+        <div class="row">
+          <div class="col-8">
+        <p class="h3">Logs</p>
+        <small>All logs will be deleted automatically at 1:00AM local time.</small>
+      </div>
+    
+          </div>
+      </div>
+      <div class="card-body">
+
+        <div class="row">
+          <div class="col" style="padding: 10px;">
+            <form method="POST" action="/apilogs" class="form-inline">
+              <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+      
+              <input name="objectid" type="text" class="form-control mb-2 mr-sm-2" id="inlineFormInputName2"
+                placeholder="correlation id">
+      
+              <button type="submit" class="btn btn-info mb-2"><svg class="c-icon">
+                <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-magnifying-glass"></use></svg> Search</button>
+            </form>
+          </div>
+      
+      
+        </div>
+      
+        
+        
+        <table id="loglist"
+        class="table   table-borderless table-responsive-sm table-striped    ">
+        <thead class="thead-dark">
+
+ 
+      <tr>
+        <th>Logs</th>
+
+
+      </tr>
+    </thead>
+    <tbody>
+      {{if .LogEntries}}
+
+      {{range .LogEntries}}
+      <tr>
+
+        <td>{{.}}</td>
+      </tr>
+      {{end}}
+      {{end}}
+    </tbody>
+  </table>
+
+</div>
+</div>
+</div>
+</div>
+{{end}}
+
+
+{{define "aftercontent"}}
+
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.1/css/jquery.dataTables.css">
+<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.13.1/js/jquery.dataTables.js"></script>
+
+<script>
+  $(document).ready(function () {
+    $('#loglist').DataTable({
+      "pageLength": 100,
+      "language": {
+        "emptyTable": "No records."
+      }
+    });
+  });
+</script>
+{{end}}

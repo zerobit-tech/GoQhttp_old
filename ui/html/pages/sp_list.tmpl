@@ -1,0 +1,80 @@
+{{define "title"}}
+Saved Sqls
+{{end}}
+
+{{define "content"}}
+ 
+ 
+<div class="row p-2">
+  <div class="col">
+    <div class="card ">
+      <div class="card-header">
+        <p class="h5">Servers 
+          <a class="btn btn-ghost-info float-right" href="/sp/add">+Add</a>
+
+        </p>
+       
+      </div>
+
+ 
+      <div class="card-body">
+<table id="splist" class="table table-bordered table-striped">
+  <thead>
+    <tr>
+      <th>EndPoint name</th>
+      <th>Method</th>
+      <th>Name</th>
+      <th>Lib</th>
+      <th>Options</th>
+    </tr>
+  </thead>
+  <tbody>
+    {{if .StoredProcs}}
+    {{range .StoredProcs}}
+    <tr>
+      <td>{{.EndPointName}}</td>
+      <td>{{.HttpMethod}}</td>
+      <td>{{.Name}}</td>
+      <td>{{.Lib}}</td>
+       <td nowrap>
+        <a class="btn btn-info" href='/sp/{{.ID}}'>View</a>
+
+        <a class="btn btn-info" href='/sp/update/{{.ID}}'>Edit</a>
+        <a class="btn btn-danger" href='/sp/delete/{{.ID}}'>Delete</a>
+
+      </td>
+
+    </tr>
+    {{end}}
+
+    {{else}}
+     {{end}}
+  </tbody>
+</table>
+ 
+</div>
+</div>
+</div>
+</div>
+
+{{end}}
+
+
+{{define "aftercontent"}}
+
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.1/css/jquery.dataTables.css">
+<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.13.1/js/jquery.dataTables.js"></script>
+
+<script>
+  
+    $(document).ready( function () {
+      $('#splist').DataTable(
+        {
+              "language": {
+                "emptyTable": "No results found"
+              }
+          }
+      );
+  } );
+</script>
+{{end}}

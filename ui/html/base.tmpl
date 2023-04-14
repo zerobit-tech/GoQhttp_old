@@ -1,0 +1,394 @@
+{{define "base"}}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Zerobit">
+  <meta name="author" content="ZeroBit">
+  
+  
+   <title>{{block "title" .}}
+    GoMockAPI
+    {{end}}
+  </title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css"
+    integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous">
+  <link rel="stylesheet" type="text/css" href="https://unpkg.com/notie/dist/notie.min.css">
+
+
+  <link rel="stylesheet" href="/static/fonts/icomoon/style.css">
+  <link rel="stylesheet" href="/static/coreui/css/style.css">
+  <link rel="stylesheet" href="https://unpkg.com/@coreui/icons@2.0.0-beta.3/css/all.min.css">
+
+</head>
+
+<body class="c-app c-no-layout-transition">
+
+  <div style="opacity: 95%" class="c-sidebar c-sidebar-dark c-sidebar-fixed c-sidebar-lg-show" id="sidebar">
+    <div class="c-sidebar-brand d-md-down-none">
+      <div class="c-sidebar-brand-full">
+        <a href="/endpoints"><h5 style="color:white">#GoMockAPI</h5> </a>
+      </div>
+
+      <div class="c-sidebar-brand-minimized">
+        <h5>[/]</h5>
+      </div>
+
+    </div>
+    <ul class="c-sidebar-nav">
+
+      {{if .TestMode}}
+      <li class="c-sidebar-nav-item">
+        <a class="c-sidebar-nav-link" href="/testmode" ><h5  data-toggle="tooltip" data-placement="bottom" title="Click to view test mode limitations
+        " style="color:#e55353">TEST MODE</h5> </a>
+
+     </li>
+      {{end}}
+
+
+
+
+
+      {{if .CurrentUser}}
+       
+      
+       <li class="c-sidebar-nav-title">User: </li>
+        
+        <li class="c-sidebar-nav-item">
+          <a class="c-sidebar-nav-link" >{{.CurrentUser.Email}}</a>
+
+       </li>
+
+       
+       {{end}}
+     
+
+
+ 
+
+
+      
+
+
+ 
+
+      {{if .IsAuthenticated}}
+
+
+
+      <li class="c-sidebar-nav-divider"></li>
+      <li class="c-sidebar-nav-item"><a class="c-sidebar-nav-link" href="/endpoints">
+        <svg class="c-icon mfe-2">
+          <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-list"></use>
+      </svg>EndPoints</a>
+      </li>
+
+
+      <li class="c-sidebar-nav-divider"></li>
+      <li class="c-sidebar-nav-item"><a class="c-sidebar-nav-link" href="/apilogs">
+        <svg class="c-icon mfe-2">
+          <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-task"></use>
+      </svg>Api Logs</a>
+      </li>
+
+
+      
+      {{if .CurrentUser.IsSuperUser}}
+      <li class="c-sidebar-nav-divider"></li>
+      <li class="c-sidebar-nav-item"><a class="c-sidebar-nav-link" href="/users">
+        <svg class="c-icon mfe-2">
+          <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-user"></use>
+      </svg>Users</a>
+      </li>
+
+      <li class="c-sidebar-nav-divider"></li>
+      <li class="c-sidebar-nav-item"><a class="c-sidebar-nav-link" href="/apilogs/clear">
+        <svg class="c-icon mfe-2">
+          <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-trash"></use>
+      </svg>Clear all Logs</a>
+      </li>
+      {{end}}
+
+
+
+
+
+
+
+
+     
+      {{end}}
+
+
+
+
+
+ 
+
+
+    </ul>
+  </div>
+
+
+
+  <!--  start top navigation -->
+
+
+
+
+
+
+  <!--   end top navigation -->
+
+
+  <div class="c-wrapper">
+    <div   class="h-100" style="overflow-x:auto">
+            <header class="c-header c-header-light c-header-fixed">
+
+                <button class="c-header-toggler c-class-toggler d-lg-none mfe-auto" type="button" data-target="#sidebar"
+                data-class="c-sidebar-show">
+                <svg class="c-icon c-icon-lg">
+                    <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-menu"></use>
+                </svg>#GoMockAPI
+                    </button>
+                    
+                    
+                    <ul class="c-header-nav mfs-auto">
+                      <li class="c-header-nav-item mr-3">
+
+                        <a class="c-sidebar-nav-link" href="/help">
+                          <svg class="c-icon mfe-2">
+                            <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-info"></use>
+                          </svg>How It works?
+                        </a>
+                      </li>
+                                <li class="c-header-nav-item mr-3">
+                                 
+                                          {{if .IsAuthenticated}}
+
+                                    
+
+
+                                          <form action='/user/logout' method='POST' novalidate>
+                                            <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+                                            <button  type="submit" class="btn btn-ghost-danger w-100  " href="/user/logout">
+                                              <svg class="c-icon mfe-2">
+                                                <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-account-logout"></use>
+                                            </svg>Sign off</button>
+                                          </form>  
+
+
+                                      {{end}}
+
+
+
+                            </li>
+
+                     
+                    </ul>
+            </header>
+        {{template "content" .}}
+      
+    </div>
+  
+  
+    <footer class="c-footer">
+      <div><a href=""> </a> © 2023.</div>
+      <div class="mfs-auto">GoMockApi.com</div>
+  </footer>
+  </div>
+
+  <script>
+    var websocketurl = "ws://" + "{{ .HostUrl}}" + "/ws/notification"
+  </script>
+
+<script src="/static/coreui/vendors/coreui/coreui-pro/js/coreui.bundle.min.js"></script>
+
+
+<script src="/static/coreui/vendors/coreui/icons/js/svgxuse.min.js" type="text/javascript"></script>
+
+
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js"
+    integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous">
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-Fy6S3B9q64WdZWQUiU+q4/2Lc9npb8tCaSX9FK7E8HnRr0Jz8D6OP9dO5Vg3Q9ct" crossorigin="anonymous">
+  </script>
+
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/feather-icons@4.28.0/dist/feather.min.js"
+    integrity="sha384-uO3SXW5IuS1ZpFPKugNNWqTZRRglnUJK6UAZ/gxOX80nxEkN9NcGZTftn6RzhGWE" crossorigin="anonymous">
+  </script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js" type="text/javascript"></script>
+
+
+  <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js" type="text/javascript"></script>
+
+  <!--https://sweetalert2.github.io/#download-->
+  <script src="//cdn.jsdelivr.net/npm/sweetalert2@11" type="text/javascript"></script>
+
+
+
+
+
+  <script src="/static/js/reconnecting-websocket.min.js" type="text/javascript"></script>
+
+
+
+
+  <script src="/static/js/websocket.js" type="text/javascript"></script>
+
+  <script src="https://cdn.jsdelivr.net/npm/@tarekraafat/autocomplete.js@10.2.7/dist/autoComplete.min.js"></script>
+  <script>
+    function notifyModel(message, type = 'success') {
+
+      Swal.fire({
+        position: 'top-end',
+        icon: type,
+        title: message,
+        text: 'Something went wrong!',
+        showConfirmButton: false,
+        timer: 1500
+      })
+    }
+
+
+
+
+
+    {{ with .Error}}
+    Swal.fire({
+      position: 'top-end',
+      icon: "error",
+      text: "{{.}}",
+      showConfirmButton: false,
+      timer: 4000,
+      showCloseButton: true
+    })  
+    {{end }}
+
+   
+        {{with .Flash}}
+      
+
+
+    Swal.fire({
+      position: 'top-end',
+      icon: "success",
+      text: "{{.}}",
+      showConfirmButton: false,
+      timer: 2000,
+      showCloseButton: true
+    })  {{end }}
+
+  
+        {{with .Warning}}
+    
+    Swal.fire({
+      position: 'top-end',
+      icon: "warning",
+      text: "{{.}}",
+      showConfirmButton: false,
+      timer: 2500,
+      showCloseButton: true
+    }) {{end }}
+  </script>
+
+
+
+
+  <link rel="stylesheet" type="text/css" href="/static/css/fonts.css">
+  <link rel="stylesheet" type="text/css" href="/static/css/dashboard.css">
+
+  <link rel="stylesheet" type="text/css" href="/static/css/autocomplete.css">
+
+
+
+
+  <script src="/static/js/popper.min.js"></script>
+  {{block "aftercontent" .}}
+  {{end}}
+  <script src="/static/js/jquery.sticky.js"></script>
+  <script src="/static/js/main.js"></script>
+
+  <link rel="stylesheet" type="text/css" href="/static/css/work.css">
+  <script src="/static/js/table.js"></script>
+
+</body>
+
+
+
+<script>
+  function uuidv4() {
+    return ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, c =>
+      (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
+    );
+  }
+
+  function getCookie(cname) {
+    let name = cname + "=";
+    let decodedCookie = decodeURIComponent(document.cookie);
+    let ca = decodedCookie.split(';');
+    for (let i = 0; i < ca.length; i++) {
+      let c = ca[i];
+      while (c.charAt(0) == ' ') {
+        c = c.substring(1);
+      }
+      if (c.indexOf(name) == 0) {
+        return c.substring(name.length, c.length);
+      }
+    }
+    return "";
+  }
+
+
+
+  $(document).ready(function () {
+
+    document.cookie = "lasttabid" + "=" + getCookie("tabid")
+
+
+    document.cookie = "tabid" + "=" + uuidv4()
+  });
+</script>
+
+
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+{{end}}

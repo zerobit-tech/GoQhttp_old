@@ -1,0 +1,296 @@
+{{define "title"}}
+Help
+{{end}}
+
+{{define "content"}}
+<div class="row p-2">
+  <div class="col">
+    <div class="card ">
+      <div class="card-header">
+        <p class="h5">GoMockAPI #How it works?</p>
+      </div>
+      <div class="card-body">
+        <h4>GoMockAPI is a not code solution to create mock API with conditional responses. </h4>
+
+        <p class="h6 m-3">Front-end/UI teams always have a dependency on back-end services. Sometimes the back-end
+          services are not ready, and sometimes, systems are down. Eventually, these dependencies become a blocker. So,
+          GoMockAPI helps you easily create dummy APIs without any coding effort. You can create a mock internal or any
+          3rd party API. </p>
+
+          <br><br>
+        <p class="h6 m-3">During the test phases, different teams need to test different scenarios but don't have
+          sufficient data to execute all test cases. Or, in your lower environments like QA and UAT, you need specific
+          responses based on specific requests. </p>
+          <br><br>
+        <p class="h6 m-3">
+          GoMockAPI provides two options to change the response base on request data dynamically.
+          <ol>
+            <li>You can assign a request parameter or any literal value to the response parameter. <br><br>
+            </li>
+            <li>You can create a conditional based on request parameters and use it to modify the response.<br><br>
+
+              <ul>
+                <li>Based on these conditional, You can also execute the actual API to get the response.<br><br>
+                </li>
+              </ul>
+            </li>
+            
+          </ol>
+        
+        </p>
+        <br><br>
+        <p class="h6 m-3">
+
+          For example, let's say you are testing a card payment API. Most of these API gives a predefined list of test
+          cards. And all the time, these cards are not enough for testing. Use GoMockAPI to mock these APIs and get the
+          desired response.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row p-2">
+  <div class="col">
+    <div class="card ">
+      <div class="card-header">
+        <p class="h5">How to create a mock API?</p>
+      </div>
+      <div class="card-body">
+        
+
+        <p class="h6 m-3">Go to <a href="/endpoints">endpoints.</a> Click on the "+ADD" button.</p>
+
+        <img class="m-5 img-fluid border border-dark" src="/static/gomockapi/1.png" alt="endpionts"> </img>
+
+        <div class="card ">
+          <div class="card-header">
+            <p class="h5">Point to cosider for URL</p>
+          </div>
+          <div class="card-body">
+
+        <div class="row">
+          <div class="col-7 ">
+            <p class="h6 m-3">Enter the "actual" API URL (if not "actual" is not available, use some dummy in a similar
+              format), give it a local name, and pick the correct HTTP method. </p>
+    
+            <img class="m-3 img-fluid  " src="/static/gomockapi/2.png" alt="endpionts"> </img>
+          </div>
+          <div class="col-5 border">
+            
+            <h6>Query Parameters</h6>
+            <ol>
+              <li>            <p>Use query parameter in Standard key=value format, seperated by &.</p>
+              </li>
+              <li>            <p>https://example.com<span class="h5">?name=xyz&age=30</span></p>
+              </li>
+            </ol>
+            <hr>
+            <h6>Path Parameters</h6>
+            <ol>
+              <li><p>Variable part of the path paramters are defined in format {value:datatype}.</p></li>
+              <li>            <p>https://example.com/api/order/<span class="h5">{1:INT}</span>/<strong>?name=xyz&age=30</strong>?</p>
+
+            </ol>
+          </div>
+        </div>
+        </div>
+        </div>
+ 
+        <p class="h6 m-3">Provide sample request and request header as JSON.</p>
+        <img class="m-5  img-fluid border border-dark" src="/static/gomockapi/3.png" alt="endpionts"> </img>
+
+
+        <p class="h6 m-3">Provide sample response and response header as JSON. </p>
+
+        <img class="m-5  img-fluid border border-dark" src="/static/gomockapi/4.png" alt="endpionts"> </img>
+
+
+        <p class="h6 m-3">On Submit, the system will provide a mock API URL and enables the right menu for this
+          endpoint.</p>
+        <div class="row">
+          <div class="col-3">
+            <img class="m-5  img-fluid border border-dark" src="/static/gomockapi/6.png" alt="endpionts"> </img>
+          </div>
+          <div class="col-9">
+            <img class="m-5  img-fluid border border-dark" src="/static/gomockapi/5.png" alt="endpionts"> </img>
+          </div>
+        </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        <h3> Assign response parameter. </h3>
+
+        <p class="h6 m-3">From the right menu, click on the "Response params" option.</p>
+
+        <img class="m-5  img-fluid border border-dark" src="/static/gomockapi/7.png" alt="endpionts"> </img>
+
+
+
+        <p class="h6 m-3">Click the "Pencil" icon to provide the response parameter's override value.
+        </p>
+
+        <img class="m-5  img-fluid border border-dark" src="/static/gomockapi/8.png" alt="endpionts"> </img>
+
+
+        <p class="h6 m-3">The override value can be a request parameter or a literal value. </p>
+
+
+        <img class="m-5  img-fluid border border-dark" src="/static/gomockapi/9.png" alt="endpionts"> </img>
+
+
+        <p class="h6 m-3">Click submit to save the changes. </p>
+
+        <img class="m-5  img-fluid border border-dark" src="/static/gomockapi/10.png" alt="endpionts"> </img>
+
+
+        <h3>Add Conditionals to modify the response conditionally. </h3>
+
+        <h4>It has two parts.</h4>
+
+        <ol>
+          <li>
+            <p class="h5 m-3">Conditions.</p>
+            <p class="h6 m-3">Conditions are like "if statements." ( It does not define the "Action" on condition
+              passes)</p>
+            <br />
+            <p class="h6 m-3">So, you specify:</p>
+            <table class="table table-bordered table-sm">
+              <tr>
+                <td>IF</td>
+                <td>variable</td>
+                <td>name</td>
+              </tr>
+              <tr>
+                <td> </td>
+                <td>operator</td>
+                <td>STARTS_WITH</td>
+              </tr>
+              <tr>
+                <td> </td>
+                <td>compareto</td>
+                <td>ABC</td>
+              </tr>
+            </table>
+
+            <h4>Create a new condition:</h4>
+            <p class="h6 m-3">Click on the "Conditions" menu.</p>
+            <img class="m-5  img-fluid border border-dark" src="/static/gomockapi/11.png" alt="endpionts"> </img>
+            <p class="h6 m-3">Click "+Add" in the top right corner.</p>
+            <img class="m-5  img-fluid border border-dark" src="/static/gomockapi/12.png" alt="endpionts"> </img>
+            <p class="h6 m-3">Select "Request Parameter" as "variable."</p>
+            <img class="m-5  img-fluid border border-dark" src="/static/gomockapi/13.png" alt="endpionts"> </img>
+
+            <p class="h6 m-3">Pick the required "operator."</p>
+            <img class="m-5  img-fluid border border-dark" src="/static/gomockapi/21.png" alt="endpionts"> </img>
+            <p class="h6 m-3">Enter the "Compareto" value.</p>
+            <img class="m-5  img-fluid border border-dark" src="/static/gomockapi/22.png" alt="endpionts"> </img>
+            <p class="h6 m-3">Click submit to save the changes.</p>
+            <img class="m-5  img-fluid border border-dark" src="/static/gomockapi/23.png" alt="endpionts"> </img>
+
+
+          </li>
+
+
+
+          <li>
+            <p class="h5 m-3">Condition Actions.</p>
+            <p class="h6 m-3">Condition actions define what to do when a set of conditions passes. </p>
+            <h5>Create a new condition action:</h5>
+
+            <p class="h6 m-3">Click on the "Conditions Actions" menu.</p>
+            <img class="m-5  img-fluid border border-dark" src="/static/gomockapi/24.png" alt="endpionts"> </img>
+            <p class="h6 m-3">Click "+Add" in the top right corner.</p>
+            <img class="m-5  img-fluid border border-dark" src="/static/gomockapi/25.png" alt="endpionts"> </img>
+            <p class="h6 m-3">Give it a name, and Select the required conditions under the "Conditions" card.</p>
+            <img class="m-5  img-fluid border border-dark" src="/static/gomockapi/26.png" alt="endpionts"> </img>
+            
+            <div class="row">
+              <div class="col-7">
+            <p class="h6 m-3">Set the response parameter values to use if all the selected conditions passes.</p>
+            <img class="m-1  img-fluid border border-dark" src="/static/gomockapi/27.png" alt="endpionts"> </img>
+          </div>
+          <div class="col-5">
+            <h5>Option to call the "actual" endpoint</h5>
+            <p class="h6 m-3">If you select this option and this condition group passes, GoMockAPI will call the actual endpoint and return back the response (including status code and header) from the "actual" api.</p>
+
+          </div>
+          </div>
+            
+            <p class="h6 m-3">Click submit to save the changes.</p>
+            <img class="m-5  img-fluid border border-dark" src="/static/gomockapi/28.png" alt="endpionts"> </img>
+          </li>
+        </ol>
+
+
+        <h3> Testing </h3>
+        <p class="h6 m-3">Use the endpoint URL to make an API call</p>
+
+        <p class="h6 m-3">1. Standard response with override value (without any passed "Condition action")</p>
+        <img class="m-5  img-fluid border border-dark" src="/static/gomockapi/29.png" alt="endpionts"> </img>
+        <p class="h6 m-3">Response with passed "Condition action."</p>
+
+
+
+
+        <img class="m-5  img-fluid border border-dark" src="/static/gomockapi/30.png" alt="endpionts"> </img>
+
+
+
+
+</div>
+
+</div>
+</div>
+</div>
+
+        <div class="row p-2">
+          <div class="col">
+            <div class="card ">
+              <div class="card-header">
+                <p class="h5"> Logs </p>
+              </div>
+              <div class="card-body">
+
+ 
+
+
+        <p class="h6 m-3">Every endpoint call returns a "CORRELATIONID" header. This contains a unique value for each
+          API call.
+        </p>
+        <img class="m-5  img-fluid border border-dark" src="/static/gomockapi/31.png" alt="endpionts"> </img>
+
+
+        <p class="h6 m-3">Click on the "logs" menu.
+        </p>
+        <img class="m-5  img-fluid border border-dark" src="/static/gomockapi/32.png" alt="endpionts"> </img>
+        <p class="h6 m-3">Pick your "CORRELATIONID" header value from the list to see the logs
+        </p>
+        <img class="m-5  img-fluid border border-dark" src="/static/gomockapi/33.png" alt="endpionts"> </img>
+        <p class="h6 m-3">Log contains step by step details on how the endpoint created the response.</p>
+        <img class="m-5  img-fluid border border-dark" src="/static/gomockapi/34.png" alt="endpionts"> </img>
+
+
+ 
+</div>
+</div>
+</div>
+</div>
+{{end}}
+
+
+{{define "aftercontent"}}
+
+
+{{end}}

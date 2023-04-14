@@ -1,0 +1,296 @@
+// Copyright 2012 The Go Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
+package go_ibm_db
+
+import (
+	"context"
+	"database/sql"
+	"database/sql/driver"
+	"errors"
+	"fmt"
+	"sync"
+	"time"
+
+	"github.com/onlysumitg/GoQhttp/go_ibm_db/api"
+)
+
+type Stmt struct {
+	c     *Conn
+	query string
+	os    *ODBCStmt
+	mu    sync.Mutex
+}
+
+func (c *Conn) Prepare(query string) (driver.Stmt, error) {
+	return c.PrepareContext(context.Background(), query)
+}
+
+func (c *Conn) PrepareContext(ctx context.Context, query string) (driver.Stmt, error) {
+	os, err := c.PrepareODBCStmt(query)
+	if err != nil {
+		return nil, err
+	}
+
+	select {
+	default:
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	}
+
+	return &Stmt{c: c, os: os, query: query}, nil
+}
+
+func (s *Stmt) NumInput() int {
+	if s.os == nil {
+		return -1
+	}
+	return len(s.os.Parameters)
+}
+
+// Close closes the opened statement
+func (s *Stmt) Close() error {
+	if s.os == nil {
+		return errors.New("Stmt is already closed")
+	}
+	ret := s.os.closeByStmt()
+	s.os = nil
+	return ret
+}
+
+// Exec executes the the sql but does not return the rows
+func (s *Stmt) Exec(args []driver.Value) (driver.Result, error) {
+	return s.exec(context.Background(), args)
+}
+
+// ExecContext implements driver.StmtExecContext interface
+func (s *Stmt) ExecContext(ctx context.Context, args []driver.NamedValue) (driver.Result, error) {
+	fmt.Println("1.22 Current date and time is: ", time.Now().String())
+
+	dargs := make([]driver.Value, len(args))
+	for n, param := range args {
+		dargs[n] = param.Value
+	}
+
+	return s.exec(ctx, dargs)
+}
+func (s *Stmt) exec(ctx context.Context, args []driver.Value) (driver.Result, error) {
+	if s.os == nil {
+		return nil, errors.New("Stmt is closed")
+	}
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.os.usedByRows {
+		s.os.closeByStmt()
+		s.os = nil
+		os, err := s.c.PrepareODBCStmt(s.query)
+		if err != nil {
+			return nil, err
+		}
+		s.os = os
+	}
+	err := s.os.Exec(args)
+	if err != nil {
+		return nil, err
+	}
+
+	var sumRowCount int64
+
+	// sumit ---> return resul sets
+	rr, ok := ctx.Value("go_ibm_db_ROW").(map[string][]map[string]any)
+	if ok {
+		isDummyCall, ok := ctx.Value("go_ibm_db_DUMMY_CALL").(bool)
+		if !ok {
+			isDummyCall = false
+		}
+
+		err = s.os.BindColumns()
+		if err == nil {
+
+			s.os.usedByRows = true // now both Stmt and Rows refer to it
+			resultsets := &Rows{os: s.os}
+			for {
+				sumRowCount++
+
+				//fmt.Println(">>>>>>>>>>>>>>>  STMT.GO >>>>>  ok:", rr)
+				row := make(RSRows, 0)
+				row2 := make(RSRows, 0)
+				row_map := make([]map[string]any, 0)
+
+				for i, col := range s.os.Cols {
+					c := Col{
+						Index: i,
+						Name:  col.Name(),
+						Type:  col.TypeScan(),
+					}
+					if isDummyCall {
+						c.Value = c.Type.String()
+					}
+
+					row = append(row, c)
+				}
+
+				// assign values
+
+				if isDummyCall {
+					row_map = append(row_map, row.ToMap())
+				} else {
+					for {
+						values := make([]driver.Value, len(row))
+
+						err = resultsets.Next(values)
+						if err != nil {
+							break
+						}
+
+						for _, c := range row {
+							val := values[c.Index]
+							c.Value = val
+							row2 = append(row2, c)
+						}
+						row_map = append(row_map, row2.ToMap())
+
+					}
+				}
+
+				rr[fmt.Sprintf("dataset_%d", sumRowCount)] = row_map
+				//*rr = append(*rr, row_map)
+				//rr.os = s.os
+
+				err = resultsets.NextResultSet()
+				if err != nil {
+					break
+				}
+			}
+
+		}
+	} else {
+		for {
+			var c api.SQLLEN
+			ret := api.SQLRowCount(s.os.h, &c)
+			if IsError(ret) {
+				return nil, NewError("SQLRowCount", s.os.h)
+			}
+			sumRowCount += int64(c)
+			if ret = api.SQLMoreResults(s.os.h); ret == api.SQL_NO_DATA {
+				break
+			}
+		}
+
+	}
+
+	select {
+	default:
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	}
+
+	return &Result{rowCount: sumRowCount}, nil
+}
+
+// Query function executes the sql and return rows if rows are present
+func (s *Stmt) Query(args []driver.Value) (driver.Rows, error) {
+	return s.query1(context.Background(), args)
+}
+
+// QueryContext implements driver.StmtQueryContext interface
+func (s *Stmt) QueryContext(ctx context.Context, args []driver.NamedValue) (driver.Rows, error) {
+	dargs := make([]driver.Value, len(args))
+	for n, param := range args {
+		dargs[n] = param.Value
+	}
+
+	return s.query1(ctx, dargs)
+}
+
+func (s *Stmt) query1(ctx context.Context, args []driver.Value) (driver.Rows, error) {
+	if s.os == nil {
+		return nil, errors.New("Stmt is closed")
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.os.usedByRows {
+		s.os.closeByStmt()
+		s.os = nil
+		os, err := s.c.PrepareODBCStmt(s.query)
+		if err != nil {
+			return nil, err
+		}
+		s.os = os
+	}
+	err := s.os.Exec(args)
+	if err != nil {
+		return nil, err
+	}
+	err = s.os.BindColumns()
+	if err != nil {
+		return nil, err
+	}
+	s.os.usedByRows = true // now both Stmt and Rows refer to it
+
+	select {
+	default:
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	}
+
+	return &Rows{os: s.os}, nil
+}
+
+// CheckNamedValue implementes driver.NamedValueChecker.
+func (s *Stmt) CheckNamedValue(nv *driver.NamedValue) (err error) {
+	switch d := nv.Value.(type) {
+	case sql.Out:
+		err = nil
+	case []int:
+		temp := make([]int64, len(d))
+		for i := 0; i < len(d); i++ {
+			temp[i] = int64(d[i])
+		}
+		nv.Value = temp
+		err = nil
+	case []int8:
+		temp := make([]int64, len(d))
+		for i := 0; i < len(d); i++ {
+			temp[i] = int64(d[i])
+		}
+		nv.Value = temp
+		err = nil
+	case []int16:
+		temp := make([]int64, len(d))
+		for i := 0; i < len(d); i++ {
+			temp[i] = int64(d[i])
+		}
+		nv.Value = temp
+		err = nil
+	case []int32:
+		temp := make([]int64, len(d))
+		for i := 0; i < len(d); i++ {
+			temp[i] = int64(d[i])
+		}
+		nv.Value = temp
+		err = nil
+	case []int64:
+		err = nil
+	case []string:
+		err = nil
+	case []bool:
+		err = nil
+	case []float64:
+		err = nil
+	case []float32:
+		temp := make([]float64, len(d))
+		for i := 0; i < len(d); i++ {
+			temp[i] = float64(d[i])
+		}
+		nv.Value = temp
+		err = nil
+	case []time.Time:
+		err = nil
+	default:
+		nv.Value, err = driver.DefaultParameterConverter.ConvertValue(nv.Value)
+	}
+	return err
+}

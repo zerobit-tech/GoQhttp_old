@@ -1,0 +1,43 @@
+{{define "title"}}
+Delete User
+{{end}}
+
+{{define "content"}}
+ 
+<div class="row p-2">
+    <div class="col">
+      <div class="card ">
+        <div class="card-header">
+          <p class="h5"> Delete User
+  
+          </p>
+  
+            </div>
+          <div class="card-body">
+           
+
+
+            <div class="alert alert-secondary" role="alert">
+                  Name.........:  <a href="" class="alert-link">{{.User.Name}}</a>
+                  <br>
+                  <br>
+                  Email.........:  <a href="" class="alert-link">{{.User.Email}}</a>
+
+            </div>
+
+<form action='/users/delete' method='POST'  >
+    <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+    <input type="hidden" name="userid" value="{{.User.ID}}">
+ 
+
+ 
+    <button type="submit" class="btn btn-danger">  <svg class="c-icon">
+        <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-trash"></use></svg> Confirm</button>
+
+</form>
+
+</div>
+</div>
+</div>
+</div>
+{{end}}

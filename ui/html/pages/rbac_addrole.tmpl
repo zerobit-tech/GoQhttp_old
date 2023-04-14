@@ -1,0 +1,35 @@
+{{define "title"}}
+Signup
+{{end}}
+
+{{define "content"}}
+<br />
+<div class="px-5">
+<div class="row">  
+    <div class="col-5"> 
+        <div class="row">
+            <div class="col" style="padding-bottom: 10px;"><p class="h3">
+                Create New Role</p>
+           </div> 
+    
+        </div> 
+
+<form action='/rbac/addrole' method='POST'  >
+    <div class="form-group">
+        <label>Role:</label>
+      
+        <input class="form-control {{with .Form.FieldErrors.role}} is-invalid {{end}}" type="text" name='role' value='{{.Form.Role}}'>
+
+        {{with .Form.FieldErrors.role}}
+        <div class='invalid-feedback'>{{.}}</div>
+        {{end}}
+    </div>
+   
+    <div>
+        <button type='submit' class="btn btn-primary">Create</button>
+    </div>
+</form>
+</div>
+</div>
+</div>
+{{end}}

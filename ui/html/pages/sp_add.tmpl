@@ -1,0 +1,117 @@
+
+{{define "title"}}
+Stored Proc
+{{end}}
+
+
+{{define "content"}}
+<div class="row p-2">
+    <div class="col-6">
+        <div class="card ">
+            <div class="card-header">
+                <p class="h3">
+                    {{if .Form.ID}} Edit {{else}} Add {{end}} Stored Proc</p>
+            </div>
+            <div class="card-body">
+
+<form action="/sp/add" method="POST">
+         <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+         <input type="hidden" name="id" value="{{.Form.ID}}">
+
+         <div class="form-group">
+          <label for="endpointname">EndPoint Name</label>
+          <input id="endpointname" class="form-control {{with .Form.FieldErrors.endpointname}} is-invalid {{end}}" type="text"
+              name="endpointname" aria-describedby="endpointnamehelp" placeholder="EndPoint name" value='{{.Form.EndPointName}}'
+              required></input>
+
+
+          <!-- Use the `with` action to render the value of .Form.FieldErrors.title if it is not empty. -->
+
+          {{with .Form.FieldErrors.endpointname}}
+          <div class='invalid-feedback'>{{.}}</div>
+          {{end}}
+
+
+
+      </div>
+
+      <div class="form-group">
+        <label for="httpmethod">Http Method</label>
+        <input id="httpmethod" class="form-control {{with .Form.FieldErrors.httpmethod}} is-invalid {{end}}" type="text"
+            name="httpmethod" aria-describedby="httpmethodhelp" placeholder="GET POST " value='{{.Form.HttpMethod}}'
+            required></input>
+
+
+        <!-- Use the `with` action to render the value of .Form.FieldErrors.title if it is not empty. -->
+
+        {{with .Form.FieldErrors.httpmethod}}
+        <div class='invalid-feedback'>{{.}}</div>
+        {{end}}
+
+
+
+    </div>
+
+        <div class="form-group">
+            <label for="name">Stored Procedure Name</label>
+            <input id="name" class="form-control {{with .Form.FieldErrors.name}} is-invalid {{end}}" type="text"
+                name="name" aria-describedby="namehelp" placeholder="SP name" value='{{.Form.Name}}'
+                required></input>
+
+
+            <!-- Use the `with` action to render the value of .Form.FieldErrors.title if it is not empty. -->
+
+            {{with .Form.FieldErrors.name}}
+            <div class='invalid-feedback'>{{.}}</div>
+            {{end}}
+
+
+ 
+        </div>
+
+        <div class="form-group">
+          <label for="lib">Stored Procedure Lib</label>
+          <input id="lib" class="form-control {{with .Form.FieldErrors.lib}} is-invalid {{end}}" type="text"
+              name="lib" aria-describedby="libhelp" placeholder="lib name" value='{{.Form.Lib}}'
+              required></input>
+
+
+          <!-- Use the `with` action to render the value of .Form.FieldErrors.title if it is not empty. -->
+
+          {{with .Form.FieldErrors.lib}}
+          <div class='invalid-feedback'>{{.}}</div>
+          {{end}}
+
+
+
+      </div>
+    
+
+
+       
+
+      <div class="form-check">
+            <input value='true' {{if .Form.UseSpecificName}} checked {{end}} type="checkbox" class="form-check-input" name="UseSpecificName" id="UseSpecificName">
+            <label class="form-check-label" for="checkboxallowdelete">Using Specific name</label>
+        </div>
+
+
+        <br />
+
+        
+
+ 
+
+     <br />
+    <button type="submit" class="btn btn-primary">Submit</button>
+
+
+</form>
+</div> 
+
+</div>
+</div>
+</div>
+ 
+{{end}}
+

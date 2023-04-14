@@ -1,0 +1,1 @@
+web: ./bin/gomockapi  --testmode --redirecttohttps --domain="gomockapi.herokuapp.com"

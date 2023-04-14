@@ -1,0 +1,12 @@
+
+{{define "messages"}}
+    {{if .Form}}
+        {{if .Form.NonFieldErrors}}
+            {{range .Form.NonFieldErrors}}
+                <div class="alert alert-danger" role="alert">
+                   {{.}}
+                </div>
+            {{end}}
+        {{end}}
+    {{end}}
+{{end}}

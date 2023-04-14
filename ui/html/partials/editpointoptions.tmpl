@@ -1,0 +1,94 @@
+{{define "editpointoptions"}}
+
+{{if .Name}}
+ 
+
+
+<li class="c-sidebar-nav-title">EndPoint: 
+</li>
+        
+<li class="c-sidebar-nav-item">
+  <a class="c-sidebar-nav-link" >{{.Name}}</a>
+
+    
+ 
+
+</li>
+
+{{end}}
+
+<li class="c-sidebar-nav-item">
+      
+
+    <a class="c-sidebar-nav-link" href='/endpoints/update/{{.ID}}' >
+        <svg class="c-icon mfe-2">
+            <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-pencil"></use>
+        </svg>
+    
+        Edit</a>
+</li>
+<li class="c-sidebar-nav-item">
+      
+<a class="c-sidebar-nav-link" href='/endpoints/logs/{{.ID}}' >
+    <svg class="c-icon mfe-2">
+        <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-speech"></use>
+    </svg>
+
+    Logs</a>
+</li>
+
+<li class="c-sidebar-nav-item">
+    <a class="c-sidebar-nav-link" href='/endpoints/delete/{{.ID}}' >
+         
+          <svg class="c-icon mfe-2">
+            <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-trash"></use>
+        </svg>
+
+        Delete</a>
+ </li>
+<li class="c-sidebar-nav-divider"></li>
+
+
+
+<li class="c-sidebar-nav-item">
+    <a class="c-sidebar-nav-link" href='/requestparam/{{.ID}}'  >
+        <svg class="c-icon mfe-2">
+            <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-arrow-right"></use>
+        </svg>
+        
+        Request Params</a>
+ </li>
+
+ 
+ 
+ 
+<li class="c-sidebar-nav-divider"></li>
+
+<li class="c-sidebar-nav-item">
+    <a class="c-sidebar-nav-link" href='/conditions/{{.ID}}'  >
+        
+        <svg class="c-icon mfe-2">
+            <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-check-alt"></use>
+        </svg>Conditions</a>
+ </li>
+
+ <li class="c-sidebar-nav-item">
+    <a class="c-sidebar-nav-link" href='/conditiongroups/{{.ID}}'  >
+        
+        <svg class="c-icon mfe-2">
+            <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-check-circle"></use>
+        </svg>Condition Actions</a>
+ </li>
+
+
+ <li class="c-sidebar-nav-divider"></li>
+ <li class="c-sidebar-nav-item">
+    <a class="c-sidebar-nav-link" href='/endpoints/owners/{{.ID}}'  >
+        
+        <svg class="c-icon mfe-2">
+            <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-user"></use>
+        </svg>Owners</a>
+ </li>
+ <hr>
+ 
+{{end}}

@@ -1,0 +1,114 @@
+{{define "title"}}
+Role Permissions
+{{end}}
+
+{{define "content"}}
+<br />
+<div class="px-5">
+    <div class="row">
+        <div class="col" style="padding-bottom: 10px;">
+            <p class="h3">Permissions for {{.RbacRole}}</p>
+        </div>
+
+
+
+    </div>
+
+    <div class="row">
+        <div class="col">
+            <table id="rbackpermissionlist" class="table table-bordered table-striped">
+                <thead>
+                    <tr>
+                        <th>Permission</th>
+
+                        <th>Options</th>
+
+                    </tr>
+                </thead>
+                <tbody>
+                    {{if .RbacRolePermissionsIncluded}}
+
+                    {{range .RbacRolePermissionsIncluded}}
+                    <tr>
+                        <td>{{.}} </td>
+
+                        <td>
+                            <form action="/rbac/removerolepermissions/{{$.RbacRole}}" method="POST">
+                                <input type="hidden" name="csrf_token" value="{{$.CSRFToken}}">
+                                <input type="hidden" name="permission" value="{{.}}">
+
+                            
+                            <button type="submit" class="btn btn-link">-Remove</a> 
+                            </form>
+                        
+                        </td>
+
+
+
+                    </tr>
+                    {{end}}
+                    {{end}}
+                </tbody>
+            </table>
+        </div>
+        <div class="col">
+            <table id="rbackpermissionlist2" class="table table-bordered table-striped">
+                <thead>
+                    <tr>
+                        <th>Permission</th>
+                        <th>Options</th>
+
+
+                    </tr>
+                </thead>
+                <tbody>
+                    {{if .RbacRolePermissionsExcluded}}
+
+                    {{range .RbacRolePermissionsExcluded}}
+                    <tr>
+                        <td>{{.}}</td>
+                        <td>
+                            <form action="/rbac/addrolepermission/{{$.RbacRole}}" method="POST">
+                                <input type="hidden" name="csrf_token" value="{{$.CSRFToken}}">
+                                <input type="hidden" name="permission" value="{{.}}">
+
+                            
+                                <button type="submit" class="btn btn-link">+Add</a> 
+
+                            </form>
+                        
+                        </td>
+                    </tr>
+                    {{end}}
+                    {{end}}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{{end}}
+
+
+{{define "aftercontent"}}
+
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.1/css/jquery.dataTables.css">
+<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.13.1/js/jquery.dataTables.js"></script>
+
+<script>
+    $(document).ready(function () {
+        $('#rbackpermissionlist').DataTable({
+            "pageLength": 100,
+            "language": {
+                "emptyTable": "No records."
+            }
+        });
+
+        $('#rbackpermissionlist2').DataTable({
+            "pageLength": 100,
+            "language": {
+                "emptyTable": "No records."
+            }
+        });
+    });
+</script>
+{{end}}

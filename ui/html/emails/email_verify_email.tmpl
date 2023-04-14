@@ -1,0 +1,11 @@
+{{define "content"}}
+Hi, {{.User.Name}} <br>
+<br>
+Please open the follwing link to verify email. If click does not work, copy paste URL in your browser.
+<br><br>
+<a href="{{.VerficationLink}} ">{{.VerficationLink}} </a>
+
+<br>
+
+Thank you
+{{end}}
