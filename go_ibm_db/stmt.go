@@ -10,6 +10,7 @@ import (
 	"database/sql/driver"
 	"errors"
 	"fmt"
+	"log"
 	"sync"
 	"time"
 
@@ -79,7 +80,7 @@ func (s *Stmt) exec(ctx context.Context, args []driver.Value) (driver.Result, er
 	if s.os == nil {
 		return nil, errors.New("Stmt is closed")
 	}
-
+	log.Printf("%v: %v\n", "SeversCall 2.1", time.Now())
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	if s.os.usedByRows {
@@ -91,11 +92,12 @@ func (s *Stmt) exec(ctx context.Context, args []driver.Value) (driver.Result, er
 		}
 		s.os = os
 	}
+	log.Printf("%v: %v\n", "SeversCall 2.2", time.Now())
 	err := s.os.Exec(args)
 	if err != nil {
 		return nil, err
 	}
-
+	log.Printf("%v: %v\n", "SeversCall 2.3", time.Now())
 	var sumRowCount int64
 
 	// sumit ---> return resul sets
@@ -105,10 +107,10 @@ func (s *Stmt) exec(ctx context.Context, args []driver.Value) (driver.Result, er
 		if !ok {
 			isDummyCall = false
 		}
-
+		log.Printf("%v: %v\n", "SeversCall 2.4", time.Now())
 		err = s.os.BindColumns()
 		if err == nil {
-
+			log.Printf("%v: %v\n", "SeversCall 2.410", time.Now())
 			s.os.usedByRows = true // now both Stmt and Rows refer to it
 			resultsets := &Rows{os: s.os}
 			for {
@@ -164,7 +166,7 @@ func (s *Stmt) exec(ctx context.Context, args []driver.Value) (driver.Result, er
 					break
 				}
 			}
-
+			log.Printf("%v: %v\n", "SeversCall 2.420", time.Now())
 		}
 	} else {
 		for {

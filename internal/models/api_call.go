@@ -17,6 +17,8 @@ import (
 
 var infoLog *log.Logger = log.New(os.Stderr, "INFO \t", log.Ldate|log.Ltime)
 var errorLog *log.Logger = log.New(os.Stderr, "ERROR\t", log.Ldate|log.Ltime)
+var RequestLog *log.Logger = log.New(os.Stderr, "Request\t", log.Ldate|log.Ltime)
+var ResponseLog *log.Logger = log.New(os.Stderr, "Response\t", log.Ldate|log.Ltime)
 
 type ApiCall struct {
 	ID string
@@ -33,38 +35,55 @@ type ApiCall struct {
 
 	logMutex sync.Mutex
 
-	DB *bolt.DB
+	LogDB *bolt.DB
 
 	HttpRequest *http.Request
 
 	CurrentSP *StoredProc
+
+	Server *Server
 }
 
 // ------------------------------------------------------
 //
 // ------------------------------------------------------
-func (a *ApiCall) Finalize() {
+func (a *ApiCall) HasError() bool {
 	if a.Err != nil {
 		var odbcError *go_ibm_db.Error
 
 		if errors.Is(a.Err, driver.ErrBadConn) {
 			a.StatusCode = http.StatusInternalServerError
 			a.StatusMessage = a.Err.Error()
-			return
+			go a.LogError(fmt.Sprintf("Connection Error: %s", a.Server.Name))
+
+			return true
 		}
 
 		if errors.As(a.Err, &odbcError) {
-			a.StatusCode = http.StatusBadRequest
-			a.StatusMessage = odbcError.Error()
-			return
+			a.StatusCode, a.StatusMessage = OdbcErrMessage(odbcError)
+			go a.LogError(fmt.Sprintf("ODBC Error %s:%s", a.StatusMessage, odbcError.Error()))
+			return true
 		}
-		a.StatusCode = http.StatusInternalServerError
+		a.StatusCode = http.StatusBadRequest
 		a.StatusMessage = a.Err.Error()
+		go a.LogError(fmt.Sprintf("Error %s", a.Err.Error()))
 
+		return true
 	}
+	return false
+}
 
-	a.Response.Message = a.StatusMessage
-	a.Response.Status = a.StatusCode
+// ------------------------------------------------------
+//
+// ------------------------------------------------------
+func (a *ApiCall) Finalize() {
+
+	if a.HasError() {
+		a.Response.Message = a.StatusMessage
+		a.Response.Status = a.StatusCode
+	}
+	a.Response.ReferenceId = a.ID
+
 }
 
 // // ------------------------------------------------------
@@ -277,10 +296,9 @@ func (apiCall *ApiCall) LogError(logEntry string) {
 
 	buf := bytes.NewBufferString("")
 
+	apiCall.logMutex.Lock()
 	errorLog.SetOutput(buf)
 	errorLog.Println(logEntry)
-
-	apiCall.logMutex.Lock()
 	apiCall.Log = append(apiCall.Log, buf.String())
 
 }
@@ -302,7 +320,7 @@ func (apiCall *ApiCall) LogError(logEntry string) {
 //
 // ------------------------------------------------------
 func (m *ApiCall) SaveLogs() {
-	m.DB.Update(func(tx *bolt.Tx) error {
+	m.LogDB.Update(func(tx *bolt.Tx) error {
 		bucket, err := tx.CreateBucketIfNotExists(getLogTableName())
 		if err != nil {
 			return err
@@ -314,6 +332,23 @@ func (m *ApiCall) SaveLogs() {
 			bucket.Put([]byte(key), []byte(fmt.Sprintf("%05d. %s", i+1, s)))
 
 		}
+		return nil
+	})
+
+}
+
+// ------------------------------------------------------
+//
+// ------------------------------------------------------
+func SaveLogs(db *bolt.DB, i int, id string, message string) {
+	db.Update(func(tx *bolt.Tx) error {
+		bucket, err := tx.CreateBucketIfNotExists(getLogTableName())
+		if err != nil {
+			return err
+		}
+		key := fmt.Sprintf("%s_%d", id, i)
+		bucket.Put([]byte(key), []byte(fmt.Sprintf("%05d. %s", i+1, message)))
+
 		return nil
 	})
 

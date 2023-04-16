@@ -4,11 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"strings"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/google/uuid"
+	"github.com/go-chi/chi/v5/middleware"
 	"github.com/onlysumitg/GoQhttp/internal/models"
 	"github.com/onlysumitg/GoQhttp/utils/httputils"
 	"github.com/onlysumitg/GoQhttp/utils/jsonutils"
@@ -22,6 +23,8 @@ func (app *application) APIHandlers(router *chi.Mux) {
 	router.Route("/api/{apiname}", func(r chi.Router) {
 		//r.With(paginate).Get("/", listArticles)
 		r.Use(app.RequireTokenAuthentication)
+
+		r.Use(app.LogHandler)
 		r.Get("/", app.GET)
 		r.Post("/", app.POST)
 		r.Put("/", app.POST)
@@ -63,7 +66,7 @@ func (app *application) apilogs(w http.ResponseWriter, r *http.Request) {
 	}
 	logEntries := make([]string, 0)
 	if objectid != "" {
-		//logEntries = models.GetLogs(app.DB, objectid)
+		logEntries = models.GetLogs(app.LogDB, objectid)
 	}
 
 	data := app.newTemplateData(r)
@@ -108,13 +111,14 @@ func (app *application) GetPathParameters(r *http.Request) (string, []httputils.
 		}
 	}
 
-	return endpointName, pathParams
+	return strings.TrimSpace(endpointName), pathParams
 }
 
 // ------------------------------------------------------
 //
 // ------------------------------------------------------
 func (app *application) GET(w http.ResponseWriter, r *http.Request) {
+	response := &models.StoredProcResponse{}
 
 	endpointName, pathParams := app.GetPathParameters(r)
 	queryString := fmt.Sprint(r.URL)
@@ -128,8 +132,11 @@ func (app *application) GET(w http.ResponseWriter, r *http.Request) {
 
 	requestJson, err := httputils.QueryParamToMap(queryString)
 	if err != nil {
-		app.errorResponse(w, r, http.StatusBadRequest, err.Error())
+		response.Status = http.StatusBadRequest
+		response.Message = err.Error()
+		app.writeJSONAPI(w, response, nil)
 		return
+
 	}
 
 	for _, p := range pathParams {
@@ -147,6 +154,8 @@ func (app *application) GET(w http.ResponseWriter, r *http.Request) {
 // ------------------------------------------------------
 func (app *application) POST(w http.ResponseWriter, r *http.Request) {
 
+	response := &models.StoredProcResponse{}
+
 	endpointName, pathParams := app.GetPathParameters(r)
 
 	requestBodyMap := make(map[string]any)
@@ -159,8 +168,11 @@ func (app *application) POST(w http.ResponseWriter, r *http.Request) {
 	case err == io.EOF:
 		// empty body
 	case err != nil:
-		app.errorResponse(w, r, http.StatusBadRequest, err.Error())
+		response.Status = http.StatusBadRequest
+		response.Message = err.Error()
+		app.writeJSONAPI(w, response, nil)
 		return
+
 	}
 
 	requestBodyFlatMap := jsonutils.JsonToFlatMapFromMap(requestBodyMap)
@@ -182,29 +194,42 @@ func (app *application) ProcessAPICall(w http.ResponseWriter, r *http.Request, e
 	pathParams []httputils.PathParam,
 	requesyBodyFlatMap map[string]xmlutils.ValueDatatype) {
 
+	response := &models.StoredProcResponse{}
+
 	userid := r.Context().Value(models.ContextUserKey).(string)
 	user, err := app.users.Get(userid)
 	if err != nil {
-		app.ErrorJSON(w, r, http.StatusUnauthorized)
+		response.Status = http.StatusUnauthorized
+		response.Message = http.StatusText(http.StatusUnauthorized)
+		app.writeJSONAPI(w, response, nil)
 		return
 	}
 	serverID := user.ServerId
 
 	server, err := app.servers.Get(serverID)
 	if err != nil {
-		app.ErrorJSON(w, r, http.StatusNotImplemented)
+
+		response.Status = http.StatusNotImplemented
+		response.Message = "Please check assigned server to the user"
+		app.writeJSONAPI(w, response, nil)
 		return
+
 	}
 
 	app.InjectClientInfo(r, requesyBodyFlatMap)
 	endPoint, err := app.GetEndPoint(fmt.Sprintf("%s_%s", strings.ToUpper(endpointName), strings.ToUpper(r.Method)))
 	if err != nil {
-		app.errorResponse(w, r, 404, err.Error())
+		response.Status = http.StatusNotImplemented
+		response.Message = err.Error()
+		app.writeJSONAPI(w, response, nil)
 		return
+
 	}
+	requestId := middleware.GetReqID(r.Context())
+	log.Println("requestId", requestId)
 
 	apiCall := &models.ApiCall{
-		ID: uuid.NewString(),
+		ID: requestId,
 
 		RequestFlatMap: requesyBodyFlatMap,
 		RequestHeader:  httputils.GetHeadersAsMap(r),
@@ -212,14 +237,16 @@ func (app *application) ProcessAPICall(w http.ResponseWriter, r *http.Request, e
 		StatusCode: http.StatusOK,
 
 		Log:         make([]string, 0),
-		DB:          app.DB,
+		LogDB:       app.LogDB,
 		HttpRequest: r,
 
 		CurrentSP: endPoint,
+		Server:    server,
 	}
 
 	// apiCall.ResponseString = html.UnescapeString(endPoint.ResponsePlaceholder) //string(jsonByte)
 
+	apiCall.LogInfo("Starting SP CALL")
 	endPoint.APICall(*server, apiCall)
 
 	apiCall.Finalize()
@@ -230,7 +257,7 @@ func (app *application) ProcessAPICall(w http.ResponseWriter, r *http.Request, e
 
 	app.writeJSON(w, apiCall.StatusCode, apiCall.Response, nil)
 
-	//go apiCall.SaveLogs()
+	go apiCall.SaveLogs()
 
 }
 
@@ -239,7 +266,7 @@ func (app *application) ProcessAPICall(w http.ResponseWriter, r *http.Request, e
 // ------------------------------------------------------
 
 func (app *application) clearapilogs(w http.ResponseWriter, r *http.Request) {
-	//models.ClearLogs(app.DB)
+	//models.ClearLogs(app.LogDB) // TODO
 	app.sessionManager.Put(r.Context(), "flash", "Api logs has been cleared")
 
 	app.goBack(w, r, http.StatusSeeOther)

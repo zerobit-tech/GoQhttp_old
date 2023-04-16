@@ -60,3 +60,17 @@ func (app *application) SendEmail(r *models.EmailRequest) {
 		log.Fatal(err)
 	}
 }
+
+
+func (a *application)SendNotificationsToAdmins(r *models.EmailRequest){
+	emails := make([]string,0)
+	for _,u:= range a.users.List(){
+		if u.IsSuperUser {
+			emails = append(emails, u.Email)
+		}
+	}
+
+	r.To = emails
+
+	a.SendEmail(r)
+}

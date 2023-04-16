@@ -14,7 +14,7 @@ func (app *application) langingPage(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) appLangingPage() string {
-	return "/endpoints"
+	return "/sp"
 
 }
 func (app *application) helpPage(w http.ResponseWriter, r *http.Request) {

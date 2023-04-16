@@ -24,7 +24,7 @@ func getSessionManager(db *bolt.DB) *scs.SessionManager {
 
 	// 	sessionManager.Lifetime = 3 * time.Hour
 	// sessionManager.IdleTimeout = 20 * time.Minute
-	// sessionManager.Cookie.Name = "session_id"
+	sessionManager.Cookie.Name = "session_id_goqhttp"
 	// sessionManager.Cookie.Domain = "example.com"
 	// sessionManager.Cookie.HttpOnly = true
 	// sessionManager.Cookie.Path = "/example/"

@@ -8,32 +8,13 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/onlysumitg/GoQhttp/internal/validator"
+	"github.com/onlysumitg/GoQhttp/utils/timeutils"
 	bolt "go.etcd.io/bbolt"
 )
-
-// -----------------------------------------------------------------
-// -----------------------------------------------------------------
-// Define a new User type. Notice how the field names and types align
-// with the columns in the database "users" table?
-type StoredProcParamter struct {
-	Position           int
-	Mode               string // in out inout
-	Name               string
-	Datatype           string //todo list all avaialble data types
-	Scale              int
-	Precision          int
-	MaxLength          int
-	DefaultValue       sql.NullString
-	GlobalVariableName string
-	CreateStatement    string
-	DropStatement      string
-	GivenValue         string
-	OutValue           string
-	validForCall       bool `json:"-" db:"-" form:"-"`
-}
 
 type StoredProcResponse struct {
 	ReferenceId string
@@ -49,6 +30,8 @@ type StoredProc struct {
 
 	Name                string                     `json:"name" db:"name" form:"name"`
 	Lib                 string                     `json:"lib" db:"lib" form:"lib"`
+	SpecificName        string                     `json:"specificname" db:"specificname" form:"specificname"`
+	SpecificLib         string                     `json:"specificlib" db:"specificlib" form:"specificlib"`
 	UseSpecificName     bool                       `json:"usespecificname" db:"usespecificname" form:"usespecificname"`
 	CallStatement       string                     `json:"callstatement" db:"callstatement" form:"-"`
 	Parameters          []*StoredProcParamter      `json:"params" db:"params" form:"-"`
@@ -58,10 +41,11 @@ type StoredProc struct {
 }
 
 type PreparedCallStatements struct {
-	ResponseFormat      map[string]any
-	InOutParams         []any
-	InOutParamVariables map[string]*any
-	FinalCallStatement  string
+	ResponseFormat         map[string]any
+	InOutParams            []any
+	InOutParamVariables    map[string]*any
+	InOutParamMapToSPParam map[string]*StoredProcParamter
+	FinalCallStatement     string
 }
 
 // -----------------------------------------------------------------
@@ -70,8 +54,15 @@ type PreparedCallStatements struct {
 func (sp *StoredProc) PreapreToSave(s Server) error {
 	sp.Name = strings.ToUpper(strings.TrimSpace(sp.Name))
 	sp.Lib = strings.ToUpper(strings.TrimSpace(sp.Lib))
-	sp.GetParameters(s)
-	sp.GetResultSetCount(s)
+	err := sp.GetResultSetCount(s)
+	if err != nil {
+		return err
+	}
+
+	err = sp.GetParameters(s)
+	if err != nil {
+		return err
+	}
 
 	sp.buildCallStatement(true)
 
@@ -113,60 +104,69 @@ func (sp *StoredProc) buildCallStatement(useNamedParams bool) (err error) {
 
 }
 
-func (p *StoredProcParamter) GetDefaultValue() string {
-	if p.DefaultValue.Valid {
-		return p.DefaultValue.String
-	}
-	return ""
-}
-
 // -----------------------------------------------------------------
 //
 // -----------------------------------------------------------------
-func (sp *StoredProc) prepareCallStatement(givenParams map[string]any) *PreparedCallStatements {
+func (sp *StoredProc) prepareCallStatement(givenParams map[string]any) (*PreparedCallStatements, error) {
 	spResponseFormat := make(map[string]any)
 	inoutParams := make([]any, 0)
-	inoutParamVariables := make(map[string]*any, 0)
+	inoutParamVariables := make(map[string]*any)
+	inOutParamMapToSPParam := make(map[string]*StoredProcParamter)
+
 	finalCallStatement := sp.CallStatement
 
 	for _, p := range sp.Parameters {
 		switch p.Mode {
 		case "IN":
 			valueToUse, found := givenParams[p.Name]
-			if found {
-				finalCallStatement = strings.ReplaceAll(finalCallStatement, fmt.Sprintf("{:%s}", p.Name), valueToUse.(string))
-				p.GivenValue = valueToUse.(string)
+			if !found {
+				valueToUse = p.GetDefaultValue()
 			} else {
-				finalCallStatement = strings.ReplaceAll(finalCallStatement, fmt.Sprintf("{:%s}", p.Name), p.GetDefaultValue())
+				p.GivenValue = asString(valueToUse)
+
 			}
+			if !p.HasValidValue(valueToUse) {
+				return nil, fmt.Errorf("%s: invalid value", p.Name)
+			}
+			finalCallStatement = strings.ReplaceAll(finalCallStatement, fmt.Sprintf("{:%s}", p.Name), asString(valueToUse))
+
 		case "INOUT":
 			spResponseFormat[p.Name] = p.Datatype
-			var inout any
+
 			valueToUse, found := givenParams[p.Name]
-			if found {
-				inout = valueToUse
-				p.GivenValue = valueToUse.(string)
+			if !found {
+				valueToUse = p.GetDefaultValue()
 			} else {
-				inout = p.GetDefaultValue()
+				p.GivenValue = asString(valueToUse)
+
+			}
+			if !p.HasValidValue(valueToUse) {
+				return nil, fmt.Errorf("%s: invalid value", asString(valueToUse))
 			}
 
-			inoutParams = append(inoutParams, sql.Out{Dest: &inout, In: true})
-			inoutParamVariables[p.Name] = &inout
+			inoutParamVariables[p.Name] = &valueToUse
+
+			inoutParams = append(inoutParams, sql.Out{Dest: inoutParamVariables[p.Name], In: true})
+
+			inOutParamMapToSPParam[p.Name] = p
 
 		case "OUT":
 			spResponseFormat[p.Name] = p.Datatype
 			var out any
-			inoutParams = append(inoutParams, sql.Out{Dest: &out})
 			inoutParamVariables[p.Name] = &out
+			inoutParams = append(inoutParams, sql.Out{Dest: inoutParamVariables[p.Name]})
+			inOutParamMapToSPParam[p.Name] = p
+
 		}
 	}
 
 	return &PreparedCallStatements{
-		ResponseFormat:      spResponseFormat,
-		InOutParams:         inoutParams,
-		InOutParamVariables: inoutParamVariables,
-		FinalCallStatement:  finalCallStatement,
-	}
+		ResponseFormat:         spResponseFormat,
+		InOutParams:            inoutParams,
+		InOutParamVariables:    inoutParamVariables,
+		InOutParamMapToSPParam: inOutParamMapToSPParam,
+		FinalCallStatement:     finalCallStatement,
+	}, nil
 }
 
 // -----------------------------------------------------------------
@@ -186,15 +186,31 @@ func (sp *StoredProc) APICall(s Server, apiCall *ApiCall) {
 //
 // -----------------------------------------------------------------
 func (sp *StoredProc) Call(s Server, givenParams map[string]any) (*StoredProcResponse, error) {
-	preparedCallStatements := sp.prepareCallStatement(givenParams)
-
-	err := sp.SeversCall(s, preparedCallStatements, false)
+	preparedCallStatements, err := sp.prepareCallStatement(givenParams)
 	if err != nil {
-		return nil, err
+		return &StoredProcResponse{}, err
 	}
 
+	err = sp.SeversCall(s, preparedCallStatements, false)
+	if err != nil {
+		return &StoredProcResponse{}, err
+	}
+
+	// read INOUT and OUT parameter values
 	for k, v := range preparedCallStatements.InOutParamVariables {
-		preparedCallStatements.ResponseFormat[k] = v
+
+		p, found := preparedCallStatements.InOutParamMapToSPParam[k]
+		if found {
+			if p.IsString() {
+
+				preparedCallStatements.ResponseFormat[k] = string((*v).([]byte))
+
+			} else {
+				preparedCallStatements.ResponseFormat[k] = v
+
+			}
+
+		}
 	}
 
 	responseFormat := &StoredProcResponse{
@@ -211,9 +227,11 @@ func (sp *StoredProc) Call(s Server, givenParams map[string]any) (*StoredProcRes
 //
 // -----------------------------------------------------------------
 func (sp *StoredProc) DummyCall(s Server, givenParams map[string]any) (*StoredProcResponse, error) {
-	preparedCallStatements := sp.prepareCallStatement(givenParams)
-
-	err := sp.SeversCall(s, preparedCallStatements, true)
+	preparedCallStatements, err := sp.prepareCallStatement(givenParams)
+	if err != nil {
+		return nil, err
+	}
+	err = sp.SeversCall(s, preparedCallStatements, true)
 	if err != nil {
 		return nil, err
 	}
@@ -239,17 +257,24 @@ func (sp *StoredProc) DummyCall(s Server, givenParams map[string]any) (*StoredPr
 //
 // -----------------------------------------------------------------
 func (sp *StoredProc) SeversCall(s Server, preparedCallStatements *PreparedCallStatements, dummyCall bool) error {
+	defer timeutils.Duration(timeutils.Track("SeversCall"))
+
+	log.Printf("%v: %v\n", "SeversCall 1", time.Now())
 	db, err := s.GetConnection()
 	if err != nil {
 		return err
 	}
+	log.Printf("%v: %v\n", "SeversCall 2", time.Now())
 	resultsets := make(map[string][]map[string]any, 0)
 	ctx := context.WithValue(context.Background(), "go_ibm_db_ROW", resultsets)
 	ctx = context.WithValue(ctx, "go_ibm_db_DUMMY_CALL", dummyCall)
 	_, err = db.ExecContext(ctx, preparedCallStatements.FinalCallStatement, preparedCallStatements.InOutParams...)
+	log.Printf("%v: %v\n", "SeversCall 3", time.Now())
 	if err != nil {
 		return err
 	}
+
+	// assign result sets
 	preparedCallStatements.ResponseFormat["data"] = resultsets
 
 	return nil
@@ -262,19 +287,30 @@ func (sp *StoredProc) SeversCall(s Server, preparedCallStatements *PreparedCallS
 func (sp *StoredProc) GetResultSetCount(s Server) error {
 
 	resultSets := 0
+
 	sp.ResultSets = 0
 
-	sql := fmt.Sprintf("select RESULT_SETS from qsys2.sysprocs where SPECIFIC_NAME='%s'  and SPECIFIC_SCHEMA='%s'", strings.ToUpper(sp.Name), strings.ToUpper(sp.Lib))
+	sqlToRun := ""
+	if sp.UseSpecificName {
+		sqlToRun = fmt.Sprintf("select trim(SPECIFIC_SCHEMA), trim(SPECIFIC_NAME),trim(ROUTINE_SCHEMA),trim(ROUTINE_NAME), RESULT_SETS from qsys2.sysprocs where SPECIFIC_NAME='%s'  and SPECIFIC_SCHEMA='%s' limit 1", strings.ToUpper(sp.Name), strings.ToUpper(sp.Lib))
+	} else {
+		sqlToRun = fmt.Sprintf("select trim(SPECIFIC_SCHEMA), trim(SPECIFIC_NAME),trim(ROUTINE_SCHEMA),trim(ROUTINE_NAME), RESULT_SETS from qsys2.sysprocs where SPECIFIC_NAME='%s'  and SPECIFIC_SCHEMA='%s' limit 1", strings.ToUpper(sp.Name), strings.ToUpper(sp.Lib))
+
+	}
+
 	conn, err := s.GetConnection()
 
 	if err != nil {
 		return err
 	}
-	row := conn.QueryRow(sql)
+	row := conn.QueryRow(sqlToRun)
 
-	err = row.Scan(&resultSets)
+	err = row.Scan(&sp.SpecificLib, &sp.SpecificName, &sp.Lib, &sp.Name, &resultSets)
 
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return SpNotFound
+		}
 		return err
 
 	}
@@ -287,7 +323,9 @@ func (sp *StoredProc) GetResultSetCount(s Server) error {
 //
 // -----------------------------------------------------------------
 func (sp *StoredProc) GetParameters(s Server) error {
-	sql := fmt.Sprintf("SELECT ORDINAL_POSITION, upper(trim(PARAMETER_MODE)) , upper(trim(PARAMETER_NAME)),DATA_TYPE, ifnull(NUMERIC_SCALE,0), ifnull(NUMERIC_PRECISION,0), ifnull(CHARACTER_MAXIMUM_LENGTH,0),  default FROM qsys2.sysparms WHERE SPECIFIC_NAME='%s' and   SPECIFIC_SCHEMA ='%s' ORDER BY ORDINAL_POSITION", strings.ToUpper(sp.Name), strings.ToUpper(sp.Lib))
+
+	sql := fmt.Sprintf("SELECT ORDINAL_POSITION, upper(trim(PARAMETER_MODE)) , upper(trim(PARAMETER_NAME)),DATA_TYPE, ifnull(NUMERIC_SCALE,0), ifnull(NUMERIC_PRECISION,0), ifnull(CHARACTER_MAXIMUM_LENGTH,0),  default FROM qsys2.sysparms WHERE SPECIFIC_NAME='%s' and   SPECIFIC_SCHEMA ='%s' ORDER BY ORDINAL_POSITION", strings.ToUpper(sp.SpecificName), strings.ToUpper(sp.SpecificLib))
+
 	sp.Parameters = make([]*StoredProcParamter, 0)
 	conn, err := s.GetConnection()
 

@@ -219,6 +219,16 @@ func (app *application) SPAddPost(w http.ResponseWriter, r *http.Request) {
 
 	sP.CheckField(validator.NotBlank(sP.Name), "name", "This field cannot be blank")
 	sP.CheckField(validator.NotBlank(sP.Lib), "lib", "This field cannot be blank")
+
+	if sP.Valid() {
+		err = sP.PreapreToSave(*currentServer)
+
+		if err != nil {
+			sP.CheckField(false, "name", err.Error())
+		}
+
+	}
+
 	if !sP.Valid() {
 		data := app.newTemplateData(r)
 		data.Form = sP
@@ -234,7 +244,6 @@ func (app *application) SPAddPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sP.PreapreToSave(*currentServer)
 	id, err := app.storedProcs.Save(&sP)
 	if err != nil {
 		app.serverError500(w, r, err)
@@ -342,7 +351,7 @@ func (app *application) SPCall(w http.ResponseWriter, r *http.Request) {
 	_, err = sP.DummyCall(*currentServer, formToMap(r))
 	if err != nil {
 		app.sessionManager.Put(r.Context(), "error", fmt.Sprintf("Error call Stored proc: %s", err.Error()))
-		app.goBack(w, r, http.StatusBadRequest)
+		app.goBack(w, r, http.StatusSeeOther)
 		return
 	}
 

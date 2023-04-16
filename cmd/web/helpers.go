@@ -13,6 +13,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/form/v4"
+	"github.com/onlysumitg/GoQhttp/internal/models"
 )
 
 // -----------------------------------------------------------------
@@ -58,7 +59,7 @@ type envelope map[string]interface{}
 // header map containing any additional HTTP headers we want to include in the response.
 func (app *application) writeJSON(w http.ResponseWriter, status int, data interface{}, headers http.Header) error {
 	// Encode the data to JSON, returning the error if there was one.
-	js, err := json.Marshal(data)
+	js, err := json.MarshalIndent(data," ","  ")
 	if err != nil {
 		return err
 	}
@@ -76,6 +77,29 @@ func (app *application) writeJSON(w http.ResponseWriter, status int, data interf
 	// JSON response.
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
+	w.Write(js)
+	return nil
+}
+
+// -----------------------------------------------------------------
+//
+// -----------------------------------------------------------------
+
+func (app *application) writeJSONAPI(w http.ResponseWriter, data *models.StoredProcResponse, headers http.Header) error {
+	// Encode the data to JSON, returning the error if there was one.
+	js, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+	// Append a newline to make it easier to view in terminal applications.
+	js = append(js, '\n')
+
+	for key, value := range headers {
+		w.Header()[key] = value
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(data.Status)
 	w.Write(js)
 	return nil
 }
@@ -181,16 +205,12 @@ func (app *application) UnauthorizedErrorJSON(w http.ResponseWriter, r *http.Req
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusUnauthorized)
 
-	 
-
 }
 
 func (app *application) ErrorJSON(w http.ResponseWriter, r *http.Request, code int) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(code)
-
-	 
 
 }
 

@@ -36,7 +36,7 @@ func main() {
 	//--------------------------------------- Setup CLI paramters ----------------------------
 	var params parameters
 	flag.StringVar(&params.host, "host", "", "Http Host Name")
-	flag.IntVar(&params.port, "port", 4041, "Port")
+	flag.IntVar(&params.port, "port", 4081, "Port")
 
 	flag.StringVar(&params.superuseremail, "superuseremail", "admin2@example.com", "Super User email")
 	flag.StringVar(&params.superuserpwd, "superuserpwd", "adminpass", "Super User password")
@@ -69,8 +69,21 @@ func main() {
 	}
 	defer db.Close()
 
+	// --------------------------------------- Setup database ----------------------------
+	userdb, err := bolt.Open("db/user.db", 0600, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer userdb.Close()
+	// --------------------------------------- Setup database ----------------------------
+	logdb, err := bolt.Open("db/log.db", 0600, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer logdb.Close()
+
 	// --------------------------------------- Setup app config and dependency injection ----------------------------
-	app := baseAppConfig(params, db)
+	app := baseAppConfig(params, db, userdb, logdb)
 	routes := app.routes()
 	app.batches()
 

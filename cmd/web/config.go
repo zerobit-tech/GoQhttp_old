@@ -24,7 +24,8 @@ type application struct {
 	infoLog  *log.Logger
 
 	DB *bolt.DB
-
+	LogDB *bolt.DB
+	UserDB *bolt.DB
 	EmailServer *mail.SMTPServer
 
 	templateCache map[string]*template.Template
@@ -53,7 +54,7 @@ type application struct {
 	rbac *rbac.RBAC
 }
 
-func baseAppConfig(params parameters, db *bolt.DB) *application {
+func baseAppConfig(params parameters, db *bolt.DB, userdb *bolt.DB, logdb *bolt.DB) *application {
 
 	//--------------------------------------- Setup loggers ----------------------------
 	infoLog := log.New(os.Stderr, "INFO\t", log.Ldate|log.Ltime)
@@ -75,11 +76,13 @@ func baseAppConfig(params parameters, db *bolt.DB) *application {
 		templateCache: templateCache,
 
 		DB:          db,
+		LogDB: logdb,
+		UserDB: userdb,
 		EmailServer: models.SetupMailServer(),
 
 		sessionManager: getSessionManager(db),
 		formDecoder:    formDecoder,
-		users:          &models.UserModel{DB: db},
+		users:          &models.UserModel{DB: userdb},
 
 		hostURL: hostUrl,
 

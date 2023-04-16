@@ -1,10 +1,15 @@
 package main
 
 import (
+	"bytes"
 	"context"
+	"fmt"
 	"log"
 	"net/http"
+	"net/http/httptest"
+	"net/http/httputil"
 
+	"github.com/go-chi/chi/v5/middleware"
 	"github.com/justinas/nosurf" // New import
 	"github.com/onlysumitg/GoQhttp/internal/models"
 )
@@ -58,6 +63,7 @@ func (app *application) RedirectToHTTPS(next http.Handler) http.Handler {
 // ------------------------------------------------------
 func (app *application) RequireTokenAuthentication(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		response := &models.StoredProcResponse{}
 
 		token := r.Header.Get("Authorization")
 		if token == "" {
@@ -66,13 +72,18 @@ func (app *application) RequireTokenAuthentication(next http.Handler) http.Handl
 		}
 
 		if token == "" {
-			app.UnauthorizedErrorJSON(w, r)
+			response.Status = http.StatusUnauthorized
+			response.Message = http.StatusText(http.StatusUnauthorized)
+			app.writeJSONAPI(w, response, nil)
 			return
+
 		}
 
 		user, err := app.users.GetByToken(token)
 		if err != nil {
-			app.UnauthorizedErrorJSON(w, r)
+			response.Status = http.StatusUnauthorized
+			response.Message = http.StatusText(http.StatusUnauthorized)
+			app.writeJSONAPI(w, response, nil)
 			return
 		}
 
@@ -83,5 +94,72 @@ func (app *application) RequireTokenAuthentication(next http.Handler) http.Handl
 		w.Header().Add("Cache-Control", "no-store")
 		// And call the next handler in the chain.
 		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+//	------------------------------------------------------
+//
+// ------------------------------------------------------
+func (app *application) LogHandler(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		requestId := middleware.GetReqID(r.Context())
+
+		requestBody := ""
+		x, err := httputil.DumpRequest(r, true)
+		if err == nil {
+			requestBody = string(x)
+		} else {
+			requestBody = "Error :" + err.Error()
+		}
+		go func() {
+
+			buf := bytes.NewBufferString("")
+
+			models.RequestLog.SetOutput(buf)
+			models.RequestLog.Println("\n\n" + requestBody)
+
+			models.SaveLogs(app.LogDB, 998, requestId, buf.String())
+		}()
+
+		rec := httptest.NewRecorder()
+
+		next.ServeHTTP(rec, r)
+
+		// After processing ==> log response
+		responseBody := ""
+		y, err := httputil.DumpResponse(rec.Result(), true)
+		if err == nil {
+
+			responseBody = string(y)
+			go func() {
+
+				buf := bytes.NewBufferString("")
+
+				models.ResponseLog.SetOutput(buf)
+				models.ResponseLog.Println("\n\n" + responseBody)
+
+				models.SaveLogs(app.LogDB, 999, requestId, buf.String())
+			}()
+		}
+
+		// this copies the recorded response to the response writer
+		for k, v := range rec.Header() {
+			w.Header()[k] = v
+		}
+		w.WriteHeader(rec.Code)
+		rec.Body.WriteTo(w)
+
+		if rec.Code >= 400 {
+			go func() {
+				email := &models.EmailRequest{
+					Subject:  fmt.Sprintf("%d %s", rec.Code, requestId),
+					Body:     fmt.Sprintf("<h3>Request</h3><br><pre>%s</pre><br><br><br><br><h3>Response</h3><br><pre>%s</pre>", requestBody, responseBody),
+					Template: "",
+					Data:     nil,
+				}
+
+				app.SendNotificationsToAdmins(email)
+			}()
+		}
 	})
 }

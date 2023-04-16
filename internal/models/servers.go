@@ -49,7 +49,7 @@ func (s Server) GetConnectionString() string {
 	if s.Ssl {
 		ssl = 1
 	}
-	connectionString := fmt.Sprintf("DRIVER=%s;SYSTEM=%s; UID=%s;PWD=%s;DBQ=*USRLIBL;UNICODESQL=1;XDYNAMIC=1;EXTCOLINFO=1;PKG=A/GOQHTTP,2,0,0,1,512;PROTOCOL=TCPIP;NAM=1;CMT=0;SSL=%d;ALLOWUNSCHAR=1", driver, s.IP, s.UserName, s.Password, ssl)
+	connectionString := fmt.Sprintf("DRIVER=%s;SYSTEM=%s; UID=%s;PWD=%s;DBQ=*USRLIBL;UNICODESQL=1;XDYNAMIC=1;EXTCOLINFO=1;PKG=A/DJANGO,2,0,0,1,512;PROTOCOL=TCPIP;NAM=1;CMT=0;SSL=%d;ALLOWUNSCHAR=1", driver, s.IP, s.UserName, s.Password, ssl)
 	return connectionString
 }
 
@@ -88,6 +88,11 @@ func (s Server) GetSinglaConnection() (*sql.DB, error) {
 
 	return database.GetSingleConnection(s)
 }
+
+// ------------------------------------------------------------
+//
+// ------------------------------------------------------------
+ 
 
 // -----------------------------------------------------------------
 //
