@@ -5,11 +5,11 @@ import (
 )
 
 func (app *application) langingPage(w http.ResponseWriter, r *http.Request) {
-	//http.Redirect(w, r, "/endpoints", http.StatusSeeOther)
+	http.Redirect(w, r, "/sp", http.StatusSeeOther)
 
-	data := app.newTemplateData(r)
+	// data := app.newTemplateData(r)
 
-	app.render(w, r, http.StatusOK, "public_index.tmpl", data)
+	// app.render(w, r, http.StatusOK, "public_index.tmpl", data)
 
 }
 
