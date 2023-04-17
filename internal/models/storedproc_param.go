@@ -35,7 +35,7 @@ type StoredProcParamter struct {
 // -----------------------------------------------------------------
 //
 // -----------------------------------------------------------------
-func (p *StoredProcParamter) GetDefaultValue() string {
+func (p *StoredProcParamter) GetDefaultValueX() string {
 	if p.DefaultValue.Valid {
 		d := strings.ReplaceAll(p.DefaultValue.String, " ", "")
 		if d == "''" {
@@ -45,6 +45,25 @@ func (p *StoredProcParamter) GetDefaultValue() string {
 		return p.DefaultValue.String
 	}
 	return ""
+}
+
+// -----------------------------------------------------------------
+//
+// -----------------------------------------------------------------
+func (p *StoredProcParamter) GetDefaultValue() []byte {
+	if p.DefaultValue.Valid {
+
+		if go_ibm_db.IsSepecialRegister(p.DefaultValue.String) {
+			return go_ibm_db.GetSepecialValue(p.DefaultValue.String, nil)
+		}
+		d := strings.ReplaceAll(p.DefaultValue.String, " ", "")
+		if d == "''" {
+			return nil
+		}
+
+		return []byte(p.DefaultValue.String)
+	}
+	return nil
 }
 
 // -----------------------------------------------------------------
@@ -74,8 +93,18 @@ func (p *StoredProcParamter) IsInt() bool {
 // -----------------------------------------------------------------
 //
 // -----------------------------------------------------------------
+func (p *StoredProcParamter) NeedQuote(value string) bool {
+	if go_ibm_db.IsSepecialRegister(value) {
+		return false
+	}
+	return true
+}
+
+// -----------------------------------------------------------------
+//
+// -----------------------------------------------------------------
 func (p *StoredProcParamter) HasValidValue(val any) bool {
- 
+
 	if p.IsInt() {
 		return stringutils.IsNumericWithOutDecimal(asString(val))
 	}

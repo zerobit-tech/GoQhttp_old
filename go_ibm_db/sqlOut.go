@@ -71,7 +71,10 @@ func newOut(hstmt api.SQLHSTMT, sqlOut *sql.Out, idx int) (*Out, error) {
 			s16 := api.StringToUTF16(d)
 			b := api.ExtractUTF16Str(s16)
 			data = make([]byte, (parameterSize*2)+2)
-			if len(b) > len(data) {
+
+			IsSepecialRegister:= IsSepecialRegister(asString(dv))
+
+			if !IsSepecialRegister && len(b) > len(data) {
 				return nil,
 					fmt.Errorf("At param. index %d INOUT string size is greater than the allocated OUT buffer size", idx+1)
 			}

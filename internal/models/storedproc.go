@@ -128,14 +128,22 @@ func (sp *StoredProc) prepareCallStatement(givenParams map[string]any) (*Prepare
 			if !p.HasValidValue(valueToUse) {
 				return nil, fmt.Errorf("%s: invalid value", p.Name)
 			}
-			finalCallStatement = strings.ReplaceAll(finalCallStatement, fmt.Sprintf("{:%s}", p.Name), asString(valueToUse))
+
+			stringToReplace := ""
+			if p.NeedQuote(asString(valueToUse)) {
+				stringToReplace = fmt.Sprintf("{:%s}", p.Name)
+			} else {
+				stringToReplace = fmt.Sprintf("'{:%s}'", p.Name)
+			}
+
+			finalCallStatement = strings.ReplaceAll(finalCallStatement, stringToReplace, asString(valueToUse))
 
 		case "INOUT":
 			spResponseFormat[p.Name] = p.Datatype
 
 			valueToUse, found := givenParams[p.Name]
 			if !found {
-				valueToUse = p.GetDefaultValue()
+				valueToUse = []byte(p.GetDefaultValue())
 			} else {
 				p.GivenValue = asString(valueToUse)
 
