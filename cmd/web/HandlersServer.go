@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -73,17 +72,18 @@ func (app *application) ServerHandlers(router *chi.Mux) {
 		r.Use(app.RequireAuthentication)
 		r.Get("/", app.ServerList)
 		r.Get("/{serverid}", app.ServerView)
-
-		r.Get("/add", app.ServerAdd)
-		r.Post("/add", app.ServerAddPost)
-
-		r.Get("/update/{serverid}", app.ServerUpdate)
-		r.Post("/update", app.ServerUpdatePost)
-
 		r.Get("/select/{serverid}", app.ServerSelect)
 
-		r.Get("/delete/{serverid}", app.ServerDelete)
-		r.Post("/delete", app.ServerDeleteConfirm)
+		superadmingroup := r.Group(nil)
+		superadmingroup.Use(app.RequireSuperAdmin)
+		superadmingroup.Get("/add", app.ServerAdd)
+		superadmingroup.Post("/add", app.ServerAddPost)
+
+		superadmingroup.Get("/update/{serverid}", app.ServerUpdate)
+		superadmingroup.Post("/update", app.ServerUpdatePost)
+
+		superadmingroup.Get("/delete/{serverid}", app.ServerDelete)
+		superadmingroup.Post("/delete", app.ServerDeleteConfirm)
 
 	})
 
@@ -142,7 +142,7 @@ func (app *application) ServerView(w http.ResponseWriter, r *http.Request) {
 	data := app.newTemplateData(r)
 
 	serverID := chi.URLParam(r, "serverid")
-	log.Println("serverID >>>", serverID)
+	//log.Println("serverID >>>", serverID)
 	server, err := app.servers.Get(serverID)
 	if err != nil {
 		app.serverError500(w, r, err)
@@ -191,7 +191,7 @@ func (app *application) ServerDeleteConfirm(w http.ResponseWriter, r *http.Reque
 	err = app.servers.Delete(serverID)
 	if err != nil {
 
-		log.Println("ServerDeleteConfirm  002 >>>>>>", err.Error())
+		//log.Println("ServerDeleteConfirm  002 >>>>>>", err.Error())
 		app.sessionManager.Put(r.Context(), "error", fmt.Sprintf("Error deleting server: %s", err.Error()))
 		app.goBack(w, r, http.StatusBadRequest)
 		return
@@ -210,7 +210,10 @@ func (app *application) ServerAdd(w http.ResponseWriter, r *http.Request) {
 
 	// set form initial values
 	data.Form = models.Server{
-		Connections: 10,
+		ConnectionsOpen:   20,
+		ConnectionsIdle:   10,
+		ConnectionMaxAge:  20,
+		ConnectionIdleAge: 20,
 	}
 	app.render(w, r, http.StatusOK, "server_add.tmpl", data)
 
@@ -258,7 +261,7 @@ func (app *application) ServerAddPost(w http.ResponseWriter, r *http.Request) {
 	server.CheckField(validator.NotBlank(server.IP), "ip", "This field cannot be blank")
 	server.CheckField(validator.NotBlank(server.UserName), "user_name", "This field cannot be blank")
 	server.CheckField(validator.NotBlank(server.Password), "password", "This field cannot be blank")
-	server.CheckField(validator.NotBlank(server.WorkLib), "worklib", "This field cannot be blank")
+	//server.CheckField(validator.NotBlank(server.WorkLib), "worklib", "This field cannot be blank")
 
 	// Use the Valid() method to see if any of the checks failed. If they did,
 	// then re-render the template passing in the form in the same way as
@@ -350,7 +353,7 @@ func (app *application) ServerUpdatePost(w http.ResponseWriter, r *http.Request)
 	server.CheckField(validator.NotBlank(server.IP), "ip", "This field cannot be blank")
 	server.CheckField(validator.NotBlank(server.UserName), "user_name", "This field cannot be blank")
 	server.CheckField(validator.NotBlank(server.Password), "password", "This field cannot be blank")
-	server.CheckField(validator.NotBlank(server.WorkLib), "worklib", "This field cannot be blank")
+	//server.CheckField(validator.NotBlank(server.WorkLib), "worklib", "This field cannot be blank")
 
 	// Use the Valid() method to see if any of the checks failed. If they did,
 	// then re-render the template passing in the form in the same way as

@@ -37,8 +37,13 @@ type templateData struct {
 
 	Server  *models.Server
 	Servers []*models.Server
-	StoredProcs  []*models.StoredProc
-	StoredProc   *models.StoredProc
+
+	CurrentServer *models.Server
+
+	StoredProcs         []*models.StoredProc
+	StoredProc          *models.StoredProc
+	SPCallLog           *models.SPCallLog
+	
 	ComparisonOperators []string
 
 	LogEntries []string
@@ -105,6 +110,12 @@ func (app *application) setTemplateDefaults(r *http.Request, templateData *templ
 	templateData.Flash = app.sessionManager.PopString(r.Context(), "flash")
 	templateData.Warning = app.sessionManager.PopString(r.Context(), "warning")
 	templateData.Error = app.sessionManager.PopString(r.Context(), "error")
+	currentServerID := app.sessionManager.GetString(r.Context(), "currentserver")
+
+	currentServer, err := app.servers.Get(currentServerID)
+	if err == nil {
+		templateData.CurrentServer = currentServer
+	}
 
 }
 
@@ -207,7 +218,7 @@ func yesNo(s bool) string {
 
 	return "No"
 }
-
+ 
 // -----------------------------------------------------------------
 //
 // -----------------------------------------------------------------

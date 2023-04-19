@@ -1,1 +1,1 @@
-web: ./bin/gomockapi  --testmode --redirecttohttps --domain="gomockapi.herokuapp.com"
+web: ./bin/goqhttp  --testmode --redirecttohttps --domain="goqhttp.herokuapp.com"

@@ -8,8 +8,10 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/http/httputil"
+	"sync/atomic"
 
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/google/uuid"
 	"github.com/justinas/nosurf" // New import
 	"github.com/onlysumitg/GoQhttp/internal/models"
 )
@@ -40,11 +42,11 @@ const (
 func (app *application) RedirectToHTTPS(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		//host, _, _ := net.SplitHostPort(r.Host)
-		u := r.URL
-		log.Println("starte", u.String(), "::", r.URL.Scheme, r.TLS, r.Host, r.RequestURI, "::", r.Header.Get(xForwardedProtoHeader))
+		//u := r.URL
+		//log.Println("starte", u.String(), "::", r.URL.Scheme, r.TLS, r.Host, r.RequestURI, "::", r.Header.Get(xForwardedProtoHeader))
 		if r.Header.Get(xForwardedProtoHeader) != "https" {
 
-			log.Println(":::::::: REDIRECTING :::::::::")
+			//log.Println(":::::::: REDIRECTING :::::::::")
 			sslUrl := "https://" + r.Host + r.RequestURI
 			http.Redirect(w, r, sslUrl, http.StatusMovedPermanently)
 			return
@@ -63,7 +65,7 @@ func (app *application) RedirectToHTTPS(next http.Handler) http.Handler {
 // ------------------------------------------------------
 func (app *application) RequireTokenAuthentication(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		response := &models.StoredProcResponse{}
+		response := &models.StoredProcResponse{ReferenceId: middleware.GetReqID(r.Context())}
 
 		token := r.Header.Get("Authorization")
 		if token == "" {
@@ -104,6 +106,7 @@ func (app *application) LogHandler(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		requestId := middleware.GetReqID(r.Context())
 
+		
 		requestBody := ""
 		x, err := httputil.DumpRequest(r, true)
 		if err == nil {
@@ -112,6 +115,7 @@ func (app *application) LogHandler(next http.Handler) http.Handler {
 			requestBody = "Error :" + err.Error()
 		}
 		go func() {
+
 
 			buf := bytes.NewBufferString("")
 
@@ -162,4 +166,21 @@ func (app *application) LogHandler(next http.Handler) http.Handler {
 			}()
 		}
 	})
+}
+
+var reqid uint64
+var prefix string = uuid.NewString()
+
+func RequestID(next http.Handler) http.Handler {
+	fn := func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+		requestID := r.Header.Get(middleware.RequestIDHeader)
+		if requestID == "" {
+			myid := atomic.AddUint64(&reqid, 1)
+			requestID = fmt.Sprintf("%s-%06d", prefix, myid)
+		}
+		ctx = context.WithValue(ctx, middleware.RequestIDKey, requestID)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	}
+	return http.HandlerFunc(fn)
 }

@@ -17,15 +17,14 @@ import (
 type application struct {
 	endPointMutex        sync.Mutex
 	invalidEndPointCache bool
-	endPointCache map[string]*models.StoredProc
-
+	endPointCache        map[string]*models.StoredProc
 
 	errorLog *log.Logger
 	infoLog  *log.Logger
 
-	DB *bolt.DB
-	LogDB *bolt.DB
-	UserDB *bolt.DB
+	DB          *bolt.DB
+	LogDB       *bolt.DB
+	UserDB      *bolt.DB
 	EmailServer *mail.SMTPServer
 
 	templateCache map[string]*template.Template
@@ -37,8 +36,9 @@ type application struct {
 	sessionManager *scs.SessionManager
 	users          *models.UserModel
 
-	servers *models.ServerModel
-	storedProcs      *models.StoredProcModel
+	servers        *models.ServerModel
+	storedProcs    *models.StoredProcModel
+	spCallLogModel *models.SPCallLogModel
 
 	InProduction bool
 	hostURL      string
@@ -76,8 +76,8 @@ func baseAppConfig(params parameters, db *bolt.DB, userdb *bolt.DB, logdb *bolt.
 		templateCache: templateCache,
 
 		DB:          db,
-		LogDB: logdb,
-		UserDB: userdb,
+		LogDB:       logdb,
+		UserDB:      userdb,
 		EmailServer: models.SetupMailServer(),
 
 		sessionManager: getSessionManager(db),
@@ -86,10 +86,11 @@ func baseAppConfig(params parameters, db *bolt.DB, userdb *bolt.DB, logdb *bolt.
 
 		hostURL: hostUrl,
 
-		rbac:    rbac.GetRbac(db),
-		servers: &models.ServerModel{DB: db},
+		rbac:        rbac.GetRbac(db),
+		servers:     &models.ServerModel{DB: db},
 		storedProcs: &models.StoredProcModel{DB: db},
 
+		spCallLogModel:             &models.SPCallLogModel{DB: logdb},
 		useHttps:                   params.https,
 		maxAllowedEndPoints:        -1,
 		maxAllowedEndPointsPerUser: -1,
@@ -105,7 +106,7 @@ func baseAppConfig(params parameters, db *bolt.DB, userdb *bolt.DB, logdb *bolt.
 
 	}
 
-	app.CreateHttpPathPermissions()
+	//app.CreateHttpPathPermissions()
 	return app
 
 }

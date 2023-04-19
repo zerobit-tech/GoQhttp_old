@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"strings"
 
@@ -27,6 +26,7 @@ func (app *application) StoredProcHandlers(router *chi.Mux) {
 		r.Post("/add", app.SPAddPost)
 
 		r.Get("/update/{spId}", app.SPUpdate)
+		r.Post("/update/{spId}", app.SPAddPost)
 
 		r.Get("/delete/{spId}", app.SPDelete)
 		r.Post("/delete", app.SPDeleteConfirm)
@@ -35,6 +35,10 @@ func (app *application) StoredProcHandlers(router *chi.Mux) {
 		r.Get("/run", app.SPRun)
 
 		r.Post("/build", app.SPBuild)
+		r.Get("/refresh/{spId}", app.SpRefresh)
+
+		r.Post("/assignserver", app.AssignServer)
+		r.Post("/deleteassignserver", app.RemoveAssignServer)
 
 	})
 
@@ -169,7 +173,39 @@ func (app *application) SPRunAsJson(w http.ResponseWriter, r *http.Request) {
 func (app *application) SPAdd(w http.ResponseWriter, r *http.Request) {
 	data := app.newTemplateData(r)
 	data.Form = models.StoredProc{}
+	data.Servers = app.servers.List()
 	app.render(w, r, http.StatusOK, "sp_add.tmpl", data)
+
+}
+
+// ------------------------------------------------------
+// Server details
+// ------------------------------------------------------
+func (app *application) SpRefresh(w http.ResponseWriter, r *http.Request) {
+	currentServerID := app.sessionManager.GetString(r.Context(), "currentserver")
+	currentServer, err := app.servers.Get(currentServerID)
+	if err != nil {
+		app.errorResponse(w, r, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	spId := chi.URLParam(r, "spId")
+
+	sP, err := app.storedProcs.Get(spId)
+	if err != nil {
+		app.serverError500(w, r, err)
+		return
+	}
+	err = sP.PreapreToSave(*currentServer)
+	if err == nil {
+		app.storedProcs.Save(sP)
+		app.sessionManager.Put(r.Context(), "flash", "Done")
+	} else {
+		app.sessionManager.Put(r.Context(), "error", err.Error())
+
+	}
+
+	app.goBack(w, r, http.StatusSeeOther)
 
 }
 
@@ -180,13 +216,15 @@ func (app *application) SPView(w http.ResponseWriter, r *http.Request) {
 	data := app.newTemplateData(r)
 
 	spId := chi.URLParam(r, "spId")
-	log.Println("spId >>>", spId, data.CSRFToken)
+
 	sP, err := app.storedProcs.Get(spId)
 	if err != nil {
 		app.serverError500(w, r, err)
 		return
 	}
 	data.StoredProc = sP
+	data.Servers = app.servers.List()
+	data.SPCallLog, _ = app.spCallLogModel.Get(sP.ID)
 	app.render(w, r, http.StatusOK, "sp_view.tmpl", data)
 
 }
@@ -220,6 +258,24 @@ func (app *application) SPAddPost(w http.ResponseWriter, r *http.Request) {
 	sP.CheckField(validator.NotBlank(sP.Name), "name", "This field cannot be blank")
 	sP.CheckField(validator.NotBlank(sP.Lib), "lib", "This field cannot be blank")
 
+	// assign default server
+	if sP.DefaultServerId != "" {
+		server, err := app.servers.Get(sP.DefaultServerId)
+		if err != nil {
+			sP.CheckField(false, "serverid", "Server not found")
+		} else {
+			srcd := &models.ServerRecord{ID: server.ID, Name: server.Name}
+			sP.DefaultServer = srcd
+			sP.AddAllowedServer(server)
+		}
+	} else {
+
+		srcd := &models.ServerRecord{ID: currentServer.ID, Name: currentServer.Name}
+		sP.DefaultServer = srcd
+		sP.AddAllowedServer(currentServer)
+	}
+
+	// Check SP details from iBMI
 	if sP.Valid() {
 		err = sP.PreapreToSave(*currentServer)
 
@@ -233,14 +289,9 @@ func (app *application) SPAddPost(w http.ResponseWriter, r *http.Request) {
 		data := app.newTemplateData(r)
 		data.Form = sP
 		app.sessionManager.Put(r.Context(), "error", "Please fix error(s) and resubmit")
+		data.Servers = app.servers.List()
 
 		app.render(w, r, http.StatusUnprocessableEntity, "sp_add.tmpl", data)
-		return
-	}
-
-	_, err = app.storedProcs.Save(&sP)
-	if err != nil {
-		app.serverError500(w, r, err)
 		return
 	}
 
@@ -249,8 +300,8 @@ func (app *application) SPAddPost(w http.ResponseWriter, r *http.Request) {
 		app.serverError500(w, r, err)
 		return
 	}
-	fmt.Println("id", id)
-	app.sessionManager.Put(r.Context(), "flash", fmt.Sprintf("SP %s added sucessfully", sP.Name))
+	app.invalidateEndPointCache()
+	app.sessionManager.Put(r.Context(), "flash", fmt.Sprintf("Endpoint %s added sucessfully", sP.Name))
 
 	//http.Redirect(w, r, fmt.Sprintf("/savesql/%s", id), http.StatusSeeOther)
 	http.Redirect(w, r, fmt.Sprintf("/sp/%s", id), http.StatusSeeOther)
@@ -266,7 +317,7 @@ func (app *application) SPDelete(w http.ResponseWriter, r *http.Request) {
 
 	sP, err := app.storedProcs.Get(spId)
 	if err != nil {
-		app.sessionManager.Put(r.Context(), "error", fmt.Sprintf("Error deleting query: %s", err.Error()))
+		app.sessionManager.Put(r.Context(), "error", fmt.Sprintf("Error: %s", err.Error()))
 		app.goBack(w, r, http.StatusSeeOther)
 		return
 	}
@@ -291,11 +342,12 @@ func (app *application) SPDeleteConfirm(w http.ResponseWriter, r *http.Request) 
 	}
 
 	spId := r.PostForm.Get("spId")
+	app.invalidateEndPointCache()
 
 	err = app.storedProcs.Delete(spId)
 	if err != nil {
 
-		app.sessionManager.Put(r.Context(), "error", fmt.Sprintf("Error deleting query: %s", err.Error()))
+		app.sessionManager.Put(r.Context(), "error", fmt.Sprintf("Delete error: %s", err.Error()))
 		app.goBack(w, r, http.StatusBadRequest)
 		return
 	}
@@ -314,7 +366,7 @@ func (app *application) SPUpdate(w http.ResponseWriter, r *http.Request) {
 
 	sP, err := app.storedProcs.Get(spId)
 	if err != nil {
-		app.sessionManager.Put(r.Context(), "error", fmt.Sprintf("Error updating server: %s", err.Error()))
+		app.sessionManager.Put(r.Context(), "error", fmt.Sprintf("Update error: %s", err.Error()))
 		app.goBack(w, r, http.StatusBadRequest)
 		return
 	}
@@ -322,13 +374,14 @@ func (app *application) SPUpdate(w http.ResponseWriter, r *http.Request) {
 	data := app.newTemplateData(r)
 
 	data.Form = sP
+	data.Servers = app.servers.List()
 
 	app.render(w, r, http.StatusOK, "sp_add.tmpl", data)
 
 }
 
 // ------------------------------------------------------
-// Server details
+//
 // ------------------------------------------------------
 func (app *application) SPCall(w http.ResponseWriter, r *http.Request) {
 
@@ -360,6 +413,9 @@ func (app *application) SPCall(w http.ResponseWriter, r *http.Request) {
 
 }
 
+// ------------------------------------------------------
+//
+// ------------------------------------------------------
 func formToMap(r *http.Request) map[string]any {
 	formMap := make(map[string]any)
 	err := r.ParseForm()
@@ -374,4 +430,83 @@ func formToMap(r *http.Request) map[string]any {
 
 	return formMap
 
+}
+
+// ------------------------------------------------------
+//
+// ------------------------------------------------------
+func (app *application) AssignServer(w http.ResponseWriter, r *http.Request) {
+
+	err := r.ParseForm()
+	if err != nil {
+		app.sessionManager.Put(r.Context(), "error", fmt.Sprintf("Error processing form %s", err.Error()))
+		app.goBack(w, r, http.StatusSeeOther)
+		return
+	}
+
+	spId := r.Form.Get("spid")
+
+	sP, err := app.storedProcs.Get(spId)
+	if err != nil {
+		app.sessionManager.Put(r.Context(), "error", fmt.Sprintf("Endpoint not found: %s", err.Error()))
+		app.goBack(w, r, http.StatusSeeOther)
+		return
+	}
+
+	serverid := r.Form.Get("serverid")
+	server, err := app.servers.Get(serverid)
+	if err != nil {
+		app.sessionManager.Put(r.Context(), "error", fmt.Sprintf("Server not found %s", serverid))
+		app.goBack(w, r, http.StatusSeeOther)
+		return
+	}
+	sP.AddAllowedServer(server)
+	app.storedProcs.Save(sP)
+	app.invalidateEndPointCache()
+
+	app.sessionManager.Put(r.Context(), "flase", "Done")
+	app.goBack(w, r, http.StatusSeeOther)
+}
+
+// ------------------------------------------------------
+//
+// ------------------------------------------------------
+func (app *application) RemoveAssignServer(w http.ResponseWriter, r *http.Request) {
+
+	err := r.ParseForm()
+	if err != nil {
+		app.sessionManager.Put(r.Context(), "error", fmt.Sprintf("Error processing form %s", err.Error()))
+		app.goBack(w, r, http.StatusSeeOther)
+		return
+	}
+
+	spId := r.Form.Get("spid")
+
+	sP, err := app.storedProcs.Get(spId)
+	if err != nil {
+		app.sessionManager.Put(r.Context(), "error", fmt.Sprintf("Endpoint not found: %s", err.Error()))
+		app.goBack(w, r, http.StatusSeeOther)
+		return
+	}
+
+	serverid := r.Form.Get("serverid")
+	server, err := app.servers.Get(serverid)
+	if err != nil {
+		app.sessionManager.Put(r.Context(), "error", fmt.Sprintf("Server not found %s", serverid))
+		app.goBack(w, r, http.StatusSeeOther)
+		return
+	}
+	if server.ID == sP.DefaultServer.ID {
+		app.sessionManager.Put(r.Context(), "error", "Can not remove default server")
+		app.goBack(w, r, http.StatusSeeOther)
+		return
+	}
+
+	sP.DeleteAllowedServer(server)
+
+	app.storedProcs.Save(sP)
+	app.invalidateEndPointCache()
+
+	app.sessionManager.Put(r.Context(), "flase", "Done")
+	app.goBack(w, r, http.StatusSeeOther)
 }

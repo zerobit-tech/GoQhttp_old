@@ -24,10 +24,12 @@ package main
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
+	"github.com/onlysumitg/GoQhttp/env"
 	"github.com/onlysumitg/GoQhttp/ui" // New import
 )
 
@@ -44,10 +46,10 @@ func addMiddleWares(app *application, router *chi.Mux) {
 	router.Use(app.sessionManager.LoadAndSave)
 
 	// A good base middleware stack : inbuilt in chi
-	router.Use(middleware.RequestID)
+	router.Use(RequestID) //(middleware.RequestID)
 	router.Use(middleware.RealIP)
 	router.Use(middleware.Logger)
-	router.Use(middleware.Recoverer)
+	//router.Use(middleware.Recoverer)
 	router.Use(middleware.SetHeader("X-Frame-Options", "DENY"))
 
 	router.Use(middleware.Heartbeat("/ping"))
@@ -82,12 +84,17 @@ func addStaticFiles(router *chi.Mux) {
 //
 // -----------------------------------------------------------------
 func (app *application) routes() *chi.Mux {
+
+	allowedOrigins := env.GetEnvVariable("ALLOWEDORIGINS", "https://*,http://*")
+
+	allowedOriginList := strings.Split(allowedOrigins, ",")
+
 	router := chi.NewRouter()
 
 	// for more ideas, see: https://developer.github.com/v3/#cross-origin-resource-sharing
 	router.Use(cors.Handler(cors.Options{
 		// AllowedOrigins:   []string{"https://foo.com"}, // Use this to allow specific origin hosts
-		AllowedOrigins: []string{"https://*", "http://*"},
+		AllowedOrigins: allowedOriginList, // []string{"https://*", "http://*"},
 
 		// AllowOriginFunc:  func(r *http.Request, origin string) bool { return true },
 		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
@@ -109,6 +116,7 @@ func (app *application) routes() *chi.Mux {
 	router.Get("/testmode", app.testModePage)
 
 	app.APIHandlers(router)
+	app.APILogHandlers(router)
 	app.ServerHandlers(router)
 	app.StoredProcHandlers(router)
 

@@ -11,7 +11,7 @@ import (
 
 type RbackRoleForm struct {
 	Role string `json:"role" db:"role" form:"role"`
-	validator.Validator
+	validator.Validator `json:"-" db:"-" form:"-"`
 }
 
 type RbacModel struct {

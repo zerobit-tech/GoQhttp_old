@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/onlysumitg/GoQhttp/go_ibm_db"
 	"github.com/onlysumitg/GoQhttp/utils/stringutils"
@@ -50,20 +51,117 @@ func (p *StoredProcParamter) GetDefaultValueX() string {
 // -----------------------------------------------------------------
 //
 // -----------------------------------------------------------------
-func (p *StoredProcParamter) GetDefaultValue() []byte {
+func (p *StoredProcParamter) GetofType() *any {
+	var x any
+	switch p.Datatype {
+	case "DECFLOAT":
+		var decfloac float64 
+		x = &decfloac
+		return &x
+	case "ROWID":
+		var r go_ibm_db.ROWID 
+		x = &r
+		return &x
+	}
+
+	return &x
+}
+
+// -----------------------------------------------------------------
+//
+// -----------------------------------------------------------------
+func (p *StoredProcParamter) ConvertOUTVarToType(v *any) (any, error) {
+	if p.Mode != "OUT" {
+		return v, nil
+	}
+
+	switch p.Datatype {
+
+	case "DECFLOAT":
+		fmt.Println("asString(v)", asString(v))
+
+		x, ok := (*v).([]byte)
+		if ok {
+			return strconv.ParseFloat(string(x), 64)
+		}
+	case "ROWID":
+		fmt.Println("asString(v)", asString(v))
+
+		x, ok := (*v).([]byte)
+		if ok {
+			return strconv.Atoi(string(x))
+		}
+	}
+
+	return v, nil
+}
+
+// -----------------------------------------------------------------
+//
+// -----------------------------------------------------------------
+func (p *StoredProcParamter) ConvertToType(v any) (any, error) {
+	switch p.Datatype {
+	case "TIME":
+		return time.Parse(go_ibm_db.TimeFormat, asString(v))
+
+	case "DATE":
+		return time.Parse(go_ibm_db.DateFormat, asString(v))
+
+	case "TIMESTAMP":
+		return time.Parse(go_ibm_db.TimestampFormat, asString(v))
+
+	case "SMALLINT", "INTEGER", "BIGINT", "ROWID":
+		if v == nil {
+			var x int = 0
+
+			return x, nil
+		}
+		return strconv.Atoi(asString(v))
+
+	case "DECIMAL", "NUMERIC", "DECFLOAT", "DOUBLE PRECISION", "REAL":
+		return strconv.ParseFloat(asString(v), 64)
+
+	}
+
+	return v, nil
+}
+
+// -----------------------------------------------------------------
+//
+// -----------------------------------------------------------------
+func (p *StoredProcParamter) GetDefaultValue(s Server) string {
 	if p.DefaultValue.Valid {
 
 		if go_ibm_db.IsSepecialRegister(p.DefaultValue.String) {
-			return go_ibm_db.GetSepecialValue(p.DefaultValue.String, nil)
+			return getSpecialRegisterValue(s, p.DefaultValue.String)
 		}
 		d := strings.ReplaceAll(p.DefaultValue.String, " ", "")
 		if d == "''" {
-			return nil
+			return ""
 		}
 
-		return []byte(p.DefaultValue.String)
+		return (p.DefaultValue.String)
 	}
-	return nil
+	return ""
+}
+
+func getSpecialRegisterValue(s Server, name string) string {
+	sqlToUse := fmt.Sprintf("values(%s)", name)
+	conn, err := s.GetConnection()
+
+	var valToUse string
+	if err != nil {
+
+		return ""
+	}
+
+	row := conn.QueryRow(sqlToUse)
+	err = row.Scan(&valToUse)
+	if err == nil {
+		return valToUse
+	}
+	return ""
+
 }
 
 // -----------------------------------------------------------------
@@ -71,7 +169,10 @@ func (p *StoredProcParamter) GetDefaultValue() []byte {
 // -----------------------------------------------------------------
 func (p *StoredProcParamter) IsString() bool {
 	_, found := go_ibm_db.SPParamStringTypes[p.Datatype]
-	return found
+
+	//_, found2 := go_ibm_db.SPParamDateTypes[p.Datatype]
+
+	return found //|| found2
 }
 
 // -----------------------------------------------------------------
@@ -95,6 +196,10 @@ func (p *StoredProcParamter) IsInt() bool {
 // -----------------------------------------------------------------
 func (p *StoredProcParamter) NeedQuote(value string) bool {
 	if go_ibm_db.IsSepecialRegister(value) {
+		return false
+	}
+
+	if value == "NULL" {
 		return false
 	}
 	return true

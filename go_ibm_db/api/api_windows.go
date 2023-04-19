@@ -67,8 +67,8 @@ const (
 	SQL_UNSIGNED_OFFSET = -22
 	SQL_GRAPHIC         = -95
 	SQL_BLOB            = -98
-	SQL_CLOB            = -99
-	SQL_DBCLOB          = -350
+	SQL_CLOB            = -1
+	SQL_DBCLOB          = -1
 	SQL_SS_XML          = -152
 	SQL_BOOLEAN         = 16
 	SQL_DECFLOAT        = -360

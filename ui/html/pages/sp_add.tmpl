@@ -9,12 +9,12 @@ Stored Proc
     <div class="col-6">
         <div class="card ">
             <div class="card-header">
-                <p class="h3">
+                <p class="h5">
                     {{if .Form.ID}} Edit {{else}} Add {{end}} Stored Proc</p>
             </div>
             <div class="card-body">
 
-<form action="/sp/add" method="POST">
+<form action="/sp/{{if .Form.ID}}update/{{.Form.ID}}{{else}}add{{end}}" method="POST">
          <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
          <input type="hidden" name="id" value="{{.Form.ID}}">
 
@@ -34,23 +34,51 @@ Stored Proc
 
 
       </div>
+ 
 
-      <div class="form-group">
-        <label for="httpmethod">Http Method</label>
-        <input id="httpmethod" class="form-control {{with .Form.FieldErrors.httpmethod}} is-invalid {{end}}" type="text"
-            name="httpmethod" aria-describedby="httpmethodhelp" placeholder="GET POST " value='{{.Form.HttpMethod}}'
-            required></input>
+
+    <div class="form-group">
+        <label for="endpointmethod">HTTP Method</label>
 
 
         <!-- Use the `with` action to render the value of .Form.FieldErrors.title if it is not empty. -->
+
+        <SELECT class="form-control" name="httpmethod">
+            <OPTION {{if eq .Form.HttpMethod "POST" }}selected{{end}} value="POST">POST</OPTION>
+            <OPTION {{if eq .Form.HttpMethod "GET" }}selected{{end}} value="GET">GET</OPTION>
+            <OPTION {{if eq .Form.HttpMethod "PUT" }}selected{{end}} value="PUT">PUT</OPTION>
+            <OPTION {{if eq .Form.HttpMethod "DELETE" }}selected{{end}} value="DELETE">DELETE
+            </OPTION>
+        </SELECT>
+
 
         {{with .Form.FieldErrors.httpmethod}}
         <div class='invalid-feedback'>{{.}}</div>
         {{end}}
 
 
-
     </div>
+
+            <div class="form-group">
+                <label for="defaultserver">Default Server</label>
+            <SELECT id="defaultserver" class="form-control" name="serverid">
+                <OPTION value="">Default Server</OPTION>
+
+                {{if .Servers}}
+                {{range .Servers}}
+                <OPTION 
+       
+                {{if eq .ID $.Form.DefaultServer.ID}} selected {{end}} 
+               
+                value="{{.ID}}">
+                    
+                    {{.Name}}
+                </OPTION>
+                {{end}}
+                {{end}}
+            </SELECT>
+
+        </div>
 
         <div class="form-group">
             <label for="name">Stored Procedure Name</label>
@@ -90,15 +118,24 @@ Stored Proc
 
        
 
-      <div class="form-check">
-            <input value='true' {{if .Form.UseSpecificName}} checked {{end}} type="checkbox" class="form-check-input" name="UseSpecificName" id="UseSpecificName">
-            <label class="form-check-label" for="checkboxallowdelete">Using Specific name</label>
+     
+
+        <div class="form-check">
+            <input value='true' {{if .Form.UseSpecificName}} checked {{end}} type="checkbox" class="form-check-input" name="usespecificname" id="usespecificname">
+            <label class="form-check-label" for="usespecificname">Using Specific name</label>
         </div>
 
 
         <br />
+   
+        <div class="form-check">
+            <input value='true' {{if .Form.AllowWithoutAuth}} checked {{end}} type="checkbox" class="form-check-input" name="awoauth" id="awoauth">
+            <label  class="form-check-label text-danger" for="awoauth">Allow without Auth</label>
+        </div>
 
-        
+
+        <br />
+   
 
  
 

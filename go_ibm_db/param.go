@@ -75,6 +75,12 @@ func (p *Parameter) BindValue(h api.SQLHSTMT, idx int, v driver.Value) error {
 		if p.isDescribed {
 			// only so we can handle very long (>4000 chars) parameters
 			sqltype = p.SQLType
+
+			// sumit --> handle XML data type
+
+			if p.SQLType == api.SQL_C_XML {
+				sqltype = api.SQL_WCHAR
+			}
 		} else {
 			sqltype = api.SQL_WCHAR
 		}
@@ -312,9 +318,12 @@ func SqltoCtype(sqltype api.SQLSMALLINT) api.SQLSMALLINT {
 		return api.SQL_C_WCHAR
 	case api.SQL_BINARY, api.SQL_VARBINARY, api.SQL_LONGVARBINARY:
 		return api.SQL_C_BINARY
+	case api.SQL_C_XML:
+		return api.SQL_C_CHAR
 	// case api.SQL_DBCLOB:
 	// 	return api.SQL_C_DBCHAR
 	default:
-		panic(fmt.Errorf("unsupported param type %v at sql.out", sqltype))
+		return api.SQL_C_CHAR
+		//panic(fmt.Errorf("unsupported param type %v at sql.out", sqltype))
 	}
 }

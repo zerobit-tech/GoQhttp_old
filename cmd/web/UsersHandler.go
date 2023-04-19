@@ -71,14 +71,18 @@ func (app *application) userAdd(w http.ResponseWriter, r *http.Request) {
 		user.CheckField(validator.NotBlank(user.Email), "email", "This field cannot be blank")
 		user.CheckField(validator.Matches(user.Email, validator.EmailRX), "email", "This field must be a valid email address")
 
-		user.CheckField(validator.NotBlank(user.Password), "password", "This field cannot be blank")
-		user.CheckField(validator.MinChars(user.Password, 8), "password", "This field must be at least 8 characters long")
+		if user.ID == "" || (user.ID != "" && user.Password != "") {
 
+			user.CheckField(validator.NotBlank(user.Password), "password", "This field cannot be blank")
+			user.CheckField(validator.MinChars(user.Password, 8), "password", "This field must be at least 8 characters long")
+		}
 		if user.Valid() {
 			if user.ID == "" {
 				user.MaxAllowedEndpoints = app.maxAllowedEndPointsPerUser
 			}
-			_ = app.users.Save(user, true)
+			updatePassword := (user.ID == "" || (user.ID != "" && user.Password != ""))
+
+			_ = app.users.Save(user, updatePassword)
 
 			nextUrl := r.URL.Query().Get("next")
 			if nextUrl == "" {
@@ -98,7 +102,7 @@ func (app *application) userAdd(w http.ResponseWriter, r *http.Request) {
 	data := app.newTemplateData(r)
 	data.Form = user
 	data.Servers = app.servers.List()
-	
+
 	app.render(w, r, http.StatusOK, "user_add.tmpl", data)
 }
 

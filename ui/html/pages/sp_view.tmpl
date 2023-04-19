@@ -1,172 +1,331 @@
 {{define "title"}}
-Server detail
+Endpoint
 {{end}}
 
 {{define "content"}}
 <div class="row p-2">
-    <div class="col">
+    <div class="col-xl-6">
         <div class="card ">
             <div class="card-header">
-                <p class="h3">
-                     Stored Proc Details        <a class="btn btn-ghost-info float-right" href="/sp">Back to Stored Proc list</a>   
-                    </p>
+                <p class="h5">
+                    EndPoint details:{{.StoredProc.EndPointName}}
+                    <a class="btn btn-ghost-info" href="/sp/refresh/{{.StoredProc.ID}}">Refresh</a>
+                    <a class="btn btn-ghost-info float-right" href="/sp">Back to Endpoint list</a>
+                </p>
             </div>
             <div class="card-body">
-    <div class="row">
-        <div class="col">
-            <table class="table table-bordered table-striped">
-                <tbody>
-                    <tr>
-                        <td>EndPoint name</td>
-                        <td>{{.StoredProc.EndPointName}}</td>
-                    </tr>
+                <div class="row">
+                    <div class="col">
+                        <table class="table   table-borderless table-responsive-sm table-striped    ">
+                            <tbody>
+                                {{if .StoredProc.AllowWithoutAuth}}
+                                <tr>
+                                    <th scope="row" class="text-danger">Allowed Without Auth</th>
+                                    <td  class="text-danger">{{.StoredProc.AllowWithoutAuth| yesNo}}</td>
+                                </tr>
+                                {{end}}
 
-                    <tr>
-                        <td>Http Method</td>
-                        <td>{{.StoredProc.HttpMethod}}</td>
-                    </tr>
+                                <tr>
+                                    <th scope="row">EndPoint name</th>
+                                    <td>{{.StoredProc.EndPointName}}</td>
+                                </tr>
 
-                    <tr>
-                        <td>Stored Proc</td>
-                        <td>{{.StoredProc.Name}}</td>
-                    </tr>
-                    <tr>
-                        <td>Stored Proc Lib</td>
-                        <td>{{.StoredProc.Lib}}</td>
-                    </tr>
+                                <tr>
+                                    <th scope="row">Http Method</th>
+                                    <td>{{.StoredProc.HttpMethod}}</td>
+                                </tr>
+                                {{if .StoredProc.AllowWithoutAuth}}
+                                <tr>
+                                    <th class="text-danger" scope="row">URL without Auth</th>
+                                    <td class="text-danger" >{{$.HostUrl}}/{{.StoredProc.MockUrlWithoutAuth}}</td>
+                                </tr>
+                                {{end}}
+                                <tr>
+                                    <th scope="row">URL</th>
+                                    <td>{{$.HostUrl}}/{{.StoredProc.MockUrl}}</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Payload</th>
+                                    <td>
+                                        <pre>{{.StoredProc.InputPayload}}</pre>
+                                    </td>
+                                </tr>
 
-
-                    <tr>
-                        <td>Specific Stored Proc</td>
-                        <td>{{.StoredProc.SpecificName}}</td>
-                    </tr>
-                    <tr>
-                        <td>Specific Stored Proc Lib</td>
-                        <td>{{.StoredProc.SpecificLib}}</td>
-                    </tr>
-
-
-
-                    <tr>
-                        <td>Use specific name</td>
-                        <td>{{.StoredProc.UseSpecificName}}</td>
-                    </tr>
-                    <tr>
-                        <td>Call</td>
-                        <td>{{.StoredProc.CallStatement}}</td>
-                    </tr>
-
-                    <tr>
-                        <td>Result sets</td>
-                        <td>{{.StoredProc.ResultSets}}</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div></div>
-
-        <!-- Parameter -->
+                                <tr>
+                                    <th scope="row">Default Server</th>
+                                    <td>{{.StoredProc.DefaultServer.Name}}</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Stored Proc</th>
+                                    <td>{{.StoredProc.Name}}</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Stored Proc Lib</th>
+                                    <td>{{.StoredProc.Lib}}</td>
+                                </tr>
 
 
+                                <tr>
+                                    <th scope="row">Specific Stored Proc</th>
+                                    <td>{{.StoredProc.SpecificName}}</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Specific Stored Proc Lib</th>
+                                    <td>{{.StoredProc.SpecificLib}}</td>
+                                </tr>
 
 
+
+                                <tr>
+                                    <th scope="row">Use specific name</th>
+                                    <td>{{.StoredProc.UseSpecificName}}</td>
+                                </tr>
+
+
+                                <tr>
+                                    <th scope="row">Result sets</th>
+                                    <td>{{.StoredProc.ResultSets}}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Parameter -->
+
+
+
+
+
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-6">
+        <div class="card ">
+            <div class="card-header">
+                <p class="h5">
+                    Allowed for servers
+                </p>
+            </div>
+            <div class="card-body">
+                <table id="logids" class="table   table-borderless table-responsive-sm table-striped    ">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th>Name</th>
+                            
+                            <th>Option</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                {{range .StoredProc.AllowedOnServers}}
+                <tr>
+                    <td>{{.Name}}</td>
+                
+
+                <td>
+                    <form class="form-inline" method="POST" action="/sp/deleteassignserver">
+                        <input type="hidden" name="csrf_token" value="{{$.CSRFToken}}">
+                        <input type="hidden" name="spid" value="{{$.StoredProc.ID}}">
+                        <input type="hidden" name="serverid" value="{{.ID}}">
+                        
+                        <button type="submit" class="btn btn-danger mb-2">Delete</button>
+                    </div>
+                    </form>
+
+                </td>
+                </tr>
+                {{end}}
+                    </tbody>
+                    </table>
+            </div>
+            <hr />
+
+
+
+
+
+
+
+
+
+
+
+
+            <form class="form-inline" method="POST" action="/sp/assignserver">
+                <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+                <input type="hidden" name="spid" value="{{.StoredProc.ID}}">
+                <div class="form-group">
+                    <div class="form-group mx-sm-3 mb-2">
+                    <label for="defaultserver">Assign Server ...: </label>
+                <SELECT id="defaultserver" class="form-control" name="serverid">
+                    
     
-</div></div></div></div>
+                    {{if .Servers}}
+                    {{range .Servers}}
+                    <OPTION  value="{{.ID}}">{{.Name}}</OPTION>
+                    {{end}}
+                    {{end}}
+                </SELECT>
+                </div>
+                <button type="submit" class="btn btn-primary mb-2">Assign</button>
+            </div>
+            </form>
 
-        <!-- Parameter -->
+        </div>
+    </div>
+
+</div>
+
+<!-- Parameter -->
 
 <div class="row p-2">
     <div class="col">
-        <form action="/sp/call" method="POST"> 
+        <form action="/sp/call" method="POST">
+            <div class="card ">
+                <div class="card-header">
+                    <p class="h5">
+                        Parameters <button type="submit" class="btn btn-primary  float-right">Call</button>
+                    </p>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col">
+
+
+                            <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+                            <input type="hidden" name="id" value="{{.StoredProc.ID}}">
+
+
+                            <table id="savedqlist"
+                                class="table   table-borderless table-responsive-sm table-striped    ">
+                                <thead class="thead-dark">
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Mode</th>
+                                        <th>Name</th>
+                                        <th>Data Type</th>
+                                        <th>Precision</th>
+                                        <th>Scale</th>
+                                        <th>MaxLength</th>
+                                        <th>Default Value</th>
+                                        <th>Test Value</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {{if .StoredProc.Parameters}}
+                                    {{range .StoredProc.Parameters}}
+                                    <tr>
+                                        <td>{{.Position}}</td>
+                                        <td>{{.Mode}}</td>
+                                        <td>{{.Name}}</td>
+                                        <td>{{.Datatype}}</td>
+                                        <td>{{.Precision}}</td>
+                                        <td>{{.Scale}}</td>
+                                        <td>{{.MaxLength}}</td>
+                                        <td>{{.GetDefaultValueX}}</td>
+
+                                        <td>
+                                            {{if ne .Mode "OUT"}}
+                                            <div class="form-group">
+
+                                                <input id="{{.Name}}" class="form-control  " type="text"
+                                                    name="{{.Name}}" aria-describedby="{{.Name}}help"
+                                                    placeholder="{{.Name}}" value='{{.GivenValue}}' required></input>
+
+
+
+
+
+
+                                            </div>
+                                            {{end}}
+                                        </td>
+
+
+
+                                    </tr>
+                                    {{end}}
+
+                                    {{else}}
+                                    {{end}}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>            
+        </form>
+    </div>
+</div>
+    <div class="row p-2">
+    <div class="col-xl-6 ">
         <div class="card ">
             <div class="card-header">
-                <p class="h3">
-                      Parameters   <button type="submit" class="btn btn-primary  float-right">Call</button>
-                    </p>
+                <p class="h5">
+                    Response Structure
+                </p>
             </div>
             <div class="card-body">
-<div class="row">
-    <div class="col">
-   
-     
-            <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
-            <input type="hidden" name="id" value="{{.StoredProc.ID}}">
+                <div class="row">
+                    <div class="col">
+                        <pre>{{.StoredProc.ResponseFormat}}</pre>
 
-         
-        <table id="savedqlist" class="table table-bordered table-striped">
-            <thead>
-              <tr>
-                <th>Seq</th>
-                <th>Mode</th>
-                <th>Name</th>
-                <th>Data Type</th>
-                <th>Precision</th>
-                <th>Scale</th>
-                <th>MaxLength</th>
-                <th>Default Value</th>
-                <th>Test Value</th>
-              </tr>
-            </thead>
-            <tbody>
-              {{if .StoredProc.Parameters}}
-              {{range .StoredProc.Parameters}}
-              <tr>
-                <td>{{.Position}}</td>
-                <td>{{.Mode}}</td>
-                <td>{{.Name}}</td>
-                <td>{{.Datatype}}</td>
-                <td>{{.Precision}}</td>
-                <td>{{.Scale}}</td>
-                <td>{{.MaxLength}}</td>
-                <td>{{.GetDefaultValue}}</td>
-                
-                <td>
-                    {{if ne .Mode "OUT"}}
-                    <div class="form-group">
-                         
-                        <input id="{{.Name}}" class="form-control  " type="text"
-                            name="{{.Name}}" aria-describedby="{{.Name}}help" placeholder="{{.Name}}" value='{{.GivenValue}}'
-                            required></input>
-              
-              
-                        
-              
-              
-              
                     </div>
-                    {{end}}
-                </td>
+                </div>
+            </div>
+        </div>
+    </div>
 
-              
-          
-              </tr>
-              {{end}}
-          
-              {{else}}
-               {{end}}
-            </tbody>
-          </table>
-        </form>  
+    <div class="col-xl-6">
+        <div class="card ">
+            <div class="card-header">
+                <p class="h5">
+                    Logs
+                </p>
+            </div>
+            <div class="card-body">
+                {{with .SPCallLog}}
+                <table id="logids" class="table   table-borderless table-responsive-sm table-striped    ">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th>ID</th>
+                            <th>Created on</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{range .Logs}}
+                        <tr>
+                            <td><a href="/apilogs/{{.LogID}}">{{.LogID}}</a></td>
+                            <td> {{.CalledAt}} </td>
+
+                        </tr>
+                        {{end}}
+                    </tbody>
+                </table>
+                {{end}}
+            </div>
+        </div>
     </div>
 </div>
 
-</div></div> </form>  </div></div>
-
-        <!-- response struc -->
-        <div class="row p-2">
-            <div class="col-6">
-                <div class="card ">
-                    <div class="card-header">
-                        <p class="h3">
-                            Response Structure
-                            </p>
-                    </div>
-                    <div class="card-body">
-<div class="row">
-    <div class="col">
-        <pre>{{.StoredProc.ResponseFormat}}</pre> 
-        
-    </div>
-</div>
-</div></div></div></div>
  
+
+{{end}}
+
+
+{{define "aftercontent"}}
+
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.1/css/jquery.dataTables.css">
+<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.13.1/js/jquery.dataTables.js"></script>
+
+<script>
+    $(document).ready(function () {
+        $('#logids').DataTable({
+            "language": {
+                "emptyTable": "No results found"
+            }
+        });
+    });
+</script>
 {{end}}

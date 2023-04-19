@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/go-co-op/gocron"
+	"github.com/onlysumitg/GoQhttp/env"
 	"github.com/onlysumitg/GoQhttp/internal/models"
 	bolt "go.etcd.io/bbolt"
 )
@@ -51,15 +52,11 @@ func main() {
 
 	flag.Parse()
 
-	envPort := os.Getenv("PORT")
+	envPort := env.GetEnvVariable("PORT", "")
+ 
 	port, err := strconv.Atoi(envPort)
 	if err == nil {
-
 		params.port = port
-		log.Println("Using port>>> ", port, params.port)
-	} else {
-		log.Println("Error getting port", envPort)
-
 	}
 
 	// --------------------------------------- Setup database ----------------------------
@@ -92,7 +89,7 @@ func main() {
 
 	addr, hostUrl := params.getHttpAddress()
 
-	log.Printf("GoMockAPI is live at %s  :: %s \n", addr, hostUrl)
+	log.Printf("GoQHttp is live at %s  :: %s \n", addr, hostUrl)
 
 	// this is short cut to create http.Server and  server.ListenAndServe()
 	// err := http.ListenAndServe(params.addr, routes)

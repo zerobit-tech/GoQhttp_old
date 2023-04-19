@@ -18,8 +18,8 @@ Saved Sqls
 
  
       <div class="card-body">
-<table id="splist" class="table table-bordered table-striped">
-  <thead>
+<table id="splist"    class="table   table-borderless table-responsive-sm table-striped    ">
+  <thead class="thead-dark">
     <tr>
       <th>EndPoint name</th>
       <th>Method</th>
@@ -69,7 +69,7 @@ Saved Sqls
   
     $(document).ready( function () {
       $('#splist').DataTable(
-        {
+        {"pageLength": 100,
               "language": {
                 "emptyTable": "No results found"
               }

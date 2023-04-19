@@ -111,7 +111,8 @@ func NewColumn(h api.SQLHSTMT, idx int) (Column, error) {
 	// case api.SQL_XML:
 	// 	return NewVariableWidthColumn(b, api.SQL_C_BINARY, 31457280), nil
 	default:
-		return nil, fmt.Errorf("unsupported column type %d", sqltype)
+		return NewVariableWidthColumn(b, api.SQL_C_CHAR, size), nil
+		//return nil, fmt.Errorf("unsupported column type %d", sqltype)
 	}
 	panic("unreachable")
 }
@@ -139,9 +140,9 @@ func (c *BaseColumn) TypeScan() reflect.Type {
 	case api.SQL_C_DOUBLE:
 		return reflect.TypeOf(float64(0.0))
 	case api.SQL_C_CHAR, api.SQL_C_WCHAR:
-		// if c.SType == api.SQL_DECFLOAT {
-		// 	return reflect.TypeOf(float64(0.0))
-		// }
+		if c.SType == api.SQL_DECFLOAT {
+			return reflect.TypeOf(float64(0.0))
+		}
 		return reflect.TypeOf(string(""))
 	case api.SQL_C_TYPE_DATE, api.SQL_C_TYPE_TIME, api.SQL_C_TYPE_TIMESTAMP:
 		return reflect.TypeOf(time.Time{})
@@ -186,21 +187,36 @@ func (c *BaseColumn) Value(buf []byte) (driver.Value, error) {
 		r := time.Date(int(t.Year), time.Month(t.Month), int(t.Day),
 			int(t.Hour), int(t.Minute), int(t.Second), int(t.Fraction),
 			time.Local)
-		return r, nil
+
+		//sumit	 timestamp format
+
+		rt := r.Format(TimestampFormat)
+
+		return rt, nil
+
 	case api.SQL_C_TYPE_DATE:
 		t := (*api.SQL_DATE_STRUCT)(p)
 		r := time.Date(int(t.Year), time.Month(t.Month), int(t.Day),
 			0, 0, 0, 0, time.Local)
-		return r, nil
+		//sumit	 Date format
+
+		rt := r.Format(DateFormat)
+
+		return rt, nil
 	case api.SQL_C_TYPE_TIME:
 		t := (*api.SQL_TIME_STRUCT)(p)
+		// SUMIT ==> need to check here
+
 		r := time.Date(1, 1, 1,
 			int(t.Hour),
 			int(t.Minute),
 			int(t.Second),
 			0,
 			time.Local)
-		return r, nil
+
+		rt := r.Format(TimeFormat)
+
+		return rt, nil
 	case api.SQL_C_BINARY:
 		return buf, nil
 	}
@@ -281,7 +297,7 @@ func (c *BindableColumn) Value(h api.SQLHSTMT, idx int) (driver.Value, error) {
 		return nil, nil
 	}
 	if !c.IsVariableWidth && int(c.Len) != c.Size {
-		panic(fmt.Errorf("wrong column #%d length %d returned, %d expected", idx, c.Len, c.Size))
+		return nil, fmt.Errorf("wrong column #%d length %d returned, %d expected", idx, c.Len, c.Size)
 	}
 	// check buffer len
 	bufferLen := int(c.Len)

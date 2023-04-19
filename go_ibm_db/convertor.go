@@ -5,6 +5,10 @@ import (
 	"strings"
 )
 
+var TimeFormat string = "15:04:05"
+var DateFormat string = "2006-01-02"
+var TimestampFormat string = "2006-01-02 15:04:05.000000"
+
 type Col struct {
 	Index int `json:"-"`
 	Name  string

@@ -22,6 +22,7 @@ require (
 
 require (
 	github.com/go-test/deep v1.1.0 // indirect
+	github.com/joho/godotenv v1.5.1 // indirect
 	github.com/robfig/cron/v3 v3.0.1 // indirect
 	github.com/toorop/go-dkim v0.0.0-20201103131630-e1cd1a0a5208 // indirect
 	golang.org/x/net v0.8.0 // indirect

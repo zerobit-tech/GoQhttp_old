@@ -23,7 +23,7 @@ func (r *RBAC) RegisterPermission(permission string) {
 // ---------------------------------------------------
 type RbackPermissionForm struct {
 	Permission string `json:"permission" db:"permission" form:"permission"`
-	validator.Validator
+	validator.Validator `json:"-" db:"-" form:"-"`
 }
 
 // ----------------------------------------------------

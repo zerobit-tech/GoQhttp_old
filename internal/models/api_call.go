@@ -320,6 +320,14 @@ func (apiCall *ApiCall) LogError(logEntry string) {
 //
 // ------------------------------------------------------
 func (m *ApiCall) SaveLogs() {
+	for _, l := range m.Response.LogData {
+		if l.Type == "E" {
+			m.LogError(l.Text)
+		} else {
+			m.LogInfo(l.Text)
+		}
+	}
+
 	m.LogDB.Update(func(tx *bolt.Tx) error {
 		bucket, err := tx.CreateBucketIfNotExists(getLogTableName())
 		if err != nil {
@@ -327,9 +335,11 @@ func (m *ApiCall) SaveLogs() {
 		}
 
 		for i, s := range m.Log {
+			scrubed:= RemoveNonLogData(s)
+
 
 			key := fmt.Sprintf("%s_%d", m.ID, i)
-			bucket.Put([]byte(key), []byte(fmt.Sprintf("%05d. %s", i+1, s)))
+			bucket.Put([]byte(key), []byte(fmt.Sprintf("%05d. %s", i+1, scrubed)))
 
 		}
 		return nil
@@ -341,13 +351,16 @@ func (m *ApiCall) SaveLogs() {
 //
 // ------------------------------------------------------
 func SaveLogs(db *bolt.DB, i int, id string, message string) {
+
+	scrubed:= RemoveNonLogData(message)
+
 	db.Update(func(tx *bolt.Tx) error {
 		bucket, err := tx.CreateBucketIfNotExists(getLogTableName())
 		if err != nil {
 			return err
 		}
 		key := fmt.Sprintf("%s_%d", id, i)
-		bucket.Put([]byte(key), []byte(fmt.Sprintf("%05d. %s", i+1, message)))
+		bucket.Put([]byte(key), []byte(fmt.Sprintf("%05d. %s", i+1, scrubed)))
 
 		return nil
 	})

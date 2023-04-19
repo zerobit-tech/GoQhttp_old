@@ -27,15 +27,19 @@ type Server struct {
 	Port uint16 `json:"port" db:"port" form:"port"`
 	Ssl  bool   `json:"ssl" db:"ssl" form:"ssl"`
 
-	UserName    string    `json:"user_name" db:"user_name" form:"user_name"`
-	Password    string    `json:"password" db:"password" form:"password"`
-	WorkLib     string    `json:"worklib" db:"worklib" form:"worklib"`
-	CreatedAt   time.Time `json:"created_at" db:"created_at" form:"-"`
-	UpdatedAt   time.Time `json:"updated_at" db:"updated_at" form:"-"`
-	Connections uint      `json:"connections" db:"connections" form:"connections"`
+	UserName          string    `json:"un" db:"un" form:"user_name"`
+	Password          string    `json:"pwd" db:"pwd" form:"password"`
+	//WorkLib           string    `json:"wlib" db:"wlib" form:"worklib"`
+	CreatedAt         time.Time `json:"c_at" db:"c_at" form:"-"`
+	UpdatedAt         time.Time `json:"u_at" db:"u_at" form:"-"`
+	ConnectionsOpen       int       `json:"conn" db:"conn" form:"connections"`
+	ConnectionsIdle       int       `json:"iconn" db:"iconn" form:"idleconnections"`
 
-	OnHold        bool   `json:"onhold" db:"onhold" form:"onhold"`
-	OnHoldMessage string `json:"onholdmessage" db:"onholdmessage" form:"onholdmessage"`
+	ConnectionMaxAge  int       `json:"cage" db:"cage" form:"cage"`
+	ConnectionIdleAge int       `json:"icage" db:"icage" form:"icage"`
+
+	OnHold        bool   `json:"oh" db:"oh" form:"onhold"`
+	OnHoldMessage string `json:"ohm" db:"ohm" form:"onholdmessage"`
 
 	validator.Validator `json:"-" db:"-" form:"-"`
 }
@@ -55,6 +59,50 @@ func (s Server) GetConnectionString() string {
 
 func (s Server) GetConnectionType() string {
 	return "go_ibm_db" //"odbc"
+}
+
+// ------------------------------------------------------------
+//
+// ------------------------------------------------------------
+func (s Server) MaxOpenConns() int {
+	if s.ConnectionsOpen <= 0 {
+		return 2
+	}
+	return s.ConnectionsOpen
+}
+
+// ------------------------------------------------------------
+//
+// ------------------------------------------------------------
+func (s Server) MaxIdleConns() int {
+	if s.ConnectionsIdle <= 0 {
+		return 2
+	}
+	return s.ConnectionsIdle
+}
+
+// ------------------------------------------------------------
+//
+// ------------------------------------------------------------
+func (s Server) ConnMaxIdleTime() time.Duration {
+	age := 10
+	if s.ConnectionIdleAge > 0 {
+		age = s.ConnectionIdleAge
+	}
+
+	return time.Duration(age) * time.Second
+}
+
+// ------------------------------------------------------------
+//
+// ------------------------------------------------------------
+func (s Server) ConnMaxLifetime() time.Duration {
+	age := 10
+	if s.ConnectionMaxAge > 0 {
+		age = s.ConnectionMaxAge
+	}
+
+	return time.Duration(age) * time.Second
 }
 
 // ------------------------------------------------------------
@@ -92,7 +140,6 @@ func (s Server) GetSinglaConnection() (*sql.DB, error) {
 // ------------------------------------------------------------
 //
 // ------------------------------------------------------------
- 
 
 // -----------------------------------------------------------------
 //

@@ -11,7 +11,7 @@
   
   
    <title>{{block "title" .}}
-    GoMockAPI
+    GoQHttp
     {{end}}
   </title>
 
@@ -78,26 +78,24 @@
 
       {{if .IsAuthenticated}}
 
-
+      {{if .CurrentUser.IsSuperUser}}
 
       <li class="c-sidebar-nav-divider"></li>
-      <li class="c-sidebar-nav-item"><a class="c-sidebar-nav-link" href="/sp">
+      <li class="c-sidebar-nav-item"><a class="c-sidebar-nav-link" href="/servers">
         <svg class="c-icon mfe-2">
           <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-list"></use>
+      </svg>Servers</a>
+      </li>
+
+      <li class="c-sidebar-nav-item"><a class="c-sidebar-nav-link" href="/sp">
+        <svg class="c-icon mfe-2">
+          <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-router"></use>
       </svg>EndPoints</a>
       </li>
+    
 
+    
 
-      <li class="c-sidebar-nav-divider"></li>
-      <li class="c-sidebar-nav-item"><a class="c-sidebar-nav-link" href="/apilogs">
-        <svg class="c-icon mfe-2">
-          <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-task"></use>
-      </svg>Api Logs</a>
-      </li>
-
-
-      
-      {{if .CurrentUser.IsSuperUser}}
       <li class="c-sidebar-nav-divider"></li>
       <li class="c-sidebar-nav-item"><a class="c-sidebar-nav-link" href="/users">
         <svg class="c-icon mfe-2">
@@ -112,6 +110,17 @@
       </svg>Clear all Logs</a>
       </li>
       {{end}}
+
+      <li class="c-sidebar-nav-divider"></li>
+      <li class="c-sidebar-nav-item"><a class="c-sidebar-nav-link" href="/apilogs">
+        <svg class="c-icon mfe-2">
+          <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-task"></use>
+      </svg>Api Logs</a>
+      </li>
+
+
+      
+
 
 
 
@@ -153,17 +162,15 @@
                 data-class="c-sidebar-show">
                 <svg class="c-icon c-icon-lg">
                     <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-menu"></use>
-                </svg>#GoMockAPI
+                </svg>#GoQHttp
                     </button>
                     
                     
                     <ul class="c-header-nav mfs-auto">
                       <li class="c-header-nav-item mr-3">
 
-                        <a class="c-sidebar-nav-link" href="/help">
-                          <svg class="c-icon mfe-2">
-                            <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-info"></use>
-                          </svg>How It works?
+                        <a class="c-sidebar-nav-link" href="/servers">
+                           {{with $.CurrentServer}}   {{.Name}} {{end}}
                         </a>
                       </li>
                                 <li class="c-header-nav-item mr-3">
@@ -198,7 +205,7 @@
   
     <footer class="c-footer">
       <div><a href=""> </a> © 2023.</div>
-      <div class="mfs-auto">GoMockApi.com</div>
+      <div class="mfs-auto">QHttp.com</div>
   </footer>
   </div>
 

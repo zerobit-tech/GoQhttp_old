@@ -10,7 +10,7 @@ Add new Server
     <div class="col-6">
         <div class="card ">
             <div class="card-header">
-                <p class="h3">
+                <p class="h5">
                     {{if .Form.ID}} Edit {{else}} Add {{end}} Server</p>
             </div>
             <div class="card-body">
@@ -59,38 +59,10 @@ Add new Server
             <div class='invalid-feedback'>{{.}}</div>
             {{end}}
         </div>
-        <div class="form-check">
-            <input value='true' {{if .Form.OnHold}} checked {{end}} type="checkbox" 
-            aria-describedby="onholdHelp" 
-            class="form-check-input" name="onhold" id="checkonhold">
-            <label class="form-check-label" for="checkonhold">On Hold?</label>
-            <small id="onholdHelp" class="form-text text-muted">{{if .Form.OnHoldMessage}} Due to: {{.Form.OnHoldMessage}} {{end}} </small>
-
-        </div>
-        <br>
-        <br>
-
-        <div class="form-check">
-            <input value='true' {{if .Form.Ssl}} checked {{end}} type="checkbox" class="form-check-input" name="ssl" id="exampleCheck1">
-            <label class="form-check-label" for="exampleCheck1">SSL</label>
-        </div>
-        <br>
-        <br>
-
+       
+       
  
-        <div class="form-group">
-            <label for="serveruser">Work lib</label>
-
-            <input id="worklib" value='{{.Form.WorkLib}}' type="text"
-                class="form-control  {{with .Form.FieldErrors.worklib}} is-invalid {{end}}"
-                aria-describedby="worklibHelp" 
-                name="worklib" required></input>
-            {{with .Form.FieldErrors.worklib}}
-            <div class='invalid-feedback'>{{.}}</div>
-            {{end}}
-
-            <small id="worklibHelp" class="form-text text-muted">Needed to create temporary global variables.</small>
-        </div>
+     
 
 
         <div class="form-group">
@@ -116,15 +88,54 @@ Add new Server
 
 
         <div class="form-group">
-            <label for="connectioncount">Open connection</label>
+            <label for="connectioncount">Max Open connections</label>
 
-            <input id="connectioncount" value='{{.Form.Connections}}' type="number" class="form-control" min="1"
+            <input id="connectioncount" aria-describedby="connectioncounth"  value='{{.Form.ConnectionsOpen}}' type="number" class="form-control" min="1"
                 max="100" name="connections"></input>
+
+                <small id="connectioncounth" class="form-text text-muted">Default:2. More info <a href="https://go.dev/doc/database/manage-connections">here</a></small>
+
+        </div>
+
+        <div class="form-group">
+            <label for="idleconnections">Max Idle connections</label>
+
+            <input id="idleconnections" aria-describedby="idleconnectionsh"  value='{{.Form.ConnectionsIdle}}' type="number" class="form-control" min="1"
+                max="100" name="idleconnections"></input>
+                <small id="idleconnectionsh" class="form-text text-muted">Default:2. More info <a href="https://go.dev/doc/database/manage-connections">here</a></small>
+
         </div>
 
 
+        <div class="form-group">
+            <label for="cage">Connection max age (seconds)</label>
+
+            <input id="cage" aria-describedby="cageh"  value='{{.Form.ConnectionMaxAge}}' type="number" class="form-control" min="1"
+                max="1000" name="cage"></input>
+                <small id="cage" class="form-text text-muted">Default:10 seconds. More info <a href="https://go.dev/doc/database/manage-connections">here</a></small>
+
+        </div>
+
+        <div class="form-group">
+            <label for="icage">Connection idle age (seconds)</label>
+
+            <input id="icage" aria-describedby="icageh"  value='{{.Form.ConnectionIdleAge}}' type="number" class="form-control" min="1"
+                max="1000" name="icage"></input>
+                <small id="icage" class="form-text text-muted">Default:10 seconds. More info <a href="https://go.dev/doc/database/manage-connections">here</a></small>
+
+        </div>
+
   
-    <br />
+        <br>
+        <br>
+
+        <div class="form-check">
+            <input value='true' {{if .Form.Ssl}} checked {{end}} type="checkbox" class="form-check-input" name="ssl" id="exampleCheck1">
+            <label class="form-check-label" for="exampleCheck1">SSL (Mostly not required for ODBC)</label>
+        </div>
+        <br>
+        <br>
+
     <button type="submit" class="btn btn-primary">Submit</button>
 
 

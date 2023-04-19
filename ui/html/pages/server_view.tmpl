@@ -34,10 +34,7 @@ Server detail
             <td>Server IP</td>
             <td>{{.Server.IP}}</td>
         </tr>
-        <tr>
-            <td>WorkLib</td>
-            <td>{{.Server.WorkLib}}</td>
-        </tr>
+     
         <tr>
             <td>Server Port</td>
             <td>{{.Server.Port}}</td>
@@ -53,14 +50,26 @@ Server detail
             <td>{{.Server.UserName}}</td>
         </tr>
 
-       <tr>
-            <td>Password</td>
-            <td>{{.Server.Password}}</td>
-        </tr>
+ 
 
        <tr>
-            <td>Connections</td>
-            <td>{{.Server.Connections}}</td>
+            <td>Max open Connections</td>
+            <td>{{.Server.MaxOpenConns}}</td>
+        </tr>
+
+        <tr>
+            <td>Max Idle Connections</td>
+            <td>{{.Server.MaxIdleConns}}</td>
+        </tr>
+
+        <tr>
+            <td>Connection max age</td>
+            <td>{{.Server.ConnMaxLifetime}}</td>
+        </tr>
+
+        <tr>
+            <td>Connection idle age</td>
+            <td>{{.Server.ConnMaxIdleTime}}</td>
         </tr>
     </tbody>
 </table>

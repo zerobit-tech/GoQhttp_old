@@ -2,4 +2,4 @@
 
 
 
-#go build -o bin/gomockapi -v ./cmd/web && git add . && git commit -m "deply"s && git push heroku main && heroku logs --tail
+#go build -o bin/goqhttp -v ./cmd/web && git add . && git commit -m "deply"s && git push heroku main && heroku logs --tail

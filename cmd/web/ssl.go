@@ -11,7 +11,7 @@ import (
 
 func (app *application) getCertificateToUse() *tls.Config {
 
-	log.Println("certi::: using", app.domain)
+	//log.Println("certi::: using", app.domain)
 	certManager := autocert.Manager{
 		Prompt:     autocert.AcceptTOS,
 		HostPolicy: autocert.HostWhitelist(app.domain),
@@ -56,15 +56,15 @@ func (app *application) getSelfSignedOrLetsEncryptCert(certManager *autocert.Man
 //
 // -----------------------------------------------------------------
 func getSelfSignedCertificate() (*tls.Certificate, error) {
-	gomockapi_crt, err := ssl.SSLCertificats.ReadFile("cert/gomockapi.crt")
+	goqhttp_crt, err := ssl.SSLCertificats.ReadFile("cert/goqhttp.crt")
 	if err != nil {
 		return &tls.Certificate{}, err
 	}
-	gomockapi_api, err := ssl.SSLCertificats.ReadFile("cert/gomockapi.key")
+	goqhttp_api, err := ssl.SSLCertificats.ReadFile("cert/goqhttp.key")
 	if err != nil {
 		return &tls.Certificate{}, err
 	}
-	cert, err := tls.X509KeyPair(gomockapi_crt, gomockapi_api)
+	cert, err := tls.X509KeyPair(goqhttp_crt, goqhttp_api)
 	if err != nil {
 		return &tls.Certificate{}, err
 	}

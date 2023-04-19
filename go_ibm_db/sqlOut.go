@@ -56,6 +56,7 @@ func newOut(hstmt api.SQLHSTMT, sqlOut *sql.Out, idx int) (*Out, error) {
 			// input value might be nil but the output value may not be so allocate buffer for output
 			data = make([]byte, parameterSize)
 			ctype = SqltoCtype(sqltype)
+
 			buflen = api.SQLLEN(len(data))
 			plen = &ind
 		case string:
@@ -66,13 +67,26 @@ func newOut(hstmt api.SQLHSTMT, sqlOut *sql.Out, idx int) (*Out, error) {
 			if IsError(ret) {
 				return nil, NewError("SQLDescribeParam", hstmt)
 			}
+
+			//sumit => set size for xml type
+			if sqltype == api.SQL_C_XML && parameterSize == 0 {
+				parameterSize = 1048570
+			}
+
 			ctype = api.SQL_C_WCHAR
 			sqltype = api.SQL_WCHAR
+
 			s16 := api.StringToUTF16(d)
 			b := api.ExtractUTF16Str(s16)
 			data = make([]byte, (parameterSize*2)+2)
 
-			IsSepecialRegister:= IsSepecialRegister(asString(dv))
+			// to limit the size of clob/xml field from 1048576 to 1048570
+			if parameterSize > 1048570 {
+				data = make([]byte, (1048570*2)+2)
+
+			}
+
+			IsSepecialRegister := IsSepecialRegister(asString(dv))
 
 			if !IsSepecialRegister && len(b) > len(data) {
 				return nil,
@@ -85,11 +99,13 @@ func newOut(hstmt api.SQLHSTMT, sqlOut *sql.Out, idx int) (*Out, error) {
 		case int64:
 			ctype = api.SQL_C_SBIGINT
 			sqltype = api.SQL_BIGINT
+
 			data = api.Extract(unsafe.Pointer(&d), unsafe.Sizeof(d))
 			parameterSize = 8
 		case float64:
 			ctype = api.SQL_C_DOUBLE
 			sqltype = api.SQL_DOUBLE
+
 			data = api.Extract(unsafe.Pointer(&d), unsafe.Sizeof(d))
 			parameterSize = 8
 		case bool:
@@ -99,27 +115,62 @@ func newOut(hstmt api.SQLHSTMT, sqlOut *sql.Out, idx int) (*Out, error) {
 			}
 			ctype = api.SQL_C_BIT
 			sqltype = api.SQL_BIT
+
 			data = api.Extract(unsafe.Pointer(&b), unsafe.Sizeof(b))
 			parameterSize = 1
 		case time.Time:
-			ctype = api.SQL_C_TYPE_TIMESTAMP
-			sqltype = api.SQL_TYPE_TIMESTAMP
-			y, m, day := d.Date()
-			t := api.SQL_TIMESTAMP_STRUCT{
-				Year:     api.SQLSMALLINT(y),
-				Month:    api.SQLUSMALLINT(m),
-				Day:      api.SQLUSMALLINT(day),
-				Hour:     api.SQLUSMALLINT(d.Hour()),
-				Minute:   api.SQLUSMALLINT(d.Minute()),
-				Second:   api.SQLUSMALLINT(d.Second()),
-				Fraction: api.SQLUINTEGER(d.Nanosecond()),
+
+			ret := api.SQLDescribeParam(hstmt, api.SQLUSMALLINT(idx+1),
+				&sqltype, &parameterSize, &decimalDigits, &nullable)
+			if IsError(ret) {
+				return nil, NewError("SQLDescribeParam", hstmt)
 			}
-			data = api.Extract(unsafe.Pointer(&t), unsafe.Sizeof(t))
-			decimalDigits = 3
-			parameterSize = 20 + api.SQLULEN(decimalDigits)
+
+			data = []byte("")
+			switch sqltype {
+			case api.SQL_TYPE_DATE:
+				y, m, day := d.Date()
+				t := api.SQL_DATE_STRUCT{
+					Year:  api.SQLSMALLINT(y),
+					Month: api.SQLUSMALLINT(m),
+					Day:   api.SQLUSMALLINT(day),
+				}
+				data = api.Extract(unsafe.Pointer(&t), unsafe.Sizeof(t))
+				parameterSize = 10
+			case api.SQL_TYPE_TIME:
+
+				t := api.SQL_TIME_STRUCT{
+					Hour:   api.SQLUSMALLINT(d.Hour()),
+					Minute: api.SQLUSMALLINT(d.Minute()),
+					Second: api.SQLUSMALLINT(d.Second()),
+				}
+				data = api.Extract(unsafe.Pointer(&t), unsafe.Sizeof(t))
+
+				parameterSize = 8
+			case api.SQL_TYPE_TIMESTAMP:
+				y, m, day := d.Date()
+				t := api.SQL_TIMESTAMP_STRUCT{
+					Year:     api.SQLSMALLINT(y),
+					Month:    api.SQLUSMALLINT(m),
+					Day:      api.SQLUSMALLINT(day),
+					Hour:     api.SQLUSMALLINT(d.Hour()),
+					Minute:   api.SQLUSMALLINT(d.Minute()),
+					Second:   api.SQLUSMALLINT(d.Second()),
+					Fraction: api.SQLUINTEGER(d.Nanosecond()),
+				}
+				data = api.Extract(unsafe.Pointer(&t), unsafe.Sizeof(t))
+				decimalDigits = 3
+				parameterSize = 20 + api.SQLULEN(decimalDigits)
+			}
+
+			ctype = SqltoCtype(sqltype)
+			// ctype = api.SQL_C_TYPE_TIMESTAMP
+			// sqltype = api.SQL_TYPE_TIMESTAMP
+
 		case []byte:
 			ctype = api.SQL_C_BINARY
 			sqltype = api.SQL_BINARY
+
 			data = make([]byte, len(d))
 			copy(data, d)
 			buflen = api.SQLLEN(len(data))
@@ -156,6 +207,7 @@ func newOut(hstmt api.SQLHSTMT, sqlOut *sql.Out, idx int) (*Out, error) {
 	}, nil
 }
 
+// this conver values from SQL to Go type
 // Value function converts the database value to driver.value
 func (o *Out) Value() (driver.Value, error) {
 	var p unsafe.Pointer
@@ -192,21 +244,28 @@ func (o *Out) Value() (driver.Value, error) {
 		r := time.Date(int(t.Year), time.Month(t.Month), int(t.Day),
 			int(t.Hour), int(t.Minute), int(t.Second), int(t.Fraction),
 			time.Local)
-		return r, nil
+		rt := r.Format(TimestampFormat)
+
+		return rt, nil
 	case api.SQL_C_TYPE_DATE:
 		t := (*api.SQL_DATE_STRUCT)(p)
 		r := time.Date(int(t.Year), time.Month(t.Month), int(t.Day),
 			0, 0, 0, 0, time.Local)
-		return r, nil
+		rt := r.Format(DateFormat)
+
+		return rt, nil
 	case api.SQL_C_TYPE_TIME:
+		//sumit need to change here as well
 		t := (*api.SQL_TIME_STRUCT)(p)
-		r := time.Date(0, 0, 0,
+		r := time.Date(1, 1, 1,
 			int(t.Hour),
 			int(t.Minute),
 			int(t.Second),
 			0,
 			time.Local)
-		return r, nil
+		rt := r.Format(TimeFormat)
+
+		return rt, nil
 	case api.SQL_C_BINARY:
 		return buf, nil
 	}

@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"strings"
 
@@ -36,44 +35,45 @@ func (app *application) APIHandlers(router *chi.Mux) {
 		r.Delete("/*", app.POST)
 	})
 
-	router.Route("/apilogs", func(r chi.Router) {
-		// CSRF
-		r.Use(app.RequireAuthentication)
-		r.Use(noSurf)
-		r.Get("/", app.apilogs)
-		r.Get("/{logid}", app.apilogs)
-		r.Post("/", app.apilogs)
+	// for unauthorized end points
+	router.Route("/uapi/{apiname}", func(r chi.Router) {
+		//r.With(paginate).Get("/", listArticles)
+		r.Use(app.RequireUnAuthEndPoint)
+		r.Use(app.LogHandler)
+		r.Get("/", app.GET)
+		r.Post("/", app.POST)
+		r.Put("/", app.POST)
+		r.Delete("/", app.POST)
 
-		logGroup := r.Group(nil)
-		logGroup.Use(app.RequireSuperAdmin)
-		logGroup.Get("/clear", app.clearapilogs)
-
+		r.Get("/*", app.GET)
+		r.Post("/*", app.POST)
+		r.Put("/*", app.POST)
+		r.Delete("/*", app.POST)
 	})
 
 }
 
 // ------------------------------------------------------
 //
+//	middleware
+//
 // ------------------------------------------------------
-func (app *application) apilogs(w http.ResponseWriter, r *http.Request) {
-	_ = r.ParseForm()
+func (app *application) RequireUnAuthEndPoint(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		response := &models.StoredProcResponse{ReferenceId: middleware.GetReqID(r.Context())}
 
-	objectid := strings.TrimSpace(r.PostForm.Get("objectid"))
-	logid := chi.URLParam(r, "logid")
+		endpointName, _ := app.GetPathParameters(r)
+		endPoint, err := app.GetEndPoint(fmt.Sprintf("%s_%s", strings.ToUpper(endpointName), strings.ToUpper(r.Method)))
 
-	if objectid == "" {
-		objectid = logid
-	}
-	logEntries := make([]string, 0)
-	if objectid != "" {
-		logEntries = models.GetLogs(app.LogDB, objectid)
-	}
+		if err != nil || !endPoint.AllowWithoutAuth {
+			response.Status = http.StatusNotFound
+			response.Message = http.StatusText(http.StatusNotFound)
+			app.writeJSONAPI(w, response, nil)
+			return
+		}
 
-	data := app.newTemplateData(r)
-	data.LogEntries = logEntries
-
-	app.render(w, r, http.StatusOK, "api_logs.tmpl", data)
-
+		next.ServeHTTP(w, r)
+	})
 }
 
 // ------------------------------------------------------
@@ -81,7 +81,7 @@ func (app *application) apilogs(w http.ResponseWriter, r *http.Request) {
 // ------------------------------------------------------
 
 func (app *application) InjectClientInfo(r *http.Request, requesyBodyFlatMap map[string]xmlutils.ValueDatatype) {
-	requesyBodyFlatMap["*CLIENT_IP"] = xmlutils.ValueDatatype{r.RemoteAddr, "STRING"}
+	requesyBodyFlatMap["HTTP_CLIENT_IP"] = xmlutils.ValueDatatype{Value: r.RemoteAddr, DataType: "STRING"}
 
 }
 
@@ -118,7 +118,7 @@ func (app *application) GetPathParameters(r *http.Request) (string, []httputils.
 //
 // ------------------------------------------------------
 func (app *application) GET(w http.ResponseWriter, r *http.Request) {
-	response := &models.StoredProcResponse{}
+	response := &models.StoredProcResponse{ReferenceId: middleware.GetReqID(r.Context())}
 
 	endpointName, pathParams := app.GetPathParameters(r)
 	queryString := fmt.Sprint(r.URL)
@@ -154,7 +154,7 @@ func (app *application) GET(w http.ResponseWriter, r *http.Request) {
 // ------------------------------------------------------
 func (app *application) POST(w http.ResponseWriter, r *http.Request) {
 
-	response := &models.StoredProcResponse{}
+	response := &models.StoredProcResponse{ReferenceId: middleware.GetReqID(r.Context())}
 
 	endpointName, pathParams := app.GetPathParameters(r)
 
@@ -178,7 +178,7 @@ func (app *application) POST(w http.ResponseWriter, r *http.Request) {
 	requestBodyFlatMap := jsonutils.JsonToFlatMapFromMap(requestBodyMap)
 
 	for _, p := range pathParams {
-		requestBodyFlatMap[p.Name] = xmlutils.ValueDatatype{p.Value, "STRING"}
+		requestBodyFlatMap[p.Name] = xmlutils.ValueDatatype{Value: p.Value, DataType: "STRING"}
 	}
 
 	app.ProcessAPICall(w, r, endpointName, pathParams, requestBodyFlatMap)
@@ -193,41 +193,10 @@ func (app *application) POST(w http.ResponseWriter, r *http.Request) {
 func (app *application) ProcessAPICall(w http.ResponseWriter, r *http.Request, endpointName string,
 	pathParams []httputils.PathParam,
 	requesyBodyFlatMap map[string]xmlutils.ValueDatatype) {
-
-	response := &models.StoredProcResponse{}
-
-	userid := r.Context().Value(models.ContextUserKey).(string)
-	user, err := app.users.Get(userid)
-	if err != nil {
-		response.Status = http.StatusUnauthorized
-		response.Message = http.StatusText(http.StatusUnauthorized)
-		app.writeJSONAPI(w, response, nil)
-		return
-	}
-	serverID := user.ServerId
-
-	server, err := app.servers.Get(serverID)
-	if err != nil {
-
-		response.Status = http.StatusNotImplemented
-		response.Message = "Please check assigned server to the user"
-		app.writeJSONAPI(w, response, nil)
-		return
-
-	}
-
-	app.InjectClientInfo(r, requesyBodyFlatMap)
-	endPoint, err := app.GetEndPoint(fmt.Sprintf("%s_%s", strings.ToUpper(endpointName), strings.ToUpper(r.Method)))
-	if err != nil {
-		response.Status = http.StatusNotImplemented
-		response.Message = err.Error()
-		app.writeJSONAPI(w, response, nil)
-		return
-
-	}
 	requestId := middleware.GetReqID(r.Context())
-	log.Println("requestId", requestId)
 
+	response := &models.StoredProcResponse{ReferenceId: requestId}
+	//log.Printf("%v: %v\n", "SeversCall001", time.Now())
 	apiCall := &models.ApiCall{
 		ID: requestId,
 
@@ -240,14 +209,69 @@ func (app *application) ProcessAPICall(w http.ResponseWriter, r *http.Request, e
 		LogDB:       app.LogDB,
 		HttpRequest: r,
 
-		CurrentSP: endPoint,
-		Server:    server,
+		Response: response,
 	}
+
+	defer func() {
+		go apiCall.SaveLogs()
+	}()
+	apiCall.LogInfo(fmt.Sprintf("Received call for EndPoint %s | Method %s", endpointName, strings.ToUpper(r.Method)))
+	endPoint, err := app.GetEndPoint(fmt.Sprintf("%s_%s", strings.ToUpper(endpointName), strings.ToUpper(r.Method)))
+	if err != nil {
+		apiCall.LogInfo(fmt.Sprintf("%s endpoint %s not found", r.Method, endpointName))
+
+		response.Status = http.StatusNotImplemented
+		response.Message = err.Error()
+		app.writeJSONAPI(w, response, nil)
+		return
+
+	}
+
+	user, found := app.getCurrentUser(r)
+
+	if !found && !endPoint.AllowWithoutAuth {
+		apiCall.LogError("Unauthoerized user")
+
+		response.Status = http.StatusUnauthorized
+		response.Message = http.StatusText(http.StatusUnauthorized)
+		app.writeJSONAPI(w, response, nil)
+		return
+	}
+	if found {
+		apiCall.LogInfo(fmt.Sprintf("Request user %s %s", user.Name, user.Email))
+	} else {
+		apiCall.LogInfo("Processing request without Auth")
+	}
+
+	server, level := app.getServerToUse(endPoint, user)
+	if server == nil || level == 0 {
+
+		apiCall.LogError("Could not find Server to use")
+
+		response.Status = http.StatusNotImplemented
+		response.Message = "Please check assigned server to the user"
+		app.writeJSONAPI(w, response, nil)
+		return
+
+	}
+
+	apiCall.LogInfo(fmt.Sprintf("Server assigned %s@%s", server.UserName, server.Name))
+
+	app.InjectClientInfo(r, requesyBodyFlatMap)
+
+	//log.Printf("%v: %v\n", "SeversCall005", time.Now())
+
+	// set remaining values
+	apiCall.CurrentSP = endPoint
+	apiCall.Server = server
 
 	// apiCall.ResponseString = html.UnescapeString(endPoint.ResponsePlaceholder) //string(jsonByte)
 
-	apiCall.LogInfo("Starting SP CALL")
-	endPoint.APICall(*server, apiCall)
+	apiCall.LogInfo(fmt.Sprintf("Calling SP %s (specific %s) on server %s", apiCall.CurrentSP.Name, apiCall.CurrentSP.SpecificName, server.Name))
+	endPoint.APICall(r.Context(), *server, apiCall)
+	//log.Printf("%v: %v\n", "SeversCall006", time.Now())
+
+	apiCall.LogInfo("Finalizing response")
 
 	apiCall.Finalize()
 
@@ -257,7 +281,7 @@ func (app *application) ProcessAPICall(w http.ResponseWriter, r *http.Request, e
 
 	app.writeJSON(w, apiCall.StatusCode, apiCall.Response, nil)
 
-	go apiCall.SaveLogs()
+	go app.spCallLogModel.AddLogid(apiCall.CurrentSP.ID, apiCall.ID)
 
 }
 
@@ -265,9 +289,56 @@ func (app *application) ProcessAPICall(w http.ResponseWriter, r *http.Request, e
 //
 // ------------------------------------------------------
 
-func (app *application) clearapilogs(w http.ResponseWriter, r *http.Request) {
-	//models.ClearLogs(app.LogDB) // TODO
-	app.sessionManager.Put(r.Context(), "flash", "Api logs has been cleared")
+func (app *application) getCurrentUser(r *http.Request) (*models.User, bool) {
+	userid, ok := r.Context().Value(models.ContextUserKey).(string)
+	if !ok {
+		return nil, false
+	}
 
-	app.goBack(w, r, http.StatusSeeOther)
+	user, err := app.users.Get(userid)
+	if err != nil {
+		return nil, false
+	}
+
+	return user, true
+}
+
+// ------------------------------------------------------
+//
+// ------------------------------------------------------
+
+func (app *application) getServerToUse(endPoint *models.StoredProc, user *models.User) (*models.Server, int) {
+
+	var userServer *models.Server = nil
+	var endPointServer *models.Server = nil
+
+	endPointServer, err1 := app.servers.Get(endPoint.DefaultServer.ID)
+	if err1 != nil {
+		endPointServer = nil
+	}
+
+	if user != nil {
+		userServer2, err2 := app.servers.Get(user.ServerId)
+		if err2 != nil {
+			userServer = nil
+		} else {
+			userServer = userServer2
+		}
+	}
+
+	if userServer != nil {
+		if endPoint.IsAllowedForServer(userServer) {
+			return userServer, 1 // 1= user server
+		}
+	}
+
+	if endPointServer != nil {
+		if endPoint.IsAllowedForServer(endPointServer) {
+			return endPointServer, 2 // 2= endpoint server
+		}
+
+	}
+
+	return nil, 0
+
 }

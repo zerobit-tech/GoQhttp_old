@@ -1,10 +1,10 @@
 {{define "title"}}
-{{if .Form.ID}} Edit {{else}} Add {{end}} User 
+{{if .Form.ID}} Edit {{else}} Add {{end}} User
 {{end}}
 
 {{define "content"}}
 <div class="row p-2">
-    <div class="col">
+    <div class="col-xl-6">
         <div class="card ">
             <div class="card-header">
                 <p class="h5"> {{if .Form.ID}} Edit {{else}} Add {{end}} User : {{.Form.Email}}
@@ -22,8 +22,8 @@
                             <div class="form-group">
                                 <label>Email:</label>
 
-                                <input class="form-control {{with .Form.FieldErrors.email}} is-invalid {{end}}" type='text'
-                                    name='email' value='{{.Form.Email}}' required>
+                                <input class="form-control {{with .Form.FieldErrors.email}} is-invalid {{end}}"
+                                    type='text' name='email' value='{{.Form.Email}}' required>
                                 {{with .Form.FieldErrors.email}}
                                 <div class='invalid-feedback'>{{.}}</div>
                                 {{end}}
@@ -33,8 +33,8 @@
                             <div class="form-group">
                                 <label>Name:</label>
 
-                                <input class="form-control {{with .Form.FieldErrors.name}} is-invalid {{end}}" type='text'
-                                    name='name' value='{{.Form.Name}}' required>
+                                <input class="form-control {{with .Form.FieldErrors.name}} is-invalid {{end}}"
+                                    type='text' name='name' value='{{.Form.Name}}' required>
                                 {{with .Form.FieldErrors.name}}
                                 <div class='invalid-feedback'>{{.}}</div>
                                 {{end}}
@@ -47,27 +47,32 @@
                                 <label>Password:</label>
 
                                 <input class="form-control {{with .Form.FieldErrors.password}} is-invalid {{end}}"
-                                    type='password' name='password' required>
+                                    type='password' name='password'>
                                 {{with .Form.FieldErrors.password}}
                                 <div class='invalid-feedback'>{{.}}</div>
                                 {{end}}
                             </div>
                             <div class="form-group">
-                            <SELECT class="form-control" name="serverid">
-                                <OPTION value="">Assign Server</OPTION>
+                                <label for="defaultserver">Default Server</label>
 
-                                {{if .Servers}}
-                                {{range .Servers}}
-                                <OPTION {{if eq .ID $.Form.ServerId}} selected {{end}} value="{{.ID}}">{{.Name}}</OPTION>
-                                {{end}}
-                                {{end}}
-                            </SELECT>
-                        </div>
+                                <SELECT id="defaultserver" class="form-control" name="serverid">
+                                    <OPTION value="">Assign Server</OPTION>
+
+                                    {{if .Servers}}
+                                    {{range .Servers}}
+                                    <OPTION {{if eq .ID $.Form.ServerId}} selected {{end}} value="{{.ID}}">{{.Name}}
+                                    </OPTION>
+                                    {{end}}
+                                    {{end}}
+                                </SELECT>
+                            </div>
                             <div class="form-group">
                                 <label>Max allowed Endpoints:</label>
 
-                                <input class="form-control {{with .Form.FieldErrors.maxallowedendpoints}} is-invalid {{end}}"
-                                    type='number' name='maxallowedendpoints'  value='{{.Form.MaxAllowedEndpoints}}'  required>
+                                <input
+                                    class="form-control {{with .Form.FieldErrors.maxallowedendpoints}} is-invalid {{end}}"
+                                    type='number' name='maxallowedendpoints' value='{{.Form.MaxAllowedEndpoints}}'
+                                    required>
                                 {{with .Form.FieldErrors.maxallowedendpoints}}
                                 <div class='invalid-feedback'>{{.}}</div>
                                 {{end}}
@@ -88,7 +93,8 @@
 
                             <br> <br>
                             <button type="submit" class="btn btn-info"> <svg class="c-icon">
-                                    <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-check-alt"></use>
+                                    <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-check-alt">
+                                    </use>
                                 </svg>
                                 Submit</button>
                         </form>
@@ -108,26 +114,37 @@
 
 
 
-                    <div class="col">
-                        {{if .Form.Token}}
-                        <p>{{.Form.Token}}</p>
-                        {{end}}
-
-                        {{if .Form.ID}}
-                        <a class="btn btn-ghost-info float-right" href="/users/updatetoken/{{.Form.ID}}">Update Token</a>
-                        {{end}}
-                    </div>
-            <div class="col">
-
-                    <ol>
-                    {{range .Form.OwnedEndPoints}}
-                    <li>{{.}}</li>
-                    {{end}}
-                </ol>
-            </div>
-            </div>
+              
+               
+                </div>
             </div>
         </div>
     </div>
+    {{if .Form.ID}}
+    <div class="col-xl-6">
+        <div class="card ">
+            <div class="card-header">
+                <p class="h5"> Auth Token  
+                    {{if .Form.ID}}
+                    <a class="btn btn-ghost-info float-right" href="/users/updatetoken/{{.Form.ID}}">Update
+                        Token</a>
+                    {{end}}
+
+                </p>
+
+            </div>
+            <div class="card-body">
+                {{if .Form.Token}}
+                <p>{{.Form.Token}}</p>
+                {{end}}
+        
+     
+            </div>
+        </div>
+
+
+    </div>
+    {{end}}
+
 </div>
 {{end}}
