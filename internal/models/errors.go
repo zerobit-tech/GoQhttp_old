@@ -59,3 +59,4 @@ func OdbcErrMessage(odbcErr *go_ibm_db.Error) (int, string) {
 //"Message": "SQLExecute: {42S22} [IBM][System i Access ODBC Driver][DB2 for i5/OS]SQL0206 - Column or global variable OCLOBFIELD not found.",
 //SQLPrepare: {HY000} [IBM][System i Access ODBC Driver][DB2 for i5/OS]SQL0301 - Input variable *N or argument 1 not valid.
 //"SQLExecute: {22001} [IBM][System i Access ODBC Driver]Column 1: CWB0111 - Input data is too big to fit into field\n{22001} [IBM][System i Access ODBC Driver]Column 1: Character data right truncation.",
+//"SQLDriverConnect: {28000} [IBM][System i Access ODBC Driver]Communication link failure. comm rc=8015 - CWBSY1006 - User ID is invalid, Password length = 0, Prompt Mode = Never, System IP Address = 185.113.5.134",

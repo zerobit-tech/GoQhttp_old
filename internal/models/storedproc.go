@@ -72,7 +72,7 @@ type PreparedCallStatements struct {
 // BuildMockUrl(s)
 // ------------------------------------------------------------
 func (s *StoredProc) IsAllowedForServer(server *Server) bool {
-	if server==nil{
+	if server == nil {
 		return false
 	}
 
@@ -350,7 +350,29 @@ func (sp *StoredProc) Call(ctx context.Context, s Server, givenParams map[string
 		p, found := preparedCallStatements.InOutParamMapToSPParam[k]
 		if found {
 			if p.IsString() || reflect.ValueOf(v).Kind() == reflect.String {
-				preparedCallStatements.ResponseFormat[k] = string((*v).([]byte))
+
+				b, ok := (*v).([]byte)
+				if ok {
+					strVal := string(b)
+					assignStrVal := true
+					if validator.MustBeJSON(strVal) {
+						jsonData := make(map[string]any)
+						err := json.Unmarshal(b, &jsonData)
+
+						if err == nil {
+							preparedCallStatements.ResponseFormat[k] = &jsonData
+							assignStrVal = false
+						}
+
+					}
+					if assignStrVal {
+						preparedCallStatements.ResponseFormat[k] = strVal
+
+					}
+
+				} else {
+					preparedCallStatements.ResponseFormat[k] = v
+				}
 			} else {
 				cv, err := p.ConvertOUTVarToType(v)
 				if err == nil {
@@ -418,6 +440,8 @@ func (sp *StoredProc) SeversCall(ctx context.Context, s Server, preparedCallStat
 	resultsets := make(map[string][]map[string]any, 0)
 	ctx = context.WithValue(ctx, go_ibm_db.LOAD_SP_RESULT_SETS, resultsets)
 	ctx = context.WithValue(ctx, go_ibm_db.DUMMY_SP_CALL, dummyCall)
+	//ctx = context.WithValue(ctx, go_ibm_db.ESCAPE_QUOTE, true)  // use strconv.Quote on result set
+
 	_, err = db.ExecContext(ctx, preparedCallStatements.FinalCallStatement, preparedCallStatements.InOutParams...)
 
 	if err != nil {
