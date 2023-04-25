@@ -67,9 +67,10 @@ Stored Proc
                 {{if .Servers}}
                 {{range .Servers}}
                 <OPTION 
-       
+
+                {{if $.Form.DefaultServer}}
                 {{if eq .ID $.Form.DefaultServer.ID}} selected {{end}} 
-               
+                {{end}}
                 value="{{.ID}}">
                     
                     {{.Name}}

@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"strconv"
 	"strings"
 
 	"github.com/google/uuid"
@@ -58,6 +59,8 @@ type StoredProc struct {
 	validator.Validator `json:"-" db:"-" form:"-"` // this contains the fielderror
 
 	AllowWithoutAuth bool `json:"awoauth" db:"awoauth" form:"awoauth"`
+
+	UseNamedParams bool `json:"useunnamedparams" db:"useunnamedparams" form:"-"`
 }
 
 type PreparedCallStatements struct {
@@ -165,6 +168,7 @@ func (sp *StoredProc) PreapreToSave(s Server) error {
 	sp.Name = strings.ToUpper(strings.TrimSpace(sp.Name))
 	sp.Lib = strings.ToUpper(strings.TrimSpace(sp.Lib))
 	sp.HttpMethod = strings.ToUpper(strings.TrimSpace(sp.HttpMethod))
+	sp.UseNamedParams = true
 
 	err := sp.GetResultSetCount(s)
 	if err != nil {
@@ -182,7 +186,7 @@ func (sp *StoredProc) PreapreToSave(s Server) error {
 		}
 	}
 
-	sp.buildCallStatement(true)
+	sp.buildCallStatement(sp.UseNamedParams)
 	sp.BuildMockUrl()
 
 	return nil
@@ -212,7 +216,7 @@ func (sp *StoredProc) buildCallStatement(useNamedParams bool) (err error) {
 		if useNamedParams {
 			paramString += fmt.Sprintf("%s=>%s %s", parameter.Name, value, ",")
 		} else {
-			paramString += fmt.Sprintf("%s %s", value, ",")
+			paramString += fmt.Sprintf("%s ,", value)
 		}
 
 	}
@@ -532,6 +536,15 @@ func (sp *StoredProc) GetParameters(s Server) error {
 			//log.Println("GetSPParameter ", err.Error())
 		}
 
+		if strings.TrimSpace(spParamter.Datatype) == "" {
+			spParamter.Datatype = "CHARACTER"
+		}
+
+		if strings.TrimSpace(spParamter.Name) == "" {
+			sp.UseNamedParams = false
+			spParamter.Name = strconv.Itoa(spParamter.Position)
+
+		}
 		sp.Parameters = append(sp.Parameters, spParamter)
 
 	}
