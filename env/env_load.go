@@ -17,7 +17,7 @@ func GetEnvVariable(key string, defaultVal string) string {
 	}
 
 	val := os.Getenv(key)
-	log.Println("Got ", key, val)
+	//log.Println("Got ", key, val)
 	if val == "" {
 		val = defaultVal
 	}

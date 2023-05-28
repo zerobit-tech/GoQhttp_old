@@ -134,10 +134,19 @@ func (s *StoredProc) BuildMockUrl() {
 	queryParamString := ""
 	inputPayload := make(map[string]string)
 
+outerloop:
 	for _, p := range s.Parameters {
 		if p.Mode == "OUT" {
-			continue
+			continue outerloop
 		}
+
+		// dont display inbuilt param
+		for _, ibp := range InbuiltParams {
+			if strings.EqualFold(ibp, p.Name) {
+				continue outerloop
+			}
+		}
+
 		inputPayload[p.Name] = fmt.Sprintf("{%s}", p.Datatype)
 		if queryParamString == "" {
 			queryParamString = fmt.Sprintf("?%s={%s}", p.Name, p.Datatype)

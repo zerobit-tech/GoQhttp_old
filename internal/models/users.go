@@ -20,6 +20,7 @@ import (
 type ContextKey string
 
 const ContextUserKey ContextKey = "userid"
+const ContextUserName ContextKey = "username"
 
 type UserVerification struct {
 	UserID         string

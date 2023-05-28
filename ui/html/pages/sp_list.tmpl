@@ -1,5 +1,5 @@
 {{define "title"}}
-Saved Sqls
+EndPoints
 {{end}}
 
 {{define "content"}}
@@ -37,10 +37,22 @@ Saved Sqls
       <td>{{.Name}}</td>
       <td>{{.Lib}}</td>
        <td nowrap>
-        <a class="btn btn-info" href='/sp/{{.ID}}'>View</a>
+        <a class="btn btn-ghost-info" href='/sp/{{.ID}}'>
+        
+          View</a>
 
-        <a class="btn btn-info" href='/sp/update/{{.ID}}'>Edit</a>
-        <a class="btn btn-danger" href='/sp/delete/{{.ID}}'>Delete</a>
+        <a class="btn btn-ghost-info" 
+        data-toggle="tooltip" data-placement="bottom" title="Edit" 
+        href='/sp/update/{{.ID}}'>
+          <svg class="c-icon mfe-2">
+            <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-pencil"></use>
+        </svg></a>
+        <a class="btn btn-ghost-danger" 
+        data-toggle="tooltip" data-placement="bottom" title="Delete" 
+        href='/sp/delete/{{.ID}}'>
+          <svg class="c-icon mfe-2">
+            <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-trash"></use>
+        </svg></a>
 
       </td>
 

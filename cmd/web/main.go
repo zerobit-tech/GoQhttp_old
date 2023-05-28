@@ -1,7 +1,7 @@
 package main
 
 import (
-	"flag"
+	"context"
 	"log"
 	"net/http"
 	"os"
@@ -35,25 +35,11 @@ func main() {
 	//using struct
 
 	//--------------------------------------- Setup CLI paramters ----------------------------
-	var params parameters
-	flag.StringVar(&params.host, "host", "", "Http Host Name")
-	flag.IntVar(&params.port, "port", 4081, "Port")
-
-	flag.StringVar(&params.superuseremail, "superuseremail", "admin2@example.com", "Super User email")
-	flag.StringVar(&params.superuserpwd, "superuserpwd", "adminpass", "Super User password")
-
-	flag.BoolVar(&params.https, "https", true, "Use http or https")
-	flag.BoolVar(&params.useletsencrypt, "useletsencrypt", false, "Use let's encrypt ssl certificate")
-
-	flag.BoolVar(&params.testmode, "testmode", false, "Enable test mode")
-	flag.StringVar(&params.domain, "domain", "0.0.0.0", "Domain name")
-
-	flag.BoolVar(&params.redirectToHttps, "redirecttohttps", false, "Redirect to https")
-
-	flag.Parse()
+	params := &parameters{}
+	params.Load()
 
 	envPort := env.GetEnvVariable("PORT", "")
- 
+
 	port, err := strconv.Atoi(envPort)
 	if err == nil {
 		params.port = port
@@ -80,7 +66,7 @@ func main() {
 	defer logdb.Close()
 
 	// --------------------------------------- Setup app config and dependency injection ----------------------------
-	app := baseAppConfig(params, db, userdb, logdb)
+	app := baseAppConfig(*params, db, userdb, logdb)
 	routes := app.routes()
 	app.batches()
 
@@ -108,6 +94,36 @@ func main() {
 
 	go app.CreateSuperUser(params.superuseremail, params.superuserpwd)
 
+	shutDownChan := make(chan bool)
+
+	// --------------------- SINGAL HANDLER -------------------
+
+	cleanUpFunc := func() {
+		log.Println("Shutting down Server")
+
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer func() {
+
+			cancel()
+			shutDownChan <- true
+		}()
+
+		err := server.Shutdown(ctx)
+
+		if err != nil {
+			log.Printf("Server Shutdown Failed:%+v\n", err)
+		}
+
+		log.Println("Server Shutdown Completed")
+	}
+
+	go initSignals(cleanUpFunc)
+
+	// ---------------------LOAD SERVER -------------------
+
+	// profiling server
+	debugMe(*params)
+
 	// go openbrowser(url)
 	if params.https {
 
@@ -120,8 +136,11 @@ func main() {
 		err = server.ListenAndServe()
 
 	}
-	log.Fatal(err)
+	if err != nil {
+		//log.Fatal(err)
+	}
 
+	<-shutDownChan
 	// mux := http.NewServeMux()
 	// mux.Handle("/", http.HandlerFunc(home))
 

@@ -9,7 +9,13 @@ Endpoint
             <div class="card-header">
                 <p class="h5">
                     EndPoint details:{{.StoredProc.EndPointName}}
-                    <a class="btn btn-ghost-info" href="/sp/refresh/{{.StoredProc.ID}}">Refresh</a>
+                    <a class="btn btn-ghost-info" 
+                    data-toggle="tooltip" data-placement="bottom" title="Reload" 
+                    href="/sp/refresh/{{.StoredProc.ID}}">
+                        <svg class="c-icon mfe-2">
+                            <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-reload"></use>
+                        </svg>
+                    </a>
                     <a class="btn btn-ghost-info float-right" href="/sp">Back to Endpoint list</a>
                 </p>
             </div>
@@ -53,7 +59,7 @@ Endpoint
 
                                 <tr>
                                     <th scope="row">Default Server</th>
-                                    <td>{{.StoredProc.DefaultServer.Name}}</td>
+                                    <td>{{if .StoredProc.DefaultServer}} {{.StoredProc.DefaultServer.Name}}{{end}}</td>
                                 </tr>
                                 <tr>
                                     <th scope="row">Stored Proc</th>
@@ -168,7 +174,7 @@ Endpoint
                     {{end}}
                 </SELECT>
                 </div>
-                <button type="submit" class="btn btn-primary mb-2">Assign</button>
+                <button type="submit" class="btn btn-ghost-primary mb-2">Assign</button>
             </div>
             </form>
 
@@ -185,7 +191,7 @@ Endpoint
             <div class="card ">
                 <div class="card-header">
                     <p class="h5">
-                        Parameters <button type="submit" class="btn btn-primary  float-right">Call</button>
+                        Parameters <button type="submit" class="btn btn-ghost-primary  float-right">Call</button>
                     </p>
                 </div>
                 <div class="card-body">

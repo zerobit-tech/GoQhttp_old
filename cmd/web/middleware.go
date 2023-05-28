@@ -90,6 +90,8 @@ func (app *application) RequireTokenAuthentication(next http.Handler) http.Handl
 		}
 
 		ctx := context.WithValue(r.Context(), models.ContextUserKey, user.ID)
+		ctx = context.WithValue(ctx, models.ContextUserName, user.Name)
+
 		// Otherwise set the "Cache-Control: no-store" header so that pages
 		// require authentication are not stored in the users browser cache (or
 		// other intermediary cache).
@@ -106,7 +108,6 @@ func (app *application) LogHandler(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		requestId := middleware.GetReqID(r.Context())
 
-		
 		requestBody := ""
 		x, err := httputil.DumpRequest(r, true)
 		if err == nil {
@@ -116,13 +117,12 @@ func (app *application) LogHandler(next http.Handler) http.Handler {
 		}
 		go func() {
 
-
 			buf := bytes.NewBufferString("")
 
 			models.RequestLog.SetOutput(buf)
 			models.RequestLog.Println("\n\n" + requestBody)
 
-			models.SaveLogs(app.LogDB, 998, requestId, buf.String())
+			models.SaveLogs(app.LogDB, 998, requestId, buf.String(), app.testMode)
 		}()
 
 		rec := httptest.NewRecorder()
@@ -142,7 +142,7 @@ func (app *application) LogHandler(next http.Handler) http.Handler {
 				models.ResponseLog.SetOutput(buf)
 				models.ResponseLog.Println("\n\n" + responseBody)
 
-				models.SaveLogs(app.LogDB, 999, requestId, buf.String())
+				models.SaveLogs(app.LogDB, 999, requestId, buf.String(), app.testMode)
 			}()
 		}
 

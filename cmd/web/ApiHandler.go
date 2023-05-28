@@ -80,8 +80,28 @@ func (app *application) RequireUnAuthEndPoint(next http.Handler) http.Handler {
 //
 // ------------------------------------------------------
 
-func (app *application) InjectClientInfo(r *http.Request, requesyBodyFlatMap map[string]xmlutils.ValueDatatype) {
-	requesyBodyFlatMap["HTTP_CLIENT_IP"] = xmlutils.ValueDatatype{Value: r.RemoteAddr, DataType: "STRING"}
+func (app *application) InjectRequestInfo(r *http.Request, requesyBodyFlatMap map[string]xmlutils.ValueDatatype) {
+	requesyBodyFlatMap["QHTTP_CLIENT_IP"] = xmlutils.ValueDatatype{Value: strings.TrimSpace(r.RemoteAddr), DataType: "STRING"}
+	requesyBodyFlatMap["QHTTP_METHOD"] = xmlutils.ValueDatatype{Value: r.Method, DataType: "STRING"}
+
+	user, ok := r.Context().Value(models.ContextUserName).(string)
+	if ok {
+		requesyBodyFlatMap["QHTTP_USER"] = xmlutils.ValueDatatype{Value: user, DataType: "STRING"}
+
+	} else {
+		requesyBodyFlatMap["QHTTP_USER"] = xmlutils.ValueDatatype{Value: "ANONYMOUS", DataType: "STRING"}
+
+	}
+
+}
+
+// ------------------------------------------------------
+//
+// ------------------------------------------------------
+
+func (app *application) InjectServerInfo(server *models.Server, requesyBodyFlatMap map[string]xmlutils.ValueDatatype) {
+	requesyBodyFlatMap["QHTTP_SERVER"] = xmlutils.ValueDatatype{Value: server.Name, DataType: "STRING"}
+	requesyBodyFlatMap["QHTTP_SERVER_USER"] = xmlutils.ValueDatatype{Value: server.UserName, DataType: "STRING"}
 
 }
 
@@ -212,9 +232,11 @@ func (app *application) ProcessAPICall(w http.ResponseWriter, r *http.Request, e
 		Response: response,
 	}
 
+	// log api data
 	defer func() {
-		go apiCall.SaveLogs()
+		go apiCall.SaveLogs(app.testMode)
 	}()
+
 	apiCall.LogInfo(fmt.Sprintf("Received call for EndPoint %s | Method %s", endpointName, strings.ToUpper(r.Method)))
 	endPoint, err := app.GetEndPoint(fmt.Sprintf("%s_%s", strings.ToUpper(endpointName), strings.ToUpper(r.Method)))
 	if err != nil {
@@ -257,7 +279,8 @@ func (app *application) ProcessAPICall(w http.ResponseWriter, r *http.Request, e
 
 	apiCall.LogInfo(fmt.Sprintf("Server assigned %s@%s", server.UserName, server.Name))
 
-	app.InjectClientInfo(r, requesyBodyFlatMap)
+	app.InjectRequestInfo(r, requesyBodyFlatMap)
+	app.InjectServerInfo(server, requesyBodyFlatMap)
 
 	//log.Printf("%v: %v\n", "SeversCall005", time.Now())
 
@@ -326,17 +349,21 @@ func (app *application) getServerToUse(endPoint *models.StoredProc, user *models
 		}
 	}
 
-	if userServer != nil {
-		if endPoint.IsAllowedForServer(userServer) {
-			return userServer, 1 // 1= user server
-		}
+	if userServer != nil && endPoint.IsAllowedForServer(userServer) {
+
+		return userServer, 1 // 1= user server
+
 	}
 
-	if endPointServer != nil {
-		if endPoint.IsAllowedForServer(endPointServer) {
-			return endPointServer, 2 // 2= endpoint server
-		}
+	// allow endpoint server only for unauth users
 
+	if endPoint.AllowWithoutAuth {
+
+		if endPointServer != nil && endPoint.IsAllowedForServer(endPointServer) {
+
+			return endPointServer, 2 // 2= endpoint server
+
+		}
 	}
 
 	return nil, 0

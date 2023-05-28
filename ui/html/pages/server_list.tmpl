@@ -59,12 +59,21 @@ Servers
 
             <td>
                   {{if not .OnHold }}
-                     <a class="btn btn-primary" href='/servers/select/{{.ID}}?next={{$.Next}}'>Select</a> 
+                     <a class="btn btn-ghost-primary" href='/servers/select/{{.ID}}?next={{$.Next}}'>Select</a> 
                   {{ end }}
-                  <a class="btn btn-info" href='/servers/{{.ID}}'  >View</a> 
+                  <a class="btn btn-ghost-info" href='/servers/{{.ID}}'  >View</a> 
                   {{if $.CurrentUser.IsSuperUser}}
-                     <a class="btn btn-info" href='/servers/update/{{.ID}}'  >Edit</a> 
-                     <a class="btn btn-danger" href='/servers/delete/{{.ID}}'  >Delete</a>
+                     <a class="btn btn-ghost-info" 
+                     data-toggle="tooltip" data-placement="bottom" title="Edit" 
+                     href='/servers/update/{{.ID}}'  >   <svg class="c-icon mfe-2">
+                      <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-pencil"></use>
+                  </svg></a> 
+                     <a class="btn btn-ghost-danger" 
+                     data-toggle="tooltip" data-placement="bottom" title="Delete" 
+                     href='/servers/delete/{{.ID}}'  >   
+                      <svg class="c-icon mfe-2">
+                      <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-trash"></use>
+                  </svg></a>
                      {{ end }}
             </td>
 

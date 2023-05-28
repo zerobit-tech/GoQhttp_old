@@ -5,15 +5,20 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"strings"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/onlysumitg/GoQhttp/internal/database"
 	"github.com/onlysumitg/GoQhttp/internal/validator"
+	"github.com/onlysumitg/GoQhttp/utils/stringutils"
 
 	bolt "go.etcd.io/bbolt"
 )
+
+// keep the length same
+const MySecret string = "Ang&1*~U^2^#s0^=)^^7%b34"
 
 // -----------------------------------------------------------------
 //
@@ -27,16 +32,16 @@ type Server struct {
 	Port uint16 `json:"port" db:"port" form:"port"`
 	Ssl  bool   `json:"ssl" db:"ssl" form:"ssl"`
 
-	UserName          string    `json:"un" db:"un" form:"user_name"`
-	Password          string    `json:"pwd" db:"pwd" form:"password"`
+	UserName string `json:"un" db:"un" form:"user_name"`
+	Password string `json:"pwd" db:"pwd" form:"password"`
 	//WorkLib           string    `json:"wlib" db:"wlib" form:"worklib"`
-	CreatedAt         time.Time `json:"c_at" db:"c_at" form:"-"`
-	UpdatedAt         time.Time `json:"u_at" db:"u_at" form:"-"`
-	ConnectionsOpen       int       `json:"conn" db:"conn" form:"connections"`
-	ConnectionsIdle       int       `json:"iconn" db:"iconn" form:"idleconnections"`
+	CreatedAt       time.Time `json:"c_at" db:"c_at" form:"-"`
+	UpdatedAt       time.Time `json:"u_at" db:"u_at" form:"-"`
+	ConnectionsOpen int       `json:"conn" db:"conn" form:"connections"`
+	ConnectionsIdle int       `json:"iconn" db:"iconn" form:"idleconnections"`
 
-	ConnectionMaxAge  int       `json:"cage" db:"cage" form:"cage"`
-	ConnectionIdleAge int       `json:"icage" db:"icage" form:"icage"`
+	ConnectionMaxAge  int `json:"cage" db:"cage" form:"cage"`
+	ConnectionIdleAge int `json:"icage" db:"icage" form:"icage"`
 
 	OnHold        bool   `json:"oh" db:"oh" form:"onhold"`
 	OnHoldMessage string `json:"ohm" db:"ohm" form:"onholdmessage"`
@@ -53,10 +58,29 @@ func (s Server) GetConnectionString() string {
 	if s.Ssl {
 		ssl = 1
 	}
-	connectionString := fmt.Sprintf("DRIVER=%s;SYSTEM=%s; UID=%s;PWD=%s;DBQ=*USRLIBL;UNICODESQL=1;XDYNAMIC=1;EXTCOLINFO=0;PKG=A/DJANGO,2,0,0,1,512;PROTOCOL=TCPIP;NAM=1;CMT=0;SSL=%d;ALLOWUNSCHAR=1", driver, s.IP, s.UserName, s.Password, ssl)
+	pwd := s.GetPassword()
+	connectionString := fmt.Sprintf("DRIVER=%s;SYSTEM=%s; UID=%s;PWD=%s;DBQ=*USRLIBL;UNICODESQL=1;XDYNAMIC=1;EXTCOLINFO=0;PKG=A/DJANGO,2,0,0,1,512;PROTOCOL=TCPIP;NAM=1;CMT=0;SSL=%d;ALLOWUNSCHAR=1", driver, s.IP, s.UserName, pwd, ssl)
+
+	//connectionString := fmt.Sprintf("DSN=pub400; UID=%s;PWD=%s", s.UserName, s.Password)
+
 	return connectionString
 }
 
+// ------------------------------------------------------------
+//
+// ------------------------------------------------------------
+func (s Server) GetPassword() string {
+	pwd, err := stringutils.Decrypt(s.Password, MySecret)
+	if err != nil {
+		log.Println("Unable to decrypt password")
+		return ""
+	}
+	return pwd
+}
+
+// ------------------------------------------------------------
+//
+// ------------------------------------------------------------
 func (s Server) GetConnectionType() string {
 	return "go_ibm_db" //"odbc"
 }
@@ -176,6 +200,7 @@ func (m *ServerModel) Update(u *Server, clearCache bool) error {
 			return err
 		}
 		u.Name = strings.ToUpper(strings.TrimSpace(u.Name))
+		u.Password, _ = stringutils.Encrypt(u.Password, MySecret)
 
 		if !u.OnHold {
 			u.OnHoldMessage = ""

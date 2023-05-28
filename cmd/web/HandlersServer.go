@@ -300,6 +300,7 @@ func (app *application) ServerUpdate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	server.Password = server.GetPassword()
 	data := app.newTemplateData(r)
 
 	data.Form = server

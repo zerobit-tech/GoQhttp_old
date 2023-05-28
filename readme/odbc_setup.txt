@@ -1,0 +1,51 @@
+https://www.ibm.com/docs/en/i/7.4?topic=details-connection-string-keywords
+
+
+/etc/odbcinst.ini
+
+[IBM i Access ODBC Driver]
+Description=IBM i Access for Linux ODBC Driver
+Driver=/opt/ibm/iaccess/lib/libcwbodbc.so
+Setup=/opt/ibm/iaccess/lib/libcwbodbcs.so
+Driver64=/opt/ibm/iaccess/lib64/libcwbodbc.so
+Setup64=/opt/ibm/iaccess/lib64/libcwbodbcs.so
+Threading=2
+DontDLClose=1
+UsageCount=1
+Pooling=Yes
+CPTimeout=120
+
+[IBM i Access ODBC Driver 64-bit]
+Description=IBM i Access for Linux 64-bit ODBC Driver
+Driver=/opt/ibm/iaccess/lib64/libcwbodbc.so
+Setup=/opt/ibm/iaccess/lib64/libcwbodbcs.so
+Threading=2
+DontDLClose=1
+UsageCount=1
+Pooling=Yes
+CPTimeout=120
+
+
+
+/etc/odbc.ini
+[pub400]
+Description             = pub400 Free server
+Driver                  = IBM i Access ODBC Driver 64-bit
+System                  = pub400.com
+Name                    = pub400.com
+Naming                  = 0
+DefaultLibraries        = *USRLIBL
+ConnectionType          = 0
+CommitMode              = 0
+ExtendedDynamic         = 1
+ExtendedColInfo         = 0
+DefaultPkgLibrary       = SQLPKG
+DefaultPackage          = A/DEFAULT(IBM),2,0,1,0,512
+AllowDataCompression    = 1
+LibraryView             = 0
+AllowUnsupportedChar    = 0
+ForceTranslation        = 0
+Trace                   = 0
+DEBUG                   = 65536
+UserID                  = xxxxxxxxx
+Password                = xxxxxxx
