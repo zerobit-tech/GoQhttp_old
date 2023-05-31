@@ -257,6 +257,7 @@ func (app *application) SPAddPost(w http.ResponseWriter, r *http.Request) {
 
 	sP.CheckField(validator.NotBlank(sP.Name), "name", "This field cannot be blank")
 	sP.CheckField(validator.NotBlank(sP.Lib), "lib", "This field cannot be blank")
+	sP.CheckField(!app.storedProcs.Duplicate(&sP), "endpointname", "Endpoint with name and method already exists")
 
 	// assign default server
 	if sP.DefaultServerId != "" {
@@ -274,6 +275,7 @@ func (app *application) SPAddPost(w http.ResponseWriter, r *http.Request) {
 		sP.DefaultServer = srcd
 		sP.AddAllowedServer(currentServer)
 	}
+	sP.CheckField(!app.storedProcs.Duplicate(&sP), "endpointname", "Endpoint with name and method already exists")
 
 	// Check SP details from iBMI
 	if sP.Valid() {

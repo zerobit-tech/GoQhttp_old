@@ -61,7 +61,13 @@ Logs
       {{range .LogEntries}}
       <tr>
 
-        <td><p><pre>{{.}}</pre></p></td>
+        <td>
+        {{if .|ispreformatted}}
+        <p><pre>{{.}}</pre></p>
+        {{else}}
+        <p>{{.}}</p>
+        {{end}}
+        </td>
       </tr>
       {{end}}
       {{end}}

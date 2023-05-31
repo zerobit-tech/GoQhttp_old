@@ -817,11 +817,11 @@ func (m *StoredProcModel) Exists(id string) bool {
 //
 // -----------------------------------------------------------------
 // We'll use the Exists method to check if a user exists with a specific ID.
-func (m *StoredProcModel) DuplicateName(name string) bool {
+func (m *StoredProcModel) Duplicate(u *StoredProc) bool {
 	exists := false
-	for _, savedQuery := range m.List() {
+	for _, sp := range m.List() {
 
-		if strings.EqualFold(savedQuery.Name, name) {
+		if sp.ID != u.ID && strings.EqualFold(sp.EndPointName, u.EndPointName) && strings.EqualFold(sp.HttpMethod, u.HttpMethod) {
 			exists = true
 			break
 		}

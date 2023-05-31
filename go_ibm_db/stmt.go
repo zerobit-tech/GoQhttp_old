@@ -66,7 +66,6 @@ func (s *Stmt) Exec(args []driver.Value) (driver.Result, error) {
 
 // ExecContext implements driver.StmtExecContext interface
 func (s *Stmt) ExecContext(ctx context.Context, args []driver.NamedValue) (driver.Result, error) {
-	fmt.Println("1.22 Current date and time is: ", time.Now().String())
 
 	dargs := make([]driver.Value, len(args))
 	for n, param := range args {

@@ -40,10 +40,10 @@ type templateData struct {
 
 	CurrentServer *models.Server
 
-	StoredProcs         []*models.StoredProc
-	StoredProc          *models.StoredProc
-	SPCallLog           *models.SPCallLog
-	
+	StoredProcs []*models.StoredProc
+	StoredProc  *models.StoredProc
+	SPCallLog   *models.SPCallLog
+
 	ComparisonOperators []string
 
 	LogEntries []string
@@ -218,7 +218,17 @@ func yesNo(s bool) string {
 
 	return "No"
 }
- 
+
+// -----------------------------------------------------------------
+//
+// -----------------------------------------------------------------
+func IsPreFormatted(s string) bool {
+	if strings.HasPrefix(s, "00999") || strings.HasPrefix(s, "01000") {
+		return true
+	}
+	return false
+}
+
 // -----------------------------------------------------------------
 //
 // -----------------------------------------------------------------
@@ -246,6 +256,7 @@ var functions = template.FuncMap{
 	"humanDate":    humanDate,
 	"toJson":       toJson,
 	"yesNo":        yesNo,
+	"ispreformatted":       IsPreFormatted,
 	"httpCodeText": httpCodeText,
 }
 

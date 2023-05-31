@@ -60,3 +60,4 @@ func OdbcErrMessage(odbcErr *go_ibm_db.Error) (int, string) {
 //"SQLExecute: {22001} [IBM][System i Access ODBC Driver]Column 1: CWB0111 - Input data is too big to fit into field\n{22001} [IBM][System i Access ODBC Driver]Column 1: Character data right truncation.",
 //"SQLDriverConnect: {28000} [IBM][System i Access ODBC Driver]Communication link failure. comm rc=8015 - CWBSY1006 - User ID is invalid, Password length = 0, Prompt Mode = Never, System IP Address = 185.113.5.134",
 //SQLDriverConnect: {28000} [IBM][System i Access ODBC Driver]Communication link failure. comm rc=8002 - CWBSY0002 - Password for user SGOYAL on system PUB400.COM is not correct, Password length = 0, Prompt Mode = Never, System IP Address = 185.113.5.134
+//SQLExecute: {07002} [IBM][System i Access ODBC Driver]SQLBindParameter has not been called for parameter 4.

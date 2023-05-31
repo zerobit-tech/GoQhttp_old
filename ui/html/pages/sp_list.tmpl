@@ -23,8 +23,8 @@ EndPoints
     <tr>
       <th>EndPoint name</th>
       <th>Method</th>
-      <th>Name</th>
-      <th>Lib</th>
+      <th>StoredProc</th>
+      <th>Specific</th>
       <th>Options</th>
     </tr>
   </thead>
@@ -34,8 +34,8 @@ EndPoints
     <tr>
       <td>{{.EndPointName}}</td>
       <td>{{.HttpMethod}}</td>
-      <td>{{.Name}}</td>
-      <td>{{.Lib}}</td>
+      <td>{{.Lib}}/{{.Name}}</td>
+      <td>{{.SpecificLib}}/{{.SpecificName}}</td>
        <td nowrap>
         <a class="btn btn-ghost-info" href='/sp/{{.ID}}'>
         
