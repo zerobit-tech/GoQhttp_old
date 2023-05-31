@@ -60,6 +60,10 @@ func (app *application) userAdd(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.Method == http.MethodPost {
+		user.IsSuperUser = false
+		user.IsStaff = false
+		user.HasVerified = false
+
 		err := app.decodePostForm(r, &user)
 		if err != nil {
 			app.clientError(w, http.StatusBadRequest, err)

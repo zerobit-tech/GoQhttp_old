@@ -83,6 +83,15 @@
                                 <label class="form-check-label" for="issuperuser">Super Admin</label>
                             </div>
                             <br>
+
+                            
+                            <div class="form-check">
+                                <input value='true' {{if .Form.IsStaff}} checked {{end}} type="checkbox"
+                                    class=" form-check-input" name="isstaff" id="isstaff">
+                                <label class="form-check-label" for="isstaff">Staff</label>
+                            </div>
+                            <br>
+        
                             <div class="form-check">
                                 <input value='true' {{if .Form.HasVerified}} checked {{end}} type="checkbox"
                                     class=" form-check-input" name="hasverified" id="hasverified">

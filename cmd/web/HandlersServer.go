@@ -149,6 +149,36 @@ func (app *application) ServerView(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	data.Server = server
+	data.StoredProcs = make([]*models.StoredProc, 0, 10)
+	for _, s := range app.storedProcs.List() {
+		if s == nil || s.DefaultServer == nil {
+			continue
+		}
+		allowed := false
+		if s.DefaultServer.ID == serverID {
+			allowed = true
+		} else {
+
+			for _, als := range s.AllowedOnServers {
+				if als.ID == serverID {
+					allowed = true
+				}
+
+			}
+		}
+		if allowed {
+			data.StoredProcs = append(data.StoredProcs, s)
+		}
+	}
+
+	data.Users = make([]*models.User, 0, 10)
+
+	for _, u := range app.users.List() {
+		if u.ServerId == serverID {
+			data.Users = append(data.Users, u)
+		}
+	}
+
 	app.render(w, r, http.StatusOK, "server_view.tmpl", data)
 
 }

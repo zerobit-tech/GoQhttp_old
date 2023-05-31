@@ -13,6 +13,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/onlysumitg/GoQhttp/go_ibm_db"
 	"github.com/onlysumitg/GoQhttp/internal/validator"
+	"github.com/onlysumitg/GoQhttp/utils/httputils"
 	bolt "go.etcd.io/bbolt"
 )
 
@@ -342,12 +343,16 @@ func (sp *StoredProc) APICall(ctx context.Context, s Server, apiCall *ApiCall) {
 func (sp *StoredProc) Call(ctx context.Context, s Server, givenParams map[string]any) (*StoredProcResponse, error) {
 	//log.Printf("%v: %v\n", "SeversCall005.002", time.Now())
 
+	qhttp_status_code := 200
+	qhttp_status_message := ""
+
 	logEntries := make([]LogByType, 0)
 	preparedCallStatements, err := sp.prepareCallStatement(s, givenParams)
 	if err != nil {
 		logEntries = append(logEntries, LogByType{Text: err.Error(), Type: "E"})
 		return &StoredProcResponse{LogData: logEntries}, err
 	}
+
 	//log.Printf("%v: %v\n", "SeversCall005.003", time.Now())
 	err = sp.SeversCall(ctx, s, preparedCallStatements, false)
 	//log.Printf("%v: %v\n", "SeversCall005.004", time.Now())
@@ -362,6 +367,7 @@ func (sp *StoredProc) Call(ctx context.Context, s Server, givenParams map[string
 	for k, v := range preparedCallStatements.InOutParamVariables {
 		p, found := preparedCallStatements.InOutParamMapToSPParam[k]
 		if found {
+
 			if p.IsString() || reflect.ValueOf(v).Kind() == reflect.String {
 
 				b, ok := (*v).([]byte)
@@ -383,6 +389,12 @@ func (sp *StoredProc) Call(ctx context.Context, s Server, givenParams map[string
 
 					}
 
+					if p.Mode == "OUT" && p.Name == "QHTTP_STATUS_MESSAGE" {
+						qhttp_status_message = strVal
+						delete(preparedCallStatements.ResponseFormat, k)
+
+					}
+
 				} else {
 					preparedCallStatements.ResponseFormat[k] = v
 				}
@@ -396,13 +408,57 @@ func (sp *StoredProc) Call(ctx context.Context, s Server, givenParams map[string
 
 			}
 
+			if p.Mode == "OUT" && p.Name == "QHTTP_STATUS_CODE" && p.IsInt() {
+				intval, ok := 0, false
+
+				switch reflect.ValueOf(*v).Kind() {
+				case reflect.Int32:
+					if intval32, ok2 := (*v).(int32); ok2 {
+						intval = int(intval32)
+						ok = ok2
+					}
+				case reflect.Int64:
+					if intval64, ok2 := (*v).(int64); ok2 {
+						intval = int(intval64)
+						ok = ok2
+					}
+				case reflect.Int16:
+					if intval16, ok2 := (*v).(int16); ok2 {
+						intval = int(intval16)
+						ok = ok2
+					}
+				case reflect.Int8:
+					if intval8, ok2 := (*v).(int8); ok2 {
+						intval = int(intval8)
+						ok = ok2
+					}
+				default:
+					intval, ok = (*v).(int)
+				}
+
+				if ok {
+					validCode, message := httputils.IsValidHttpCode(int(intval))
+					if validCode {
+						qhttp_status_code = int(intval)
+
+						// remove QHTTP_STATUS_CODE from out params
+						delete(preparedCallStatements.ResponseFormat, k)
+
+						if qhttp_status_message == "" {
+							qhttp_status_message = message
+						}
+					}
+				}
+
+			}
+
 		}
 	}
 
 	responseFormat := &StoredProcResponse{
 		ReferenceId: "string",
-		Status:      200,
-		Message:     "string",
+		Status:      qhttp_status_code,
+		Message:     qhttp_status_message,
 		Data:        preparedCallStatements.ResponseFormat,
 		LogData:     logEntries,
 	}
@@ -462,7 +518,12 @@ func (sp *StoredProc) SeversCall(ctx context.Context, s Server, preparedCallStat
 	}
 
 	// assign result sets
-	preparedCallStatements.ResponseFormat["data"] = resultsets
+
+	for k, v := range resultsets {
+		preparedCallStatements.ResponseFormat[k] = v
+
+	}
+	//	preparedCallStatements.ResponseFormat["data"] = resultsets
 
 	return nil
 

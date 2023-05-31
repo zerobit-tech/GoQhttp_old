@@ -51,8 +51,8 @@ func (app *application) UserHandlers(router *chi.Mux) {
 		g1 := r.Group(nil)
 		g1.Use(noSurf)
 
-		g1.Get("/signup", app.userSignup)
-		g1.Post("/signup", app.userSignupPost)
+		// g1.Get("/signup", app.userSignup)
+		// g1.Post("/signup", app.userSignupPost)
 		// CSRF
 		g1.Get("/login", app.userLogin)
 		g1.Post("/login", app.userLoginPost)
@@ -82,7 +82,7 @@ func (app *application) RequireAuthentication(next http.Handler) http.Handler {
 		goToUrl := fmt.Sprintf("/user/login?next=%s", r.URL.RequestURI())
 
 		if !app.isAuthenticated(r) {
-			app.sessionManager.Put(r.Context(), "error", fmt.Sprintf("Login required"))
+			app.sessionManager.Put(r.Context(), "error", "Login required")
 
 			http.Redirect(w, r, goToUrl, http.StatusSeeOther)
 			return
@@ -90,7 +90,7 @@ func (app *application) RequireAuthentication(next http.Handler) http.Handler {
 
 		user, err := app.GetUser(r)
 		if !user.HasVerified {
-			app.sessionManager.Put(r.Context(), "error", fmt.Sprintf("Please verify your email"))
+			app.sessionManager.Put(r.Context(), "error", "Please verify your email")
 
 			http.Redirect(w, r, goToUrl, http.StatusSeeOther)
 			return
@@ -185,8 +185,16 @@ func (app *application) RequireStaff(next http.Handler) http.Handler {
 // Return true if the current request is from an authenticated user, otherwise
 // return false.
 func (app *application) isAuthenticated(r *http.Request) bool {
-	_, err := app.GetUser(r)
-	return err == nil
+	user, err := app.GetUser(r)
+
+	if err != nil {
+		return false
+	}
+	if user.IsSuperUser || user.IsStaff {
+		return true
+	}
+
+	return false
 }
 
 // ------------------------------------------------------

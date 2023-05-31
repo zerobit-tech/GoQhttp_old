@@ -29,31 +29,31 @@ type UserVerification struct {
 }
 
 type UserTroubleForm struct {
-	Email  string `json:"email" db:"email" form:"email"`
-	Option string `json:"option" db:"option" form:"option"`
+	Email               string `json:"email" db:"email" form:"email"`
+	Option              string `json:"option" db:"option" form:"option"`
 	validator.Validator `json:"-" db:"-" form:"-"`
 }
 
 type UserPasswordResetForm struct {
-	Password string `json:"-" db:"-" form:"password"`
+	Password            string `json:"-" db:"-" form:"password"`
 	validator.Validator `json:"-" db:"-" form:"-"`
 }
 
 type UserSignUpForm struct {
-	Name     string `json:"name" db:"name" form:"name"`
-	Email    string `json:"email" db:"email" form:"email"`
-	Password string `json:"-" db:"-" form:"password"`
+	Name                string `json:"name" db:"name" form:"name"`
+	Email               string `json:"email" db:"email" form:"email"`
+	Password            string `json:"-" db:"-" form:"password"`
 	validator.Validator `json:"-" db:"-" form:"-"`
 }
 
 type UserLoginForm struct {
-	Email    string `json:"email" db:"email" form:"email"`
-	Password string `json:"-" db:"-" form:"password"`
+	Email               string `json:"email" db:"email" form:"email"`
+	Password            string `json:"-" db:"-" form:"password"`
 	validator.Validator `json:"-" db:"-" form:"-"`
 }
 
 type AddOwnerForm struct {
-	Email string `json:"email" db:"email" form:"email"`
+	Email               string `json:"email" db:"email" form:"email"`
 	validator.Validator `json:"-" db:"-" form:"-"`
 }
 
@@ -115,7 +115,6 @@ func (u *User) AssignOwnedEndPoint(id string) {
 	u.OwnedEndPoints = append(u.OwnedEndPoints, id)
 }
 
- 
 // -----------------------------------------------------------------
 //
 // -----------------------------------------------------------------

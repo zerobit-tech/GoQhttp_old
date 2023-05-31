@@ -20,6 +20,8 @@ Users
                 <th>Name</th>
                 <th>Created</th>
                 <th>Super User</th>
+                <th>Staff</th>
+
                 <th>Verified</th>
  
                 <th>Options </th>
@@ -36,6 +38,7 @@ Users
                 <td>{{.Name}} </td>
                 <td>{{.Created }} </td>
                 <td>{{.IsSuperUser | yesNo}} </td>
+                <td>{{.IsStaff | yesNo}} </td>
 
                 <td>{{.HasVerified | yesNo}} </td>
                  

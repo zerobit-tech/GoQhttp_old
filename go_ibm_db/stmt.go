@@ -156,7 +156,7 @@ func (s *Stmt) exec(ctx context.Context, args []driver.Value) (driver.Result, er
 					}
 				}
 
-				rr[fmt.Sprintf("dataset_%d", sumRowCount)] = row_map
+				rr[fmt.Sprintf("DATASET_%d", sumRowCount)] = row_map
 				//*rr = append(*rr, row_map)
 				//rr.os = s.os
 

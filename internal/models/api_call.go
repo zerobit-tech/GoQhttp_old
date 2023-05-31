@@ -81,6 +81,9 @@ func (a *ApiCall) Finalize() {
 	if a.HasError() {
 		a.Response.Message = a.StatusMessage
 		a.Response.Status = a.StatusCode
+	} else {
+		a.StatusCode = a.Response.Status
+		a.StatusMessage = a.Response.Message
 	}
 	a.Response.ReferenceId = a.ID
 
