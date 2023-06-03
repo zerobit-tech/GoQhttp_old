@@ -167,8 +167,8 @@ outerloop:
 		queryParamString = ""
 	}
 
-	s.MockUrl = fmt.Sprintf("api/%s%s", s.Name, queryParamString)
-	s.MockUrlWithoutAuth = fmt.Sprintf("uapi/%s%s", s.Name, queryParamString)
+	s.MockUrl = fmt.Sprintf("api/%s%s", s.EndPointName, queryParamString)
+	s.MockUrlWithoutAuth = fmt.Sprintf("uapi/%s%s", s.EndPointName, queryParamString)
 }
 
 // -----------------------------------------------------------------
@@ -542,7 +542,7 @@ func (sp *StoredProc) GetResultSetCount(s Server) error {
 	if sp.UseSpecificName {
 		sqlToRun = fmt.Sprintf("select trim(SPECIFIC_SCHEMA), trim(SPECIFIC_NAME),trim(ROUTINE_SCHEMA),trim(ROUTINE_NAME), RESULT_SETS from qsys2.sysprocs where SPECIFIC_NAME='%s'  and SPECIFIC_SCHEMA='%s' limit 1", strings.ToUpper(sp.Name), strings.ToUpper(sp.Lib))
 	} else {
-		sqlToRun = fmt.Sprintf("select trim(SPECIFIC_SCHEMA), trim(SPECIFIC_NAME),trim(ROUTINE_SCHEMA),trim(ROUTINE_NAME), RESULT_SETS from qsys2.sysprocs where SPECIFIC_NAME='%s'  and SPECIFIC_SCHEMA='%s' limit 1", strings.ToUpper(sp.Name), strings.ToUpper(sp.Lib))
+		sqlToRun = fmt.Sprintf("select trim(SPECIFIC_SCHEMA), trim(SPECIFIC_NAME),trim(ROUTINE_SCHEMA),trim(ROUTINE_NAME), RESULT_SETS from qsys2.sysprocs where ROUTINE_NAME='%s'  and ROUTINE_SCHEMA='%s' limit 1", strings.ToUpper(sp.Name), strings.ToUpper(sp.Lib))
 
 	}
 

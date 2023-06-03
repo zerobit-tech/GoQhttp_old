@@ -15,13 +15,16 @@ import (
 )
 
 func main() {
+	log.Println("Initializing....")
 
 	err := os.MkdirAll("./db", os.ModePerm)
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	log.Println("Initializing....")
+	err = os.MkdirAll("./env", os.ModePerm)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	// go run ./cmd/web -port=4002 -host="localhost"
 	// go run ./cmd/web -h  ==> help text

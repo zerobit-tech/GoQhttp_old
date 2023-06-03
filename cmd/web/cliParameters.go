@@ -75,6 +75,5 @@ func (params *parameters) Load() {
 
 	flag.BoolVar(&params.redirectToHttps, "redirecttohttps", false, "Redirect to https")
 
-	fmt.Println("&params.testmode", params.testmode)
 	flag.Parse()
 }
