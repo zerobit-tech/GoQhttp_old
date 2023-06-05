@@ -44,6 +44,8 @@ type templateData struct {
 	StoredProc  *models.StoredProc
 	SPCallLog   *models.SPCallLog
 
+	Promotions []*models.PromotionRecord
+
 	ComparisonOperators []string
 
 	LogEntries []string
@@ -253,11 +255,11 @@ func humanDate(t time.Time) string {
 // a string-keyed map which acts as a lookup between the names of our custom template
 // functions and the functions themselves.
 var functions = template.FuncMap{
-	"humanDate":    humanDate,
-	"toJson":       toJson,
-	"yesNo":        yesNo,
-	"ispreformatted":       IsPreFormatted,
-	"httpCodeText": httpCodeText,
+	"humanDate":      humanDate,
+	"toJson":         toJson,
+	"yesNo":          yesNo,
+	"ispreformatted": IsPreFormatted,
+	"httpCodeText":   httpCodeText,
 }
 
 // -----------------------------------------------------------------

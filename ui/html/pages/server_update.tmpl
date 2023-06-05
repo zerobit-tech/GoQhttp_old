@@ -125,7 +125,33 @@ Add new Server
 
         </div>
 
-  
+        <div class="form-group">
+
+
+
+
+   <div class="form-group">
+            <label for="configfile">Promotion Table</label>
+
+            <input id="configfile" aria-describedby="configfileh"  value='{{.Form.ConfigFile}}' 
+            type="text" class="form-control"  
+                  name="configfile"></input>
+
+                <small id="configfileh" class="form-text text-muted">Table to track for promoted endpoints</small>
+
+        </div>
+
+        <div class="form-group">
+            <label for="configfilelib">Promotion Table lib</label>
+
+            <input id="configfilelib" aria-describedby="configfilelibh"  value='{{.Form.ConfigFileLib}}' 
+            type="text" class="form-control"  
+                  name="configfilelib"></input>
+
+                <small id="configfilelibh" class="form-text text-muted"></small>
+
+        </div>
+
         <br>
         <br>
 

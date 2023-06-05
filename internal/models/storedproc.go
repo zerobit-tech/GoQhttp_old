@@ -10,7 +10,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/google/uuid"
+	"github.com/gosimple/slug"
 	"github.com/onlysumitg/GoQhttp/go_ibm_db"
 	"github.com/onlysumitg/GoQhttp/internal/validator"
 	"github.com/onlysumitg/GoQhttp/utils/httputils"
@@ -61,6 +61,10 @@ type StoredProc struct {
 
 	AllowWithoutAuth bool `json:"awoauth" db:"awoauth" form:"awoauth"`
 
+	DataAccess string `json:"dataaccess" db:"dataaccess" form:"dataaccess"`
+
+	Modified string `json:"modified" db:"modified" form:"modified"`
+
 	UseNamedParams bool `json:"useunnamedparams" db:"useunnamedparams" form:"-"`
 }
 
@@ -70,6 +74,14 @@ type PreparedCallStatements struct {
 	InOutParamVariables    map[string]*any
 	InOutParamMapToSPParam map[string]*StoredProcParamter
 	FinalCallStatement     string
+}
+
+// ------------------------------------------------------------
+// BuildMockUrl(s)
+// ------------------------------------------------------------
+func (s *StoredProc) Slug() string {
+	return slug.Make(s.EndPointName + "_" + s.HttpMethod)
+
 }
 
 // ------------------------------------------------------------
@@ -169,6 +181,86 @@ outerloop:
 
 	s.MockUrl = fmt.Sprintf("api/%s%s", s.EndPointName, queryParamString)
 	s.MockUrlWithoutAuth = fmt.Sprintf("uapi/%s%s", s.EndPointName, queryParamString)
+}
+
+// -----------------------------------------------------------------
+//
+// -----------------------------------------------------------------
+func (sp *StoredProc) Refresh(s Server) error {
+	if sp.HasSPUpdated(s) {
+		err := sp.PreapreToSave(s)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// -----------------------------------------------------------------
+//
+// -----------------------------------------------------------------
+func (sp *StoredProc) HasSPUpdated(s Server) bool {
+
+	hasModified := "N"
+
+	sqlToRun := fmt.Sprintf("select 'Y'  from qsys2.sysprocs where SPECIFIC_NAME='%s'  and SPECIFIC_SCHEMA='%s'  and ROUTINE_CREATED != '%s' limit 1", strings.ToUpper(sp.SpecificName), strings.ToUpper(sp.SpecificLib), sp.Modified)
+	// } else {
+	// 	sqlToRun = fmt.Sprintf("select Y  from qsys2.sysprocs where ROUTINE_NAME='%s'  and ROUTINE_SCHEMA='%s'  and ROUTINE_CREATED != '%s' limit 1", strings.ToUpper(sp.Name), strings.ToUpper(sp.Lib), sp.Modified)
+
+	// }
+
+	conn, err := s.GetConnection()
+
+	if err != nil {
+		return false
+	}
+	row := conn.QueryRow(sqlToRun)
+
+	err = row.Scan(&hasModified)
+
+	if err != nil {
+		return false
+
+	}
+
+	if hasModified == "Y" {
+		return true
+	}
+
+	return false
+}
+
+// -----------------------------------------------------------------
+//
+// -----------------------------------------------------------------
+func (sp *StoredProc) Exists(s Server) (bool, error) {
+
+	exists := "N"
+
+	sqlToRun := fmt.Sprintf("select 'Y'  from qsys2.sysprocs where SPECIFIC_NAME='%s'  and SPECIFIC_SCHEMA='%s'    limit 1", strings.ToUpper(sp.SpecificName), strings.ToUpper(sp.SpecificLib))
+
+	//sqlToRun = fmt.Sprintf("select Y  from qsys2.sysprocs where ROUTINE_NAME='%s'  and ROUTINE_SCHEMA='%s'   limit 1", strings.ToUpper(sp.Name), strings.ToUpper(sp.Lib))
+
+	conn, err := s.GetConnection()
+
+	if err != nil {
+		return true, err // to prevent delete
+	}
+	row := conn.QueryRow(sqlToRun)
+
+	err = row.Scan(&exists)
+
+	if err != nil {
+		return true, err
+
+	}
+
+	if exists == "Y" {
+		return true, nil
+	}
+
+	return false, nil
 }
 
 // -----------------------------------------------------------------
@@ -540,9 +632,9 @@ func (sp *StoredProc) GetResultSetCount(s Server) error {
 
 	sqlToRun := ""
 	if sp.UseSpecificName {
-		sqlToRun = fmt.Sprintf("select trim(SPECIFIC_SCHEMA), trim(SPECIFIC_NAME),trim(ROUTINE_SCHEMA),trim(ROUTINE_NAME), RESULT_SETS from qsys2.sysprocs where SPECIFIC_NAME='%s'  and SPECIFIC_SCHEMA='%s' limit 1", strings.ToUpper(sp.Name), strings.ToUpper(sp.Lib))
+		sqlToRun = fmt.Sprintf("select trim(SPECIFIC_SCHEMA), trim(SPECIFIC_NAME),trim(ROUTINE_SCHEMA),trim(ROUTINE_NAME), RESULT_SETS, SQL_DATA_ACCESS,ROUTINE_CREATED from qsys2.sysprocs where SPECIFIC_NAME='%s'  and SPECIFIC_SCHEMA='%s' limit 1", strings.ToUpper(sp.Name), strings.ToUpper(sp.Lib))
 	} else {
-		sqlToRun = fmt.Sprintf("select trim(SPECIFIC_SCHEMA), trim(SPECIFIC_NAME),trim(ROUTINE_SCHEMA),trim(ROUTINE_NAME), RESULT_SETS from qsys2.sysprocs where ROUTINE_NAME='%s'  and ROUTINE_SCHEMA='%s' limit 1", strings.ToUpper(sp.Name), strings.ToUpper(sp.Lib))
+		sqlToRun = fmt.Sprintf("select trim(SPECIFIC_SCHEMA), trim(SPECIFIC_NAME),trim(ROUTINE_SCHEMA),trim(ROUTINE_NAME), RESULT_SETS, SQL_DATA_ACCESS,ROUTINE_CREATED from qsys2.sysprocs where ROUTINE_NAME='%s'  and ROUTINE_SCHEMA='%s' limit 1", strings.ToUpper(sp.Name), strings.ToUpper(sp.Lib))
 
 	}
 
@@ -553,7 +645,7 @@ func (sp *StoredProc) GetResultSetCount(s Server) error {
 	}
 	row := conn.QueryRow(sqlToRun)
 
-	err = row.Scan(&sp.SpecificLib, &sp.SpecificName, &sp.Lib, &sp.Name, &resultSets)
+	err = row.Scan(&sp.SpecificLib, &sp.SpecificName, &sp.Lib, &sp.Name, &resultSets, &sp.DataAccess, &sp.Modified)
 
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -748,7 +840,7 @@ func (m *StoredProcModel) Save(u *StoredProc) (string, error) {
 
 		// generate new ID if id is blank else use the old one to update
 		if u.ID == "" {
-			u.ID = uuid.NewString()
+			u.ID = u.Slug() //uuid.NewString()
 			//u.AllowedOnServers = make([]*ServerRecord, 0)
 		}
 		u.Name = strings.ToUpper(strings.TrimSpace(u.Name))
@@ -787,6 +879,24 @@ func (m *StoredProcModel) Delete(id string) error {
 	})
 
 	return err
+}
+
+// -----------------------------------------------------------------
+//
+// -----------------------------------------------------------------
+// We'll use the Insert method to add a new record to the "users" table.
+func (m *StoredProcModel) DeleteByName(name string, method string) error {
+
+	for _, sp := range m.List() {
+		if strings.EqualFold(sp.EndPointName, name) && strings.EqualFold(sp.HttpMethod, method) {
+			err := m.Delete(sp.ID)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
 }
 
 // -----------------------------------------------------------------

@@ -1,0 +1,114 @@
+package main
+
+import (
+	"fmt"
+	"log"
+
+	"github.com/onlysumitg/GoQhttp/internal/models"
+)
+
+func (app *application) RefreshStoredProces() {
+	log.Println("Starting scheduled RefreshStoredProces")
+	for _, sp := range app.storedProcs.List() {
+		log.Println("Checking sp:", sp.Name)
+		serverRcd := sp.DefaultServer
+		if serverRcd != nil && serverRcd.ID != "" {
+			server, err := app.servers.Get(serverRcd.ID)
+			if err == nil {
+				log.Println("Refreshing endpoint: ", sp.EndPointName, " ", sp.Name, " ", sp.Lib)
+				err := sp.Refresh(*server)
+				if err == nil {
+					app.storedProcs.Save(sp)
+				}
+			}
+		}
+	}
+	log.Println("Finished scheduled RefreshStoredProces")
+
+}
+
+func (app *application) RemoveDeletedStoredProcs() {
+	for _, sp := range app.storedProcs.List() {
+		serverRcd := sp.DefaultServer
+		if serverRcd != nil && serverRcd.ID != "" {
+			server, err := app.servers.Get(serverRcd.ID)
+			if err == nil {
+				exits, err := sp.Exists(*server)
+				if err == nil && !exits {
+					log.Println("Deleting endpoint: ", sp.EndPointName, " ", sp.Name, " ", sp.Lib)
+					app.storedProcs.Delete(sp.ID)
+				}
+			}
+		}
+	}
+}
+
+// --------------------------------
+//
+//	for all servers
+//
+// --------------------------------
+func (app *application) ProcessPromotions() {
+	log.Println("Starting scheduled Promotion process")
+	for _, s := range app.servers.List() {
+		app.ProcessPromotion(s)
+	}
+
+	log.Println("Finished scheduled Promotion finished")
+
+}
+
+// --------------------------------
+//
+//	for single server
+//
+// --------------------------------
+func (app *application) ProcessPromotion(s *models.Server) {
+
+	promotionRecords, err := s.ListPromotion(true)
+
+	fmt.Println(">>>>>>>>>>>>> promotionRecords>>>>>>>>", promotionRecords)
+	if err == nil {
+		for _, pr := range promotionRecords {
+			app.ProcessPromotionRecord(s, pr)
+		}
+	}
+
+}
+
+// --------------------------------
+//
+//	process single promotion record
+//
+// --------------------------------
+func (app *application) ProcessPromotionRecord(s *models.Server, pr *models.PromotionRecord) {
+
+	if pr.Status == "P" {
+
+		switch pr.Action {
+		case "D": // Delete end point
+			app.storedProcs.DeleteByName(pr.Endpoint, pr.Httpmethod)
+		case "I", "R": // insert /update endpoint
+			newSP := pr.ToStoredProc(*s)
+			newSP.ID = newSP.Slug()
+
+			err := newSP.PreapreToSave(*s)
+
+			if err == nil {
+				newSP.AddAllowedServer(s)
+				app.storedProcs.Save(newSP)
+				pr.Status = "C"
+				pr.StatusMessage = "Completed"
+
+			} else {
+				pr.Status = "E"
+				pr.StatusMessage = err.Error()
+			}
+		default:
+			pr.Status = "E"
+			pr.StatusMessage = "Unknown Action"
+		}
+	}
+
+	pr.UpdateStatus(s)
+}

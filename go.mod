@@ -7,7 +7,7 @@ require (
 	github.com/alexedwards/scs/v2 v2.5.0
 	github.com/go-chi/chi/v5 v5.0.8
 	github.com/go-chi/cors v1.2.1
-	github.com/go-co-op/gocron v1.18.1
+	github.com/go-co-op/gocron v1.28.2
 	github.com/go-playground/form v3.1.4+incompatible
 	github.com/go-playground/form/v4 v4.2.0
 	github.com/google/uuid v1.3.0
@@ -24,8 +24,11 @@ require (
 
 require (
 	github.com/go-test/deep v1.1.0 // indirect
+	github.com/gosimple/slug v1.13.1 // indirect
+	github.com/gosimple/unidecode v1.0.1 // indirect
 	github.com/robfig/cron/v3 v3.0.1 // indirect
 	github.com/toorop/go-dkim v0.0.0-20201103131630-e1cd1a0a5208 // indirect
+	go.uber.org/atomic v1.9.0 // indirect
 	golang.org/x/net v0.10.0 // indirect
 	golang.org/x/sync v0.1.0 // indirect
 	golang.org/x/text v0.9.0 // indirect

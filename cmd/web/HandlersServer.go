@@ -73,6 +73,7 @@ func (app *application) ServerHandlers(router *chi.Mux) {
 		r.Get("/", app.ServerList)
 		r.Get("/{serverid}", app.ServerView)
 		r.Get("/select/{serverid}", app.ServerSelect)
+		r.Get("/listprom/{serverid}", app.ListPromotion)
 
 		superadmingroup := r.Group(nil)
 		superadmingroup.Use(app.RequireSuperAdmin)
@@ -84,6 +85,8 @@ func (app *application) ServerHandlers(router *chi.Mux) {
 
 		superadmingroup.Get("/delete/{serverid}", app.ServerDelete)
 		superadmingroup.Post("/delete", app.ServerDeleteConfirm)
+
+		superadmingroup.Get("/runpromotions/{serverid}", app.RunPromotion)
 
 	})
 
@@ -229,6 +232,60 @@ func (app *application) ServerDeleteConfirm(w http.ResponseWriter, r *http.Reque
 	app.sessionManager.Put(r.Context(), "flash", "Server deleted sucessfully")
 
 	http.Redirect(w, r, "/servers", http.StatusSeeOther)
+
+}
+
+// ------------------------------------------------------
+// run promotions
+// ------------------------------------------------------
+func (app *application) RunPromotion(w http.ResponseWriter, r *http.Request) {
+
+	serverID := chi.URLParam(r, "serverid")
+
+	server, err := app.servers.Get(serverID)
+	if err != nil {
+
+		//log.Println("ServerDeleteConfirm  002 >>>>>>", err.Error())
+		app.sessionManager.Put(r.Context(), "error", fmt.Sprintf("Error: %s", err.Error()))
+		app.goBack(w, r, http.StatusSeeOther)
+		return
+	}
+	go app.ProcessPromotion(server)
+	app.sessionManager.Put(r.Context(), "flash", "Queued. Please wait.")
+
+	app.goBack(w, r, http.StatusSeeOther)
+
+}
+
+// ------------------------------------------------------
+// run promotions
+// ------------------------------------------------------
+func (app *application) ListPromotion(w http.ResponseWriter, r *http.Request) {
+
+	data := app.newTemplateData(r)
+	serverID := chi.URLParam(r, "serverid")
+
+	server, err := app.servers.Get(serverID)
+	if err != nil {
+
+		//log.Println("ServerDeleteConfirm  002 >>>>>>", err.Error())
+		app.sessionManager.Put(r.Context(), "error", fmt.Sprintf("Error: %s", err.Error()))
+		app.goBack(w, r, http.StatusBadRequest)
+		return
+	}
+	promotions, err := server.ListPromotion(false)
+
+	if err != nil {
+
+		//log.Println("ServerDeleteConfirm  002 >>>>>>", err.Error())
+		app.sessionManager.Put(r.Context(), "error", fmt.Sprintf("Error: %s", err.Error()))
+		app.goBack(w, r, http.StatusBadRequest)
+		return
+	}
+	data.Server = server
+	data.Promotions = promotions
+
+	app.render(w, r, http.StatusOK, "server_promotion_table.tmpl", data)
 
 }
 

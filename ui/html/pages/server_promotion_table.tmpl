@@ -1,0 +1,80 @@
+{{define "title"}}
+Server Promotions
+{{end}}
+
+{{define "content"}}
+<br />
+
+<div class="row p-2">
+  <div class="col">
+    <div class="card ">
+      <div class="card-header">
+        <p class="h5">{{.Server.Name}} Promotions
+          <a class="btn btn-ghost-info float-right" href="/servers/runpromotions/{{.Server.ID}}">Run</a>
+
+        </p>
+       
+      </div>
+
+ 
+      <div class="card-body">
+
+    <table id="promotionlist"           class="table   table-borderless table-responsive-sm table-striped    ">
+      <thead class="thead-dark">
+        <tr>
+            <th>Action</th> 
+            <th>Endpoint Name</th>
+                        <th>Stored Proc</th>
+         
+            <th>Http method</th>
+            <th>Use Specific Name</th>
+            <th>Use Without Auth</th>
+
+        </tr>
+          </thead>
+          <tbody>
+            {{if .Promotions}}
+
+        {{range .Promotions}}
+        <tr>
+            
+            
+            <td>{{.Action}}</td>
+            <td>{{.Endpoint}}</td>
+            <td>{{.Storedproclib}}.{{.Storedproc}}</td>
+             <td>{{.Httpmethod}}</td>
+            <td>{{.UseSpecificName}}</td>
+            <td>{{.UseWithoutAuth}}</td>
+
+    
+
+        </tr>
+        {{end}}
+        {{end}}
+          </tbody>
+        </table>
+      </div>
+  </div>
+</div>
+</div>
+    {{end}}
+
+
+{{define "aftercontent"}}
+
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.1/css/jquery.dataTables.css">
+<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.13.1/js/jquery.dataTables.js"></script>
+
+<script>
+  
+    $(document).ready( function () {
+      $('#promotionlist').DataTable(
+          {
+              "language": {
+                "emptyTable": "No records."
+              }
+          }
+      );
+  } );
+</script>
+{{end}}

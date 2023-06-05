@@ -46,8 +46,16 @@ type Server struct {
 	OnHold        bool   `json:"oh" db:"oh" form:"onhold"`
 	OnHoldMessage string `json:"ohm" db:"ohm" form:"onholdmessage"`
 
+	ConfigFileLib string `json:"configfilelib" db:"configfilelib" form:"configfilelib"`
+	ConfigFile string `json:"configfile" db:"configfile" form:"configfile"`
+
 	validator.Validator `json:"-" db:"-" form:"-"`
 }
+
+ 
+
+
+
 
 // ------------------------------------------------------------
 //

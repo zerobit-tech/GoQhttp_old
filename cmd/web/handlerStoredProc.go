@@ -196,6 +196,16 @@ func (app *application) SpRefresh(w http.ResponseWriter, r *http.Request) {
 		app.serverError500(w, r, err)
 		return
 	}
+
+	// check default server
+	if sP.DefaultServer != nil && sP.DefaultServer.ID != "" {
+
+		dServer, err := app.servers.Get(sP.DefaultServer.ID)
+		if err == nil {
+			currentServer = dServer
+		}
+	}
+
 	err = sP.PreapreToSave(*currentServer)
 	if err == nil {
 		app.storedProcs.Save(sP)

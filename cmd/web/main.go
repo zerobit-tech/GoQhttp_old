@@ -93,6 +93,7 @@ func main() {
 
 	go app.clearLogsSchedular(db)
 
+	go app.refreshSchedule()
 	//--------------------------------------- Create super user ----------------------------
 
 	go app.CreateSuperUser(params.superuseremail, params.superuserpwd)
@@ -186,4 +187,35 @@ func (app *application) clearLogsSchedular(db *bolt.DB) {
 		t.StartAsync()
 
 	}
+}
+
+// -----------------------------------------------------------------
+//
+// -----------------------------------------------------------------
+func (app *application) refreshSchedule() {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Println("Recovered in refreshSchedule", r)
+		}
+	}()
+
+	s := gocron.NewScheduler(time.Local)
+
+	interval1 := env.GetEnvVariable("REFRESH_EVERY", "")
+	if interval1 != "" {
+		//s.Every("5m").Do(func(){ ... })
+		//s.Every(interval1).Do(app.RefreshStoredProces)
+		s.Every(interval1).Do(app.ProcessPromotions)
+	}
+
+	interval2 := env.GetEnvVariable("REFRESH_AT", "")
+	if interval1 != "" {
+		//s.Every(1).Day().At("10:30;08:00").Do(func(){ ... })
+		//s.Every(1).Day().At(interval2).Do(app.RefreshStoredProces)
+		s.Every(1).Day().At(interval2).Do(app.ProcessPromotions)
+
+	}
+
+	s.StartAsync()
+
 }
