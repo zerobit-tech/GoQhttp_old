@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"time"
 
+	"github.com/onlysumitg/GoQhttp/go_ibm_db"
 	"github.com/onlysumitg/GoQhttp/internal/validator"
 )
 
@@ -56,6 +58,10 @@ func (p PromotionRecord) ToStoredProc(s Server) *StoredProc {
 //
 // ------------------------------------------------------------
 func (p PromotionRecord) UpdateStatus(s *Server) {
+	if p.Rowid <= 0 {
+		return
+	}
+
 	updateSQL := fmt.Sprintf("update %s.%s a set status='%s' , statusmessage = '%s' where rrn(a) = %d", s.ConfigFileLib, s.ConfigFile, p.Status, p.StatusMessage, p.Rowid)
 	conn, err := s.GetConnection()
 
@@ -140,5 +146,67 @@ func (s Server) ListPromotion(withupdate bool) ([]*PromotionRecord, error) {
 	// 	}
 	// }
 
+	autoP, err := s.ListAutoPromotion()
+	if err == nil && len(autoP) > 0 {
+		promotionRecords = append(promotionRecords, autoP...)
+	}
 	return promotionRecords, nil
+}
+
+// ------------------------------------------------------------
+//
+// ------------------------------------------------------------
+func (s Server) ListAutoPromotion() ([]*PromotionRecord, error) {
+	promotionRecords := make([]*PromotionRecord, 0)
+	if strings.TrimSpace(s.AutoPromotePrefix) != "" && strings.TrimSpace(s.ConfigFileLib) != "" {
+		prefixToCheck := strings.ToUpper(strings.TrimSpace(s.AutoPromotePrefix)) + "%"
+		if s.LastAutoPromoteDate == "" {
+			s.LastAutoPromoteDate = time.Now().Format(go_ibm_db.TimestampFormat)
+		}
+
+		sqlToUse := fmt.Sprintf("select upper(trim(SPECIFIC_NAME)) from qsys2.sysprocs where upper(SPECIFIC_NAME) like '%s' and SPECIFIC_SCHEMA='%s' and ROUTINE_CREATED >= '%s'", prefixToCheck, strings.ToUpper(s.ConfigFileLib), s.LastAutoPromoteDate)
+		conn, err := s.GetConnection()
+
+		if err != nil {
+
+			return promotionRecords, err
+		}
+
+		rows, err := conn.Query(sqlToUse)
+		if err != nil {
+			// var odbcError *odbc.Error
+
+			// if errors.As(err, &odbcError) {
+			// 	s.UpdateAfterError(odbcError)
+			// }
+			return promotionRecords, err
+		}
+
+		for rows.Next() {
+			spName := ""
+			err := rows.Scan(&spName)
+			if err == nil {
+
+				rcd := &PromotionRecord{}
+				brokenSPName := strings.Split(spName, "_")
+				if len(brokenSPName) != 3 {
+					log.Println("Auto promotion record skipped for SP(Name format is not correct):", spName)
+				} else {
+					rcd.Status = "P"
+					rcd.Rowid = 0
+					rcd.Endpoint = brokenSPName[2]
+					rcd.Action = "I"
+					rcd.Storedproc = spName
+					rcd.Storedproclib = s.ConfigFileLib
+					rcd.Httpmethod = brokenSPName[1]
+					rcd.UseSpecificName = "Y"
+					promotionRecords = append(promotionRecords, rcd)
+				}
+
+			}
+		}
+	}
+
+	return promotionRecords, nil
+
 }

@@ -3,7 +3,9 @@ package main
 import (
 	"fmt"
 	"log"
+	"time"
 
+	"github.com/onlysumitg/GoQhttp/go_ibm_db"
 	"github.com/onlysumitg/GoQhttp/internal/models"
 )
 
@@ -73,6 +75,10 @@ func (app *application) ProcessPromotion(s *models.Server) {
 			app.ProcessPromotionRecord(s, pr)
 		}
 	}
+
+	s.LastAutoPromoteDate = time.Now().Format(go_ibm_db.TimestampFormat)
+	s.Password = s.GetPassword() // make sure it dont update the password
+	app.servers.Update(s, false)
 
 }
 

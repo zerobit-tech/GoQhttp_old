@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/onlysumitg/GoQhttp/go_ibm_db"
 	"github.com/onlysumitg/GoQhttp/internal/database"
 	"github.com/onlysumitg/GoQhttp/internal/validator"
 	"github.com/onlysumitg/GoQhttp/utils/stringutils"
@@ -18,7 +19,7 @@ import (
 )
 
 // keep the length same
-const MySecret string = "Ang&1*~U^2^#s0^=)^^7%b34"
+const MySecret string = "Ang&1*~U^2^#s0^=)^^7#b34"
 
 // -----------------------------------------------------------------
 //
@@ -47,15 +48,13 @@ type Server struct {
 	OnHoldMessage string `json:"ohm" db:"ohm" form:"onholdmessage"`
 
 	ConfigFileLib string `json:"configfilelib" db:"configfilelib" form:"configfilelib"`
-	ConfigFile string `json:"configfile" db:"configfile" form:"configfile"`
+	ConfigFile    string `json:"configfile" db:"configfile" form:"configfile"`
+
+	AutoPromotePrefix   string `json:"autopromoteprefix" db:"autopromoteprefix" form:"autopromoteprefix"`
+	LastAutoPromoteDate string `json:"lastautopromotecheck" db:"lastautopromotecheck" form:"lastautopromotecheck"`
 
 	validator.Validator `json:"-" db:"-" form:"-"`
 }
-
- 
-
-
-
 
 // ------------------------------------------------------------
 //
@@ -193,6 +192,8 @@ func (m *ServerModel) Insert(u *Server) (string, error) {
 	var id string = uuid.NewString()
 	u.ID = id
 	err := m.Update(u, false)
+
+	u.LastAutoPromoteDate = time.Now().Format(go_ibm_db.TimestampFormat)
 
 	return id, err
 }
