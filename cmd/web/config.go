@@ -9,7 +9,7 @@ import (
 	"github.com/alexedwards/scs/v2"
 	"github.com/go-playground/form"
 	"github.com/onlysumitg/GoQhttp/internal/models"
-	"github.com/onlysumitg/GoQhttp/rbac"
+
 	mail "github.com/xhit/go-simple-mail/v2"
 	bolt "go.etcd.io/bbolt"
 )
@@ -51,7 +51,7 @@ type application struct {
 
 	redirectToHttps bool
 
-	rbac *rbac.RBAC
+	 
 }
 
 func baseAppConfig(params parameters, db *bolt.DB, userdb *bolt.DB, logdb *bolt.DB) *application {
@@ -86,7 +86,6 @@ func baseAppConfig(params parameters, db *bolt.DB, userdb *bolt.DB, logdb *bolt.
 
 		hostURL: hostUrl,
 
-		rbac:        rbac.GetRbac(db),
 		servers:     &models.ServerModel{DB: db},
 		storedProcs: &models.StoredProcModel{DB: db},
 
