@@ -205,14 +205,14 @@ func (app *application) refreshSchedule() {
 	if interval1 != "" {
 		//s.Every("5m").Do(func(){ ... })
 		//s.Every(interval1).Do(app.RefreshStoredProces)
-		//s.Every(interval1).Do(app.ProcessPromotions)
+		s.Every(interval1).Do(app.ProcessPromotions)
 	}
 
 	interval2 := env.GetEnvVariable("REFRESH_AT", "")
 	if interval2 != "" {
 		//s.Every(1).Day().At("10:30;08:00").Do(func(){ ... })
 		//s.Every(1).Day().At(interval2).Do(app.RefreshStoredProces)
-		//s.Every(1).Day().At(interval2).Do(app.ProcessPromotions)
+		s.Every(1).Day().At(interval2).Do(app.ProcessPromotions)
 
 	}
 
