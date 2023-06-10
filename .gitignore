@@ -20,3 +20,5 @@ internal.db
 build/
 db/
 .history/
+
+__debug_bin
