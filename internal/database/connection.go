@@ -1,7 +1,10 @@
 package database
 
 import (
+	"context"
 	"database/sql"
+	"fmt"
+	"log"
 	"strings"
 	"time"
 
@@ -33,6 +36,7 @@ type DBServer interface {
 	MaxIdleConns() int
 	ConnMaxIdleTime() time.Duration
 	ConnMaxLifetime() time.Duration
+	PingTimeoutDuration() time.Duration
 }
 
 var connectionMap map[string]*sql.DB = make(map[string]*sql.DB)
@@ -45,11 +49,18 @@ func GetConnection(server DBServer) (*sql.DB, error) {
 	connectionID := server.GetConnectionID()
 	db, found := connectionMap[connectionID]
 	if found && db != nil {
+		ctx, cancel := context.WithTimeout(context.Background(), server.PingTimeoutDuration())
+		defer func() {
 
-		err := db.Ping()
+			cancel()
+
+		}()
+		err := db.PingContext(ctx)
 
 		// error occured in ping
 		if err != nil {
+
+			fmt.Println("Closing connections .....", err)
 			db.Close()
 			delete(connectionMap, connectionID)
 		} else {
@@ -71,7 +82,7 @@ func GetConnection(server DBServer) (*sql.DB, error) {
 
 	} else {
 
-		//log.Println(" connetion errror 1>>>>>>>>>>>>", err)
+		log.Println(" connetion errror 1>>>>>>>>>>>>", err)
 	}
 
 	//db.Ping()

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"time"
 
@@ -69,7 +68,7 @@ func (app *application) ProcessPromotion(s *models.Server) {
 
 	promotionRecords, err := s.ListPromotion(true)
 
-	fmt.Println(">>>>>>>>>>>>> promotionRecords>>>>>>>>", promotionRecords)
+	//fmt.Println(">>>>>>>>>>>>> promotionRecords>>>>>>>>", promotionRecords)
 	if err == nil {
 		for _, pr := range promotionRecords {
 			app.ProcessPromotionRecord(s, pr)

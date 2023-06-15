@@ -59,7 +59,7 @@ type envelope map[string]interface{}
 // header map containing any additional HTTP headers we want to include in the response.
 func (app *application) writeJSON(w http.ResponseWriter, status int, data interface{}, headers http.Header) error {
 	// Encode the data to JSON, returning the error if there was one.
-	js, err := json.MarshalIndent(data," ","  ")
+	js, err := json.MarshalIndent(data, " ", "  ")
 	if err != nil {
 		return err
 	}
@@ -322,4 +322,18 @@ func getRoutePattern(r *http.Request) string {
 
 	// tctx has the updated pattern, since Match mutates it
 	return tctx.RoutePattern()
+}
+
+// -----------------------------------------------------------------
+//
+// -----------------------------------------------------------------
+// Create a new decodePostForm() helper method. The second parameter here, dst,
+// is the target destination that we want to decode the form data into.
+func (app *application) deleteSPData(spid string) {
+	spcalllog, _ := app.spCallLogModel.Get(spid)
+	for _, l := range spcalllog.Logs {
+		logid := l.LogID
+		models.DeleteLog(app.LogDB, logid)
+	}
+	app.spCallLogModel.Delete(spid)
 }

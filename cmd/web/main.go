@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -15,6 +16,15 @@ import (
 )
 
 func main() {
+
+	gocron.SetPanicHandler(func(jobName string, _ interface{}) {
+		fmt.Printf("Panic in job: %s", jobName)
+		fmt.Println("Recovering")
+		// if r := recover(); r != nil {
+		// 	log.Println("Recovered in refreshSchedule", r)
+		// }
+	})
+
 	log.Println("Initializing....")
 
 	err := os.MkdirAll("./db", os.ModePerm)
@@ -198,6 +208,8 @@ func (app *application) refreshSchedule() {
 			log.Println("Recovered in refreshSchedule", r)
 		}
 	}()
+
+	//return
 
 	s := gocron.NewScheduler(time.Local)
 

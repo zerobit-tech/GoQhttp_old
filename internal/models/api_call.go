@@ -20,6 +20,15 @@ var errorLog *log.Logger = log.New(os.Stderr, "ERROR\t", log.Ldate|log.Ltime)
 var RequestLog *log.Logger = log.New(os.Stderr, "Request\t", log.Ldate|log.Ltime)
 var ResponseLog *log.Logger = log.New(os.Stderr, "Response\t", log.Ldate|log.Ltime)
 
+type LogStruct struct {
+	I        int
+	Id       string
+	Message  string
+	TestMode bool
+}
+
+var LogChan chan LogStruct = make(chan LogStruct, 200)
+
 type ApiCall struct {
 	ID string
 	//Request        map[string]any
@@ -331,47 +340,55 @@ func (m *ApiCall) SaveLogs(testMode bool) {
 		}
 	}
 
-	m.LogDB.Update(func(tx *bolt.Tx) error {
-		bucket, err := tx.CreateBucketIfNotExists(getLogTableName())
-		if err != nil {
-			return err
-		}
+	// m.LogDB.Update(func(tx *bolt.Tx) error {
+	// 	bucket, err := tx.CreateBucketIfNotExists(getLogTableName())
+	// 	if err != nil {
+	// 		return err
+	// 	}
 
-		for i, s := range m.Log {
-			scrubed := s
-			if !testMode {
-				scrubed = RemoveNonLogData(s)
-			}
+	// 	for i, s := range m.Log {
+	// 		scrubed := s
+	// 		if !testMode {
+	// 			scrubed = RemoveNonLogData(s)
+	// 		}
 
-			key := fmt.Sprintf("%s_%d", m.ID, i)
-			bucket.Put([]byte(key), []byte(fmt.Sprintf("%05d. %s", i+1, scrubed)))
+	// 		key := fmt.Sprintf("%s_%d", m.ID, i)
+	// 		bucket.Put([]byte(key), []byte(fmt.Sprintf("%05d. %s", i+1, scrubed)))
 
-		}
-		return nil
-	})
+	// 	}
+	// 	return nil
+	// })
+
+	for i, s := range m.Log {
+		//SaveLogs(m.LogDB, i, m.ID, s, testMode)
+		logE := LogStruct{I: i, Id: m.ID, Message: s, TestMode: testMode}
+		LogChan <- logE
+	}
 
 }
 
 // ------------------------------------------------------
 //
 // ------------------------------------------------------
-func SaveLogs(db *bolt.DB, i int, id string, message string, testMode bool) {
+func SaveLogs(db *bolt.DB) {
 
-	scrubed := message
-	if !testMode {
-		scrubed = RemoveNonLogData(message)
-	}
-
-	db.Update(func(tx *bolt.Tx) error {
-		bucket, err := tx.CreateBucketIfNotExists(getLogTableName())
-		if err != nil {
-			return err
+	for {
+		logS := <-LogChan
+		scrubed := logS.Message
+		if !logS.TestMode {
+			scrubed = RemoveNonLogData(logS.Message)
 		}
-		key := fmt.Sprintf("%s_%d", id, i)
-		bucket.Put([]byte(key), []byte(fmt.Sprintf("%05d. %s", i+1, scrubed)))
 
-		return nil
-	})
+		db.Update(func(tx *bolt.Tx) error {
+			bucket, err := tx.CreateBucketIfNotExists(getLogTableName())
+			if err != nil {
+				return err
+			}
+			key := fmt.Sprintf("%s_%d", logS.Id, logS.I)
+			bucket.Put([]byte(key), []byte(fmt.Sprintf("%05d. %s", logS.I+1, scrubed)))
+			return nil
+		})
+	}
 
 }
 
@@ -400,4 +417,26 @@ func GetLogs(db *bolt.DB, id string) []string {
 
 	return l
 
+}
+
+// ------------------------------------------------------
+//
+// ------------------------------------------------------
+func DeleteLog(db *bolt.DB, id string) {
+
+	db.Update(func(tx *bolt.Tx) error {
+		bucket, err := tx.CreateBucketIfNotExists(getLogTableName())
+		if err != nil {
+			return errors.New("table does not exits")
+		}
+		c := bucket.Cursor()
+		for k, _ := c.First(); k != nil; k, _ = c.Next() {
+			if bytes.HasPrefix(k, []byte(id)) {
+				bucket.Delete(k)
+			}
+		}
+
+		return nil
+	})
+	//	fmt.Println(">>>>>>>>>>>  DELETE LOG ERROR >>>>>>>>>>", err)
 }

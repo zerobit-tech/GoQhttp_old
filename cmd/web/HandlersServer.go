@@ -88,6 +88,8 @@ func (app *application) ServerHandlers(router *chi.Mux) {
 
 		superadmingroup.Get("/runpromotions/{serverid}", app.RunPromotion)
 
+		superadmingroup.Get("/clearcache/{serverid}", app.ClearCache)
+
 	})
 
 }
@@ -260,6 +262,28 @@ func (app *application) RunPromotion(w http.ResponseWriter, r *http.Request) {
 // ------------------------------------------------------
 // run promotions
 // ------------------------------------------------------
+func (app *application) ClearCache(w http.ResponseWriter, r *http.Request) {
+
+	serverID := chi.URLParam(r, "serverid")
+
+	server, err := app.servers.Get(serverID)
+	if err != nil {
+
+		//log.Println("ServerDeleteConfirm  002 >>>>>>", err.Error())
+		app.sessionManager.Put(r.Context(), "error", fmt.Sprintf("Error: %s", err.Error()))
+		app.goBack(w, r, http.StatusSeeOther)
+		return
+	}
+	server.ClearCache()
+	app.sessionManager.Put(r.Context(), "flash", "Cache cleared")
+
+	app.goBack(w, r, http.StatusSeeOther)
+
+}
+
+// ------------------------------------------------------
+// run promotions
+// ------------------------------------------------------
 func (app *application) ListPromotion(w http.ResponseWriter, r *http.Request) {
 
 	data := app.newTemplateData(r)
@@ -270,7 +294,7 @@ func (app *application) ListPromotion(w http.ResponseWriter, r *http.Request) {
 
 		//log.Println("ServerDeleteConfirm  002 >>>>>>", err.Error())
 		app.sessionManager.Put(r.Context(), "error", fmt.Sprintf("Error: %s", err.Error()))
-		app.goBack(w, r, http.StatusBadRequest)
+		app.goBack(w, r, http.StatusSeeOther)
 		return
 	}
 	promotions, err := server.ListPromotion(false)
@@ -279,7 +303,7 @@ func (app *application) ListPromotion(w http.ResponseWriter, r *http.Request) {
 
 		//log.Println("ServerDeleteConfirm  002 >>>>>>", err.Error())
 		app.sessionManager.Put(r.Context(), "error", fmt.Sprintf("Error: %s", err.Error()))
-		app.goBack(w, r, http.StatusBadRequest)
+		app.goBack(w, r, http.StatusSeeOther)
 		return
 	}
 	data.Server = server

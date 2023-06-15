@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"strings"
 
@@ -21,6 +22,8 @@ import (
 func (app *application) APIHandlers(router *chi.Mux) {
 	router.Route("/api/{apiname}", func(r chi.Router) {
 		//r.With(paginate).Get("/", listArticles)
+		// Log response time
+		r.Use(app.TimeTook)
 		r.Use(app.RequireTokenAuthentication)
 
 		r.Use(app.LogHandler)
@@ -38,6 +41,7 @@ func (app *application) APIHandlers(router *chi.Mux) {
 	// for unauthorized end points
 	router.Route("/uapi/{apiname}", func(r chi.Router) {
 		//r.With(paginate).Get("/", listArticles)
+		r.Use(app.TimeTook)
 		r.Use(app.RequireUnAuthEndPoint)
 		r.Use(app.LogHandler)
 		r.Get("/", app.GET)
@@ -304,7 +308,17 @@ func (app *application) ProcessAPICall(w http.ResponseWriter, r *http.Request, e
 
 	app.writeJSON(w, apiCall.StatusCode, apiCall.Response, nil)
 
-	go app.spCallLogModel.AddLogid(apiCall.CurrentSP.ID, apiCall.ID)
+	// save SP logid
+	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				log.Println("Recovered in AddLogid", r)
+			}
+		}()
+
+		l := models.SPCallLogEntry{SpID: apiCall.CurrentSP.ID, LogId: apiCall.ID}
+		app.spCallLogModel.DataChan <- l
+	}()
 
 }
 

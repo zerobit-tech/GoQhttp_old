@@ -9,6 +9,7 @@ import (
 	"net/http/httptest"
 	"net/http/httputil"
 	"sync/atomic"
+	"time"
 
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/google/uuid"
@@ -116,13 +117,22 @@ func (app *application) LogHandler(next http.Handler) http.Handler {
 			requestBody = "Error :" + err.Error()
 		}
 		go func() {
+			defer func() {
+				if r := recover(); r != nil {
+					log.Println("Recovered in LogHandler SaveLogs request", r)
+				}
+			}()
 
 			buf := bytes.NewBufferString("")
 
 			models.RequestLog.SetOutput(buf)
 			models.RequestLog.Println("\n\n" + requestBody)
 
-			models.SaveLogs(app.LogDB, 998, requestId, buf.String(), app.testMode)
+			//models.SaveLogs(app.LogDB, 998, requestId, buf.String(), app.testMode)
+
+			logE := models.LogStruct{I: 998, Id: requestId, Message: buf.String(), TestMode: app.testMode}
+			models.LogChan <- logE
+
 		}()
 
 		rec := httptest.NewRecorder()
@@ -136,13 +146,25 @@ func (app *application) LogHandler(next http.Handler) http.Handler {
 
 			responseBody = string(y)
 			go func() {
+				defer func() {
+					if r := recover(); r != nil {
+						log.Println("Recovered in LogHandler SaveLogs response", r)
+					}
+				}()
 
 				buf := bytes.NewBufferString("")
 
 				models.ResponseLog.SetOutput(buf)
 				models.ResponseLog.Println("\n\n" + responseBody)
 
-				models.SaveLogs(app.LogDB, 999, requestId, buf.String(), app.testMode)
+				//models.SaveLogs(app.LogDB, 999, requestId, buf.String(), app.testMode)
+
+				logE := models.LogStruct{I: 999, Id: requestId, Message: buf.String(), TestMode: app.testMode}
+				models.LogChan <- logE
+
+				//models.SaveLogs(app.LogDB, 1000, requestId, fmt.Sprintf("HTTPCODE:%d", rec.Code), app.testMode)
+				logE = models.LogStruct{I: 1000, Id: requestId, Message: fmt.Sprintf("HTTPCODE:%d", rec.Code), TestMode: app.testMode}
+				models.LogChan <- logE
 			}()
 		}
 
@@ -171,6 +193,9 @@ func (app *application) LogHandler(next http.Handler) http.Handler {
 var reqid uint64
 var prefix string = uuid.NewString()
 
+//	------------------------------------------------------
+//
+// ------------------------------------------------------
 func RequestID(next http.Handler) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
@@ -180,7 +205,43 @@ func RequestID(next http.Handler) http.Handler {
 			requestID = fmt.Sprintf("%s-%06d", prefix, myid)
 		}
 		ctx = context.WithValue(ctx, middleware.RequestIDKey, requestID)
+
+		// ctx = context.WithValue(ctx, middleware.RequestIDKey, requestID)
+		// v := map[string]string{
+		// 	"requestid":    requestID,
+		// 	"spid":         "",
+		// 	"httpcode":     "0",
+		// 	"responsetime": "",
+		// }
+		// ctx = context.WithValue(ctx, "requestdata", v)
+
 		next.ServeHTTP(w, r.WithContext(ctx))
+	}
+	return http.HandlerFunc(fn)
+}
+
+//	------------------------------------------------------
+//
+// ------------------------------------------------------
+func (app *application) TimeTook(next http.Handler) http.Handler {
+	fn := func(w http.ResponseWriter, r *http.Request) {
+
+		t1 := time.Now()
+		defer func() {
+			requestId := middleware.GetReqID(r.Context())
+			//go models.SaveLogs(app.LogDB, 1001, requestId, fmt.Sprintf("ResponseTime:%s", time.Since(t1)), app.testMode)
+
+			logE := models.LogStruct{I: 1001, Id: requestId, Message: fmt.Sprintf("ResponseTime:%s", time.Since(t1)), TestMode: app.testMode}
+			go func() {
+				defer func() {
+					if r := recover(); r != nil {
+						log.Println("Recovered in TimeTook", r)
+					}
+				}()
+				models.LogChan <- logE
+			}()
+		}()
+		next.ServeHTTP(w, r)
 	}
 	return http.HandlerFunc(fn)
 }

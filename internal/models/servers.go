@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/google/uuid"
@@ -27,6 +28,8 @@ const MySecret string = "Ang&1*~U^2^#s0^=)^^7#b34"
 // Define a new User type. Notice how the field names and types align
 // with the columns in the database "users" table?
 type Server struct {
+	mux sync.Mutex `json:"-" db:"-" form:"-"`
+
 	ID   string `json:"id" db:"id" form:"id"`
 	Name string `json:"server_name" db:"server_name" form:"name"`
 	IP   string `json:"ip" db:"ip" form:"ip"`
@@ -43,6 +46,7 @@ type Server struct {
 
 	ConnectionMaxAge  int `json:"cage" db:"cage" form:"cage"`
 	ConnectionIdleAge int `json:"icage" db:"icage" form:"icage"`
+	PingTimeout       int `json:"pingtout" db:"pingtout" form:"pingtout"`
 
 	OnHold        bool   `json:"oh" db:"oh" form:"onhold"`
 	OnHoldMessage string `json:"ohm" db:"ohm" form:"onholdmessage"`
@@ -59,7 +63,7 @@ type Server struct {
 // ------------------------------------------------------------
 //
 // ------------------------------------------------------------
-func (s Server) GetConnectionString() string {
+func (s *Server) GetConnectionString() string {
 	driver := "IBM i Access ODBC Driver"
 	ssl := 0
 	if s.Ssl {
@@ -76,7 +80,7 @@ func (s Server) GetConnectionString() string {
 // ------------------------------------------------------------
 //
 // ------------------------------------------------------------
-func (s Server) GetPassword() string {
+func (s *Server) GetPassword() string {
 	pwd, err := stringutils.Decrypt(s.Password, MySecret)
 	if err != nil {
 		log.Println("Unable to decrypt password")
@@ -88,14 +92,14 @@ func (s Server) GetPassword() string {
 // ------------------------------------------------------------
 //
 // ------------------------------------------------------------
-func (s Server) GetConnectionType() string {
+func (s *Server) GetConnectionType() string {
 	return "go_ibm_db" //"odbc"
 }
 
 // ------------------------------------------------------------
 //
 // ------------------------------------------------------------
-func (s Server) MaxOpenConns() int {
+func (s *Server) MaxOpenConns() int {
 	if s.ConnectionsOpen <= 0 {
 		return 2
 	}
@@ -105,7 +109,7 @@ func (s Server) MaxOpenConns() int {
 // ------------------------------------------------------------
 //
 // ------------------------------------------------------------
-func (s Server) MaxIdleConns() int {
+func (s *Server) MaxIdleConns() int {
 	if s.ConnectionsIdle <= 0 {
 		return 2
 	}
@@ -115,7 +119,7 @@ func (s Server) MaxIdleConns() int {
 // ------------------------------------------------------------
 //
 // ------------------------------------------------------------
-func (s Server) ConnMaxIdleTime() time.Duration {
+func (s *Server) ConnMaxIdleTime() time.Duration {
 	age := 10
 	if s.ConnectionIdleAge > 0 {
 		age = s.ConnectionIdleAge
@@ -127,7 +131,7 @@ func (s Server) ConnMaxIdleTime() time.Duration {
 // ------------------------------------------------------------
 //
 // ------------------------------------------------------------
-func (s Server) ConnMaxLifetime() time.Duration {
+func (s *Server) ConnMaxLifetime() time.Duration {
 	age := 10
 	if s.ConnectionMaxAge > 0 {
 		age = s.ConnectionMaxAge
@@ -139,34 +143,62 @@ func (s Server) ConnMaxLifetime() time.Duration {
 // ------------------------------------------------------------
 //
 // ------------------------------------------------------------
-func (s Server) GetConnectionID() string {
+func (s *Server) PingTimeoutDuration() time.Duration {
+	age := 3
+	if s.PingTimeout > 0 {
+		age = s.PingTimeout
+	}
+
+	return time.Duration(age) * time.Second
+}
+
+// ------------------------------------------------------------
+//
+// ------------------------------------------------------------
+func (s *Server) GetConnectionID() string {
 	return s.ID
 }
 
 // ------------------------------------------------------------
 //
 // ------------------------------------------------------------
-func (s Server) ClearCache() {
+func (s *Server) ClearCache() {
 	database.ClearCache(s)
 }
 
 // ------------------------------------------------------------
 //
 // ------------------------------------------------------------
-func (s Server) GetConnection() (*sql.DB, error) {
+func (s *Server) GetConnection() (*sql.DB, error) {
 	if s.OnHold {
 		return nil, fmt.Errorf("Server is on hold due to %s", s.OnHoldMessage)
 	}
 
 	return database.GetConnection(s)
 }
-func (s Server) GetSinglaConnection() (*sql.DB, error) {
+
+
+// ------------------------------------------------------------
+//
+// ------------------------------------------------------------
+func (s *Server) GetSinglaConnection() (*sql.DB, error) {
 	if s.OnHold {
 		return nil, fmt.Errorf("Server is on hold due to %s", s.OnHoldMessage)
 	}
 
 	return database.GetSingleConnection(s)
 }
+
+
+
+// ------------------------------------------------------------
+//
+// ------------------------------------------------------------
+func (s *Server) GetMux() *sync.Mutex {
+	return &s.mux
+}
+
+
 
 // ------------------------------------------------------------
 //

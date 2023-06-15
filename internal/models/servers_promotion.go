@@ -162,7 +162,7 @@ func (s Server) ListAutoPromotion() ([]*PromotionRecord, error) {
 			s.LastAutoPromoteDate = time.Now().Format(go_ibm_db.TimestampFormat)
 		}
 
-		sqlToUse := fmt.Sprintf("select upper(trim(SPECIFIC_NAME)) from qsys2.sysprocs where upper(SPECIFIC_NAME) like '%s' and SPECIFIC_SCHEMA='%s' and ROUTINE_CREATED >= '%s'", prefixToCheck, strings.ToUpper(s.ConfigFileLib), s.LastAutoPromoteDate)
+		sqlToUse := fmt.Sprintf("select upper(trim(SPECIFIC_NAME)) from qsys2.sysprocs where upper(SPECIFIC_NAME) like '%s' and SPECIFIC_SCHEMA='%s' and ROUTINE_CREATED >= '%s'", strings.ToUpper(prefixToCheck), strings.ToUpper(s.ConfigFileLib), s.LastAutoPromoteDate)
 		conn, err := s.GetConnection()
 
 		if err != nil {

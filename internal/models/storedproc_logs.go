@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"strings"
+	"sync"
 	"time"
 
 	bolt "go.etcd.io/bbolt"
@@ -19,13 +20,20 @@ type SPCallLog struct {
 
 	Logs []LogEntry `json:"logid" db:"logid" form:"-"`
 }
+type SPCallLogEntry struct {
+	SpID string
+
+	LogId string
+}
 
 // -----------------------------------------------------------------
 //
 // -----------------------------------------------------------------
 // Define a new UserModel type which wraps a database connection pool.
 type SPCallLogModel struct {
-	DB *bolt.DB
+	DB       *bolt.DB
+	dbmux    sync.Mutex
+	DataChan chan SPCallLogEntry
 }
 
 func (m *SPCallLogModel) getTableName() []byte {
@@ -36,20 +44,27 @@ func (m *SPCallLogModel) getTableName() []byte {
 //
 // -----------------------------------------------------------------
 // We'll use the Insert method to add a new record to the "users" table.
-func (m *SPCallLogModel) AddLogid(spId, logid string) {
+func (m *SPCallLogModel) AddLogid() {
 
-	logEntry := LogEntry{
-		LogID:    logid,
-		CalledAt: time.Now().Local(),
+	for {
+		logE, ok := <-m.DataChan
+		if ok {
+			logEntry := LogEntry{
+				LogID:    logE.LogId,
+				CalledAt: time.Now().Local(),
+			}
+
+			splog, err := m.Get(logE.SpID)
+
+			if err != nil {
+				logEntries := make([]LogEntry, 0)
+				splog = &SPCallLog{SpID: logE.SpID, Logs: logEntries}
+			}
+			splog.Logs = append(splog.Logs, logEntry)
+			m.Save(splog)
+		}
 	}
 
-	splog, err := m.Get(spId)
-	if err != nil {
-		logEntries := make([]LogEntry, 0)
-		splog = &SPCallLog{SpID: spId, Logs: logEntries}
-	}
-	splog.Logs = append(splog.Logs, logEntry)
-	m.Save(splog)
 }
 
 // -----------------------------------------------------------------

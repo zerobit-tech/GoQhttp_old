@@ -9,6 +9,7 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/gosimple/slug"
 	"github.com/onlysumitg/GoQhttp/go_ibm_db"
@@ -445,8 +446,11 @@ func (sp *StoredProc) Call(ctx context.Context, s Server, givenParams map[string
 		return &StoredProcResponse{LogData: logEntries}, err
 	}
 
-	//log.Printf("%v: %v\n", "SeversCall005.003", time.Now())
+	t1 := time.Now()
+	logEntries = append(logEntries, LogByType{Text: "Starting DB CALL", Type: "I"})
 	err = sp.SeversCall(ctx, s, preparedCallStatements, false)
+	logEntries = append(logEntries, LogByType{Text: fmt.Sprintf("Finished DB CALL in: %s", time.Since(t1)), Type: "I"})
+
 	//log.Printf("%v: %v\n", "SeversCall005.004", time.Now())
 
 	if err != nil {

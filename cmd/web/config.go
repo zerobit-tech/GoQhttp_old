@@ -50,8 +50,6 @@ type application struct {
 	testMode bool
 
 	redirectToHttps bool
-
-	 
 }
 
 func baseAppConfig(params parameters, db *bolt.DB, userdb *bolt.DB, logdb *bolt.DB) *application {
@@ -89,7 +87,7 @@ func baseAppConfig(params parameters, db *bolt.DB, userdb *bolt.DB, logdb *bolt.
 		servers:     &models.ServerModel{DB: db},
 		storedProcs: &models.StoredProcModel{DB: db},
 
-		spCallLogModel:             &models.SPCallLogModel{DB: logdb},
+		spCallLogModel:             &models.SPCallLogModel{DB: logdb, DataChan: make(chan models.SPCallLogEntry, 200)},
 		useHttps:                   params.https,
 		maxAllowedEndPoints:        -1,
 		maxAllowedEndPointsPerUser: -1,
@@ -104,6 +102,10 @@ func baseAppConfig(params parameters, db *bolt.DB, userdb *bolt.DB, logdb *bolt.
 		app.maxAllowedEndPointsPerUser = 2
 
 	}
+
+	go app.spCallLogModel.AddLogid()
+
+	go models.SaveLogs(app.LogDB)
 
 	//app.CreateHttpPathPermissions()
 	return app

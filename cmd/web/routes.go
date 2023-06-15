@@ -47,8 +47,13 @@ func addMiddleWares(app *application, router *chi.Mux) {
 
 	// A good base middleware stack : inbuilt in chi
 	router.Use(RequestID) //(middleware.RequestID)
+
 	router.Use(middleware.RealIP)
+
 	router.Use(middleware.Logger)
+
+
+
 	//router.Use(middleware.Recoverer)
 	router.Use(middleware.SetHeader("X-Frame-Options", "DENY"))
 

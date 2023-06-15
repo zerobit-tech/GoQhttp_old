@@ -363,7 +363,9 @@ func (app *application) SPDeleteConfirm(w http.ResponseWriter, r *http.Request) 
 		app.goBack(w, r, http.StatusBadRequest)
 		return
 	}
-	app.sessionManager.Put(r.Context(), "flash", "Query deleted sucessfully")
+
+	go app.deleteSPData(spId)
+	app.sessionManager.Put(r.Context(), "flash", "Endpoint deleted sucessfully")
 
 	http.Redirect(w, r, "/sp", http.StatusSeeOther)
 

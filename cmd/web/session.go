@@ -17,7 +17,7 @@ func getSessionManager(db *bolt.DB) *scs.SessionManager {
 
 	sessionManager := scs.New()
 	sessionManager.Lifetime = 48 * time.Hour
-	sessionManager.Store = boltstore.NewWithCleanupInterval(db, 200*time.Second)
+	sessionManager.Store = boltstore.NewWithCleanupInterval(db, 48 * time.Hour)
 	sessionManager.Cookie.Persist = true
 	sessionManager.Cookie.SameSite = http.SameSiteLaxMode
 	//sessionManager.Cookie.Secure = app.InProduction
