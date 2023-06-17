@@ -104,6 +104,8 @@ func main() {
 	go app.clearLogsSchedular(db)
 
 	go app.refreshSchedule()
+
+	go app.PingServers()
 	//--------------------------------------- Create super user ----------------------------
 
 	go app.CreateSuperUser(params.superuseremail, params.superuserpwd)
@@ -231,3 +233,31 @@ func (app *application) refreshSchedule() {
 	s.StartAsync()
 
 }
+
+// // -----------------------------------------------------------------
+// //
+// // -----------------------------------------------------------------
+// func (app *application) PingServersSchedular() {
+// 	defer func() {
+// 		if r := recover(); r != nil {
+// 			log.Println("Recovered in PingServersSchedular", r)
+// 		}
+// 	}()
+
+// 	//return
+
+// 	servers := app.servers.List()
+
+// 	scheduedTime := len(servers) / 5 // 5 seconds per server
+
+// 	s := gocron.NewScheduler(time.Local)
+
+// 	interval1 := fmt.Sprintf("%ds", scheduedTime)
+// 	if scheduedTime > 0 {
+
+// 		s.Every(interval1).Do(app.ProcessPromotions)
+// 	}
+
+// 	s.StartAsync()
+
+// }

@@ -44,9 +44,10 @@ type Server struct {
 	ConnectionsOpen int       `json:"conn" db:"conn" form:"connections"`
 	ConnectionsIdle int       `json:"iconn" db:"iconn" form:"idleconnections"`
 
-	ConnectionMaxAge  int `json:"cage" db:"cage" form:"cage"`
-	ConnectionIdleAge int `json:"icage" db:"icage" form:"icage"`
-	PingTimeout       int `json:"pingtout" db:"pingtout" form:"pingtout"`
+	ConnectionMaxAge  int    `json:"cage" db:"cage" form:"cage"`
+	ConnectionIdleAge int    `json:"icage" db:"icage" form:"icage"`
+	PingTimeout       int    `json:"pingtout" db:"pingtout" form:"pingtout"`
+	PingQuery         string `json:"pingquery" db:"pingquery" form:"pingquery"`
 
 	OnHold        bool   `json:"oh" db:"oh" form:"onhold"`
 	OnHoldMessage string `json:"ohm" db:"ohm" form:"onholdmessage"`
@@ -75,6 +76,14 @@ func (s *Server) GetConnectionString() string {
 	//connectionString := fmt.Sprintf("DSN=pub400; UID=%s;PWD=%s", s.UserName, s.Password)
 
 	return connectionString
+}
+
+// ------------------------------------------------------------
+//
+// ------------------------------------------------------------
+
+func (s *Server) GetSQLToPing() string {
+	return s.PingQuery
 }
 
 // ------------------------------------------------------------
@@ -177,7 +186,6 @@ func (s *Server) GetConnection() (*sql.DB, error) {
 	return database.GetConnection(s)
 }
 
-
 // ------------------------------------------------------------
 //
 // ------------------------------------------------------------
@@ -189,16 +197,12 @@ func (s *Server) GetSinglaConnection() (*sql.DB, error) {
 	return database.GetSingleConnection(s)
 }
 
-
-
 // ------------------------------------------------------------
 //
 // ------------------------------------------------------------
 func (s *Server) GetMux() *sync.Mutex {
 	return &s.mux
 }
-
-
 
 // ------------------------------------------------------------
 //

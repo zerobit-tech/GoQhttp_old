@@ -8,6 +8,9 @@ import (
 	"github.com/onlysumitg/GoQhttp/internal/models"
 )
 
+// --------------------------------
+//
+// --------------------------------
 func (app *application) RefreshStoredProces() {
 	log.Println("Starting scheduled RefreshStoredProces")
 	for _, sp := range app.storedProcs.List() {
@@ -28,6 +31,10 @@ func (app *application) RefreshStoredProces() {
 
 }
 
+// --------------------------------
+//
+// --------------------------------
+
 func (app *application) RemoveDeletedStoredProcs() {
 	for _, sp := range app.storedProcs.List() {
 		serverRcd := sp.DefaultServer
@@ -46,10 +53,13 @@ func (app *application) RemoveDeletedStoredProcs() {
 
 // --------------------------------
 //
-//	for all servers
-//
 // --------------------------------
 func (app *application) ProcessPromotions() {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Println("Recovered in refreshSchedule", r)
+		}
+	}()
 	log.Println("Starting scheduled Promotion process")
 	for _, s := range app.servers.List() {
 		app.ProcessPromotion(s)
@@ -65,6 +75,11 @@ func (app *application) ProcessPromotions() {
 //
 // --------------------------------
 func (app *application) ProcessPromotion(s *models.Server) {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Println("Recovered in refreshSchedule", r)
+		}
+	}()
 
 	promotionRecords, err := s.ListPromotion(true)
 
@@ -87,6 +102,11 @@ func (app *application) ProcessPromotion(s *models.Server) {
 //
 // --------------------------------
 func (app *application) ProcessPromotionRecord(s *models.Server, pr *models.PromotionRecord) {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Println("Recovered in refreshSchedule", r)
+		}
+	}()
 
 	if pr.Status == "P" {
 
@@ -116,4 +136,28 @@ func (app *application) ProcessPromotionRecord(s *models.Server, pr *models.Prom
 	}
 
 	pr.UpdateStatus(s)
+}
+
+// --------------------------------
+//
+//	for all servers
+//
+// --------------------------------
+func (app *application) PingServers() {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Println("Recovered in refreshSchedule", r)
+		}
+	}()
+
+	for {
+		for _, s := range app.servers.List() {
+			s.PingQuery = "values(1)"
+			log.Println("Pinging server:", s.Name)
+			s.GetConnection()
+
+		}
+		time.Sleep(10 * time.Second)
+	}
+
 }

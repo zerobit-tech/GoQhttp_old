@@ -8,6 +8,7 @@ import (
 	"context"
 	"database/sql/driver"
 	"fmt"
+	"strings"
 	"unsafe"
 
 	"github.com/onlysumitg/GoQhttp/go_ibm_db/api"
@@ -50,11 +51,15 @@ func (c *Conn) Close() error {
 
 func (c *Conn) Ping(ctx context.Context) error {
 
-	fmt.Println("Pingging...")
-	return nil
-	//args := make([]driver.Value, 0)
+	sqlToPing, ok := ctx.Value(SQL_TO_PING).(string)
+	if !ok || strings.TrimSpace(sqlToPing) == "" {
 
-	query := "values(1)"
+		return nil
+
+	}
+
+	fmt.Println("Pingging..:", sqlToPing)
+	//args := make([]driver.Value, 0)
 
 	var out api.SQLHANDLE
 	//var os *ODBCStmt
@@ -64,7 +69,7 @@ func (c *Conn) Ping(ctx context.Context) error {
 	}
 	h := api.SQLHSTMT(out)
 	//drv.Stats.updateHandleCount(api.SQL_HANDLE_STMT, 1)
-	b := api.StringToUTF16(query)
+	b := api.StringToUTF16(sqlToPing)
 	ret = api.SQLExecDirect(h,
 		(*api.SQLWCHAR)(unsafe.Pointer(&b[0])), api.SQL_NTS)
 	if IsError(ret) {
