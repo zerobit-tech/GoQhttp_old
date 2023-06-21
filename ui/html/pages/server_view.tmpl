@@ -13,8 +13,8 @@ Server detail
 
              {{if .CurrentUser.IsSuperUser}}
                          <a class="btn btn-ghost-info float-right" href="/servers/clearcache/{{.Server.ID}}">Clear Cache</a>
- 
                          <a class="btn btn-ghost-info float-right" href="/servers/listprom/{{.Server.ID}}">Promotions</a>
+                         <a class="btn btn-ghost-info float-right" href="/servers/syncusertoken/{{.Server.ID}}">Sync User tokens</a>
 
             {{end}}
           </p>

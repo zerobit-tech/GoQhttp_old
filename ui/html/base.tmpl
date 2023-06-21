@@ -67,7 +67,23 @@
      
 
 
+
+
+<!--  sp options -->
+      {{if .StoredProc}}
+      {{if .StoredProc.ID}}
+          {{template "spoptions" .StoredProc}}
+         
+          {{end}}
+
  
+     
+      {{end}}
+
+
+
+ <!--  sp options end-->
+
 
 
       
@@ -168,9 +184,7 @@
                     <ul class="c-header-nav mfs-auto">
                       <li class="c-header-nav-item mr-3">
 
-                        <a class="c-sidebar-nav-link" href="/servers">
-                           {{with $.CurrentServer}}   {{.Name}} {{end}}
-                        </a>
+                     
                       </li>
                                 <li class="c-header-nav-item mr-3">
                                  

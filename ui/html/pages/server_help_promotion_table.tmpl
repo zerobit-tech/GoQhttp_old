@@ -1,0 +1,112 @@
+{{define "title"}}
+Server Help
+{{end}}
+
+{{define "content"}}
+<br />
+
+<div class="row p-2">
+  <div class="col">
+    <div class="card ">
+      <div class="card-header">
+        <p class="h5">Promotion table structure
+
+        </p>
+       
+      </div>
+
+ 
+      <div class="card-body">
+
+        <ol>
+          <li>Following table contains the list of required fields.</li>
+          <li>You can include more columns like audit columns as per you requirements.</li>
+          <li>Column sequence is not important.But columns name and data types are important.</li>
+
+        </ol>
+
+
+    <table id="promotionlist"           class="table   table-borderless table-responsive-sm table-striped    ">
+      <thead class="thead-dark">
+        <tr>
+            <th>column name</th> 
+            <th>Data type</th>
+            <th>Details</th>      
+
+        </tr>
+          </thead>
+          <tbody>
+           
+        <tr>
+            <td>action</td>
+            <td>String / Char(1)</td>
+            <td>D: Delete. I: Insert. R: Refresh</td>
+        </tr>
+
+
+        <tr>
+          <td>endpoint</td>
+          <td>String </td>
+          <td>Name of the endpoint</td>
+       </tr>
+
+       <tr>
+        <td>storedproc</td>
+        <td>String </td>
+        <td>Stored Procedure name</td>
+     </tr>
+
+
+
+     <tr>
+      <td>storedproclib</td>
+      <td>String </td>
+      <td>Stored Procedure Lib</td>
+   </tr>
+
+
+   <tr>
+    <td>httpmethod</td>
+    <td>String </td>
+    <td>Http method: POST/GET/PUT/DELETE<td>
+ </tr>
+
+
+            
+ <tr>
+  <td>usespecificname</td>
+  <td>String / Char(1)</td>
+  <td>Y or N: is given name  specific name of stored procedure</td>
+</tr>
+
+
+<tr>
+  <td>usewithoutauth</td>
+  <td>String / Char(1)</td>
+  <td>Y or N: is this an unauthorized endpoint? </td>
+</tr>
+
+<tr>
+  <td>Status</td>
+  <td>String / Char(1)</td>
+  <td>Blank for pending records. E: Error. C: Completed </td>
+</tr>
+
+
+<tr>
+  <td>StatusMessage</td>
+  <td>String </td>
+  <td>Message to explain the status<td>
+</tr>
+
+
+          </tbody>
+        </table>
+      </div>
+  </div>
+</div>
+</div>
+    {{end}}
+
+
+ 

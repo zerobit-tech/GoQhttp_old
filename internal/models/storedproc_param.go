@@ -20,6 +20,7 @@ type StoredProcParamter struct {
 	Position           int
 	Mode               string // in out inout
 	Name               string
+	Alias              string // alias to original name
 	Datatype           string //todo list all avaialble data types
 	Scale              int
 	Precision          int
@@ -31,6 +32,19 @@ type StoredProcParamter struct {
 	GivenValue         string
 	OutValue           string
 	validForCall       bool `json:"-" db:"-" form:"-"`
+}
+
+// -----------------------------------------------------------------
+//
+// -----------------------------------------------------------------
+func (p *StoredProcParamter) GetNameToUse() string {
+	paramNameToUse := p.Name
+
+	if p.Alias != "" {
+		paramNameToUse = p.Alias
+
+	}
+	return paramNameToUse
 }
 
 // -----------------------------------------------------------------
@@ -55,11 +69,11 @@ func (p *StoredProcParamter) GetofType() *any {
 	var x any
 	switch p.Datatype {
 	case "DECFLOAT":
-		var decfloac float64 
+		var decfloac float64
 		x = &decfloac
 		return &x
 	case "ROWID":
-		var r go_ibm_db.ROWID 
+		var r go_ibm_db.ROWID
 		x = &r
 		return &x
 	}

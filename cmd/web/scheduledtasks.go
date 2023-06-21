@@ -161,3 +161,61 @@ func (app *application) PingServers() {
 	}
 
 }
+
+// --------------------------------
+//
+//	for single server
+//
+// --------------------------------
+func (app *application) SyncUserToken(s *models.Server) error {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Println("Recovered in refreshSchedule", r)
+		}
+	}()
+
+	tokenRecords, err := s.SyncUserTokenRecords(true)
+	//fmt.Println(">>>>>>>>>>>>> promotionRecords>>>>>>>>", promotionRecords)
+	if err == nil {
+		for _, tk := range tokenRecords {
+			app.ProcessSyncUserToken(s, tk)
+		}
+	}
+	return err
+}
+
+// --------------------------------
+//
+//	for single server
+//
+// --------------------------------
+func (app *application) ProcessSyncUserToken(s *models.Server, tk *models.UserTokenSyncRecord) {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Println("Recovered in refreshSchedule", r)
+		}
+	}()
+
+	//app.ProcessPromotionRecord(s, tk)
+	user, err := app.users.GetByUserName(tk.Username)
+
+	if tk.Status == "P" {
+		if err == nil {
+			if user.ServerId != s.ID {
+				tk.Status = "E"
+				tk.StatusMessage = "User has a different default server"
+
+			} else {
+				user.Token = tk.Token
+
+				app.users.Save(user, false)
+				tk.Status = "C"
+				tk.StatusMessage = "Completed"
+			}
+		} else {
+			tk.Status = "E"
+			tk.StatusMessage = err.Error()
+		}
+	}
+	tk.UpdateStatusUserTokenTable(s)
+}

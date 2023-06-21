@@ -55,7 +55,11 @@ type Server struct {
 	ConfigFileLib string `json:"configfilelib" db:"configfilelib" form:"configfilelib"`
 	ConfigFile    string `json:"configfile" db:"configfile" form:"configfile"`
 
-	AutoPromotePrefix   string `json:"autopromoteprefix" db:"autopromoteprefix" form:"autopromoteprefix"`
+	AutoPromotePrefix string `json:"autopromoteprefix" db:"autopromoteprefix" form:"autopromoteprefix"`
+
+	UserTokenFileLib string `json:"usertokenfilelib" db:"usertokenfilelib" form:"usertokenfilelib"`
+	UserTokenFile    string `json:"usertokenfile" db:"usertokenfile" form:"usertokenfile"`
+
 	LastAutoPromoteDate string `json:"lastautopromotecheck" db:"lastautopromotecheck" form:"lastautopromotecheck"`
 
 	validator.Validator `json:"-" db:"-" form:"-"`

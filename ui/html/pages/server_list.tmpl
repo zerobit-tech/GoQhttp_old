@@ -44,7 +44,7 @@ Servers
 
         {{range .Servers}}
         <tr>
-            <td><a {{if not .OnHold }} href='/servers/select/{{.ID}}?next={{$.Next}}'  {{ end }}>{{.Name}}</a></td>
+            <td> {{.Name}}</td>
            
             
             <td>{{.IP}}</td>
@@ -58,9 +58,7 @@ Servers
             <td>{{.ConnMaxLifetime}}/{{.ConnMaxIdleTime}}</td>
 
             <td>
-                  {{if not .OnHold }}
-                     <a class="btn btn-ghost-primary" href='/servers/select/{{.ID}}?next={{$.Next}}'>Select</a> 
-                  {{ end }}
+                 
                   <a class="btn btn-ghost-info" href='/servers/{{.ID}}'  >View</a> 
                   {{if $.CurrentUser.IsSuperUser}}
                      <a class="btn btn-ghost-info" 

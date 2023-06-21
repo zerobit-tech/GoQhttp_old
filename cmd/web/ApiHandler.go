@@ -97,6 +97,17 @@ func (app *application) InjectRequestInfo(r *http.Request, requesyBodyFlatMap ma
 
 	}
 
+	currentUser, found := app.getCurrentUser(r)
+	if found {
+		requesyBodyFlatMap["QHTTP_USER_TOKEN"] = xmlutils.ValueDatatype{Value: currentUser.Token, DataType: "STRING"}
+		requesyBodyFlatMap["QHTTP_USER_EMAIL"] = xmlutils.ValueDatatype{Value: currentUser.Email, DataType: "STRING"}
+
+	} else {
+		requesyBodyFlatMap["QHTTP_USER_TOKEN"] = xmlutils.ValueDatatype{Value: "", DataType: "STRING"}
+		requesyBodyFlatMap["QHTTP_USER_EMAIL"] = xmlutils.ValueDatatype{Value: currentUser.Email, DataType: "STRING"}
+
+	}
+
 }
 
 // ------------------------------------------------------

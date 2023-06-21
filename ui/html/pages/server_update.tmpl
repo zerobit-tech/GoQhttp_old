@@ -86,7 +86,9 @@ Add new Server
             {{end}}
         </div>
 
-
+        
+        <br>
+        <br>
         <div class="form-group">
             <label for="connectioncount">Max Open connections</label>
 
@@ -125,10 +127,20 @@ Add new Server
 
         </div>
 
-        <div class="form-group">
+        <br>
+        <br>
 
 
-
+            <div class="form-group">
+                <label for="configfilelib">Auto promotion Prefix</label>
+    
+                <input id="autopromoteprefix" aria-describedby="autopromoteprefixh"  value='{{.Form.AutoPromotePrefix}}' 
+                type="text" class="form-control"  
+                      name="autopromoteprefix"></input>
+    
+                    <small id="autopromoteprefixh" class="form-text text-muted">Auto promote Stores Procs with specific name {Auto promotion Prefix}_{Http method}_{endpoint name}. Like API_POST_SOMEENDPOINT</small>
+    
+            </div>
 
    <div class="form-group">
             <label for="configfile">Promotion Table</label>
@@ -137,7 +149,7 @@ Add new Server
             type="text" class="form-control"  
                   name="configfile"></input>
 
-                <small id="configfileh" class="form-text text-muted">Table to track for promoted endpoints</small>
+                  <small id="configfileh" class="form-text text-muted">Table to track for promoted endpoints.Click <a href="/servers/help/ptable">here</a> for table structure.</small>
 
         </div>
 
@@ -151,16 +163,34 @@ Add new Server
                 <small id="configfilelibh" class="form-text text-muted"></small>
 
         </div>
+   
+
+        
+        <br>
+        <br>
+
         <div class="form-group">
-            <label for="configfilelib">Auto promotion Prefix</label>
+            <label for="usertokenfile">User Token Table</label>
 
-            <input id="autopromoteprefix" aria-describedby="autopromoteprefixh"  value='{{.Form.AutoPromotePrefix}}' 
+            <input id="usertokenfile" aria-describedby="usertokenfileh"  value='{{.Form.UserTokenFile}}' 
             type="text" class="form-control"  
-                  name="autopromoteprefix"></input>
+                  name="usertokenfile"></input>
 
-                <small id="autopromoteprefixh" class="form-text text-muted">Auto promote Stores Procs with specific name {Auto promotion Prefix}_{Http method}_{endpoint name}. Like API_POST_SOMEENDPOINT</small>
+                <small id="usertokenfileh" class="form-text text-muted">Table to sync user tokens. Does not create new users. Click <a href="/servers/help/utstable">here</a> for table structure.</small>
 
         </div>
+
+        <div class="form-group">
+            <label for="usertokenfilelib">User token Table lib</label>
+
+            <input id="usertokenfilelib" aria-describedby="usertokenfilelibh"  value='{{.Form.UserTokenFileLib}}' 
+            type="text" class="form-control"  
+                  name="usertokenfilelib"></input>
+
+                <small id="usertokenfilelibh" class="form-text text-muted">Lib for user token tables</small>
+
+        </div>
+        
         <br>
         <br>
 
@@ -168,6 +198,7 @@ Add new Server
             <input value='true' {{if .Form.Ssl}} checked {{end}} type="checkbox" class="form-check-input" name="ssl" id="exampleCheck1">
             <label class="form-check-label" for="exampleCheck1">SSL (Mostly not required for ODBC)</label>
         </div>
+      
         <br>
         <br>
 

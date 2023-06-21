@@ -38,7 +38,7 @@ type templateData struct {
 	Server  *models.Server
 	Servers []*models.Server
 
-	CurrentServer *models.Server
+	//CurrentServer *models.Server
 
 	StoredProcs []*models.StoredProc
 	StoredProc  *models.StoredProc
@@ -112,12 +112,12 @@ func (app *application) setTemplateDefaults(r *http.Request, templateData *templ
 	templateData.Flash = app.sessionManager.PopString(r.Context(), "flash")
 	templateData.Warning = app.sessionManager.PopString(r.Context(), "warning")
 	templateData.Error = app.sessionManager.PopString(r.Context(), "error")
-	currentServerID := app.sessionManager.GetString(r.Context(), "currentserver")
+	//currentServerID := app.sessionManager.GetString(r.Context(), "currentserver")
 
-	currentServer, err := app.servers.Get(currentServerID)
-	if err == nil {
-		templateData.CurrentServer = currentServer
-	}
+	// currentServer, err := app.servers.Get(currentServerID)
+	// if err == nil {
+	// 	templateData.CurrentServer = currentServer
+	// }
 
 }
 

@@ -23,7 +23,7 @@ func (app *application) ServerListMiddleware(next http.Handler) http.Handler {
 // ------------------------------------------------------
 //
 // ------------------------------------------------------
-func (app *application) CurrentServerMiddleware(next http.Handler) http.Handler {
+func (app *application) CurrentServerMiddlewareXX(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
 		currentServerID := app.sessionManager.GetString(r.Context(), "currentserver")
@@ -90,7 +90,32 @@ func (app *application) ServerHandlers(router *chi.Mux) {
 
 		superadmingroup.Get("/clearcache/{serverid}", app.ClearCache)
 
+		superadmingroup.Get("/syncusertoken/{serverid}", app.SyncUserTokens)
+
+		superadmingroup.Get("/help/ptable", app.PromotionTableHelp)
+		superadmingroup.Get("/help/utstable", app.UserTokenTableHelp)
+
 	})
+
+}
+
+// ------------------------------------------------------
+//
+// ------------------------------------------------------
+func (app *application) PromotionTableHelp(w http.ResponseWriter, r *http.Request) {
+	data := app.newTemplateData(r)
+
+	app.render(w, r, http.StatusOK, "server_help_promotion_table.tmpl", data)
+
+}
+
+// ------------------------------------------------------
+//
+// ------------------------------------------------------
+func (app *application) UserTokenTableHelp(w http.ResponseWriter, r *http.Request) {
+	data := app.newTemplateData(r)
+
+	app.render(w, r, http.StatusOK, "server_help_user_token_sync_table.tmpl", data)
 
 }
 
@@ -488,4 +513,45 @@ func (app *application) ServerUpdatePost(w http.ResponseWriter, r *http.Request)
 	app.sessionManager.Put(r.Context(), "flash", fmt.Sprintf("Server %s updated sucessfully", server.Name))
 
 	http.Redirect(w, r, "/servers", http.StatusSeeOther)
+}
+
+// ------------------------------------------------------
+// run promotions
+// ------------------------------------------------------
+func (app *application) SyncUserTokens(w http.ResponseWriter, r *http.Request) {
+
+	defer app.requestMutex.Unlock()
+	// inProgress := app.requestMutex.TryLock()
+	// if inProgress {
+	// 	//log.Println("ServerDeleteConfirm  002 >>>>>>", err.Error())
+	// 	app.sessionManager.Put(r.Context(), "error", fmt.Sprintf("Please wait. User token sync is already in progress"))
+	// 	app.goBack(w, r, http.StatusSeeOther)
+	// 	return
+	// }
+
+	app.requestMutex.Lock()
+	serverID := chi.URLParam(r, "serverid")
+
+	server, err := app.servers.Get(serverID)
+	if err != nil {
+
+		//log.Println("ServerDeleteConfirm  002 >>>>>>", err.Error())
+		app.sessionManager.Put(r.Context(), "error", fmt.Sprintf("Error: %s", err.Error()))
+		app.goBack(w, r, http.StatusSeeOther)
+		return
+	}
+	err = app.SyncUserToken(server)
+
+	if err != nil {
+
+		//log.Println("ServerDeleteConfirm  002 >>>>>>", err.Error())
+		app.sessionManager.Put(r.Context(), "error", fmt.Sprintf("Error: %s", err.Error()))
+		app.goBack(w, r, http.StatusSeeOther)
+		return
+	}
+
+	app.sessionManager.Put(r.Context(), "flash", "User token sync Completed.")
+
+	app.goBack(w, r, http.StatusSeeOther)
+
 }

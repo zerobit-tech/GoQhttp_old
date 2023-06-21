@@ -77,7 +77,7 @@ func (p PromotionRecord) UpdateStatus(s *Server) {
 // ------------------------------------------------------------
 //
 // ------------------------------------------------------------
-func (s Server) ListPromotion(withupdate bool) ([]*PromotionRecord, error) {
+func (s *Server) ListPromotion(withupdate bool) ([]*PromotionRecord, error) {
 
 	promotionRecords := make([]*PromotionRecord, 0)
 	if strings.TrimSpace(s.ConfigFile) != "" && strings.TrimSpace(s.ConfigFileLib) != "" {
@@ -154,7 +154,7 @@ func (s Server) ListPromotion(withupdate bool) ([]*PromotionRecord, error) {
 // ------------------------------------------------------------
 //
 // ------------------------------------------------------------
-func (s Server) ListAutoPromotion() ([]*PromotionRecord, error) {
+func (s *Server) ListAutoPromotion() ([]*PromotionRecord, error) {
 	promotionRecords := make([]*PromotionRecord, 0)
 	if strings.TrimSpace(s.AutoPromotePrefix) != "" && strings.TrimSpace(s.ConfigFileLib) != "" {
 		prefixToCheck := strings.ToUpper(strings.TrimSpace(s.AutoPromotePrefix)) + "%"

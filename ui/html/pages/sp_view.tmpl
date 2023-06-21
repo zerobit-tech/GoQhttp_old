@@ -222,6 +222,8 @@ Endpoint
                                         <th>#</th>
                                         <th>Mode</th>
                                         <th>Name</th>
+                                        <th>Alias</th>
+
                                         <th>Data Type</th>
                                         <th>Precision</th>
                                         <th>Scale</th>
@@ -237,6 +239,7 @@ Endpoint
                                         <td>{{.Position}}</td>
                                         <td>{{.Mode}}</td>
                                         <td>{{.Name}}</td>
+                                        <td>{{.Alias}}</td>
                                         <td>{{.Datatype}}</td>
                                         <td>{{.Precision}}</td>
                                         <td>{{.Scale}}</td>
@@ -247,9 +250,9 @@ Endpoint
                                             {{if ne .Mode "OUT"}}
                                             <div class="form-group">
 
-                                                <input id="{{.Name}}" class="form-control  " type="text"
-                                                    name="{{.Name}}" aria-describedby="{{.Name}}help"
-                                                    placeholder="{{.Name}}" value='{{.GivenValue}}' required></input>
+                                                <input id="{{.GetNameToUse}}" class="form-control  " type="text"
+                                                    name="{{.GetNameToUse}}" aria-describedby="{{.GetNameToUse}}help"
+                                                    placeholder="{{.GetNameToUse}}" value='{{.GivenValue}}' required></input>
 
 
 
@@ -277,7 +280,7 @@ Endpoint
     </div>
 </div>
     <div class="row p-2">
-    <div class="col-xl-6 ">
+    <div class="col-xl ">
         <div class="card ">
             <div class="card-header">
                 <p class="h5">
@@ -295,36 +298,7 @@ Endpoint
         </div>
     </div>
 
-    <div class="col-xl-6">
-        <div class="card ">
-            <div class="card-header">
-                <p class="h5">
-                    Logs
-                </p>
-            </div>
-            <div class="card-body">
-                {{with .SPCallLog}}
-                <table id="logids" class="table   table-borderless table-responsive-sm table-striped    ">
-                    <thead class="thead-dark">
-                        <tr>
-                            <th>ID</th>
-                            <th>Created on</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {{range .Logs}}
-                        <tr>
-                            <td><a href="/apilogs/{{.LogID}}">{{.LogID}}</a></td>
-                            <td> {{.CalledAt}} </td>
-
-                        </tr>
-                        {{end}}
-                    </tbody>
-                </table>
-                {{end}}
-            </div>
-        </div>
-    </div>
+  
 </div>
 
  
@@ -332,18 +306,4 @@ Endpoint
 {{end}}
 
 
-{{define "aftercontent"}}
-
-<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.1/css/jquery.dataTables.css">
-<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.13.1/js/jquery.dataTables.js"></script>
-
-<script>
-    $(document).ready(function () {
-        $('#logids').DataTable({
-            "language": {
-                "emptyTable": "No results found"
-            }
-        });
-    });
-</script>
-{{end}}
+ 

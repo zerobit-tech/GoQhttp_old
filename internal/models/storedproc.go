@@ -88,6 +88,22 @@ func (s *StoredProc) Slug() string {
 // ------------------------------------------------------------
 // BuildMockUrl(s)
 // ------------------------------------------------------------
+func (s *StoredProc) ValidateAlias() error {
+
+	for _, p1 := range s.Parameters {
+		for _, p2 := range s.Parameters {
+			if p1.Name != p2.Name && p1.GetNameToUse() == p2.GetNameToUse() {
+				return fmt.Errorf("Conflict between %s and %s.", p1.Name, p2.Name)
+			}
+		}
+
+	}
+	return nil
+}
+
+// ------------------------------------------------------------
+// BuildMockUrl(s)
+// ------------------------------------------------------------
 func (s *StoredProc) IsAllowedForServer(server *Server) bool {
 	if server == nil {
 		return false
@@ -156,16 +172,16 @@ outerloop:
 
 		// dont display inbuilt param
 		for _, ibp := range InbuiltParams {
-			if strings.EqualFold(ibp, p.Name) {
+			if strings.EqualFold(ibp, p.GetNameToUse()) {
 				continue outerloop
 			}
 		}
 
-		inputPayload[p.Name] = fmt.Sprintf("{%s}", p.Datatype)
+		inputPayload[p.GetNameToUse()] = fmt.Sprintf("{%s}", p.Datatype)
 		if queryParamString == "" {
-			queryParamString = fmt.Sprintf("?%s={%s}", p.Name, p.Datatype)
+			queryParamString = fmt.Sprintf("?%s={%s}", p.GetNameToUse(), p.Datatype)
 		} else {
-			queryParamString = queryParamString + fmt.Sprintf("&%s={%s}", p.Name, p.Datatype)
+			queryParamString = queryParamString + fmt.Sprintf("&%s={%s}", p.GetNameToUse(), p.Datatype)
 
 		}
 
@@ -343,14 +359,16 @@ func (sp *StoredProc) prepareCallStatement(s Server, givenParams map[string]any)
 	finalCallStatement := sp.CallStatement
 
 	for _, p := range sp.Parameters {
+		paramNameToUse := p.GetNameToUse()
+
 		switch p.Mode {
 		case "IN":
-			valueToUse, found := givenParams[p.Name]
+			valueToUse, found := givenParams[paramNameToUse]
 			if !found {
 				valueToUse = p.GetDefaultValue(s)
 
 			} else {
-				p.GivenValue = asString(valueToUse)
+				//p.GivenValue = asString(valueToUse)
 
 			}
 			if !p.HasValidValue(valueToUse) {
@@ -369,9 +387,9 @@ func (sp *StoredProc) prepareCallStatement(s Server, givenParams map[string]any)
 			finalCallStatement = strings.ReplaceAll(finalCallStatement, stringToReplace, "?")
 
 		case "INOUT":
-			spResponseFormat[p.Name] = p.Datatype
+			spResponseFormat[p.GetNameToUse()] = p.Datatype
 
-			valueToUse, found := givenParams[p.Name]
+			valueToUse, found := givenParams[paramNameToUse]
 			if !found {
 				valueToUse = p.GetDefaultValue(s)
 				if valueToUse == "NULL" {
@@ -379,7 +397,7 @@ func (sp *StoredProc) prepareCallStatement(s Server, givenParams map[string]any)
 				}
 
 			} else {
-				p.GivenValue = asString(valueToUse)
+				//p.GivenValue = asString(valueToUse)
 
 			}
 			if !p.HasValidValue(valueToUse) {
@@ -398,7 +416,7 @@ func (sp *StoredProc) prepareCallStatement(s Server, givenParams map[string]any)
 			inOutParamMapToSPParam[p.Name] = p
 
 		case "OUT":
-			spResponseFormat[p.Name] = p.Datatype
+			spResponseFormat[p.GetNameToUse()] = p.Datatype
 			out := p.GetofType()
 			inoutParamVariables[p.Name] = out
 			inoutParams = append(inoutParams, sql.Out{Dest: inoutParamVariables[p.Name]})
@@ -459,9 +477,13 @@ func (sp *StoredProc) Call(ctx context.Context, s Server, givenParams map[string
 		return &StoredProcResponse{LogData: logEntries}, err
 	}
 	logEntries = append(logEntries, LogByType{Text: "SP Call complete", Type: "I"})
+
 	// read INOUT and OUT parameter values
-	for k, v := range preparedCallStatements.InOutParamVariables {
-		p, found := preparedCallStatements.InOutParamMapToSPParam[k]
+	for kXX, v := range preparedCallStatements.InOutParamVariables {
+		p, found := preparedCallStatements.InOutParamMapToSPParam[kXX]
+
+		keyToUse := p.GetNameToUse()
+
 		if found {
 
 			if p.IsString() || reflect.ValueOf(v).Kind() == reflect.String {
@@ -475,36 +497,36 @@ func (sp *StoredProc) Call(ctx context.Context, s Server, givenParams map[string
 						err := json.Unmarshal(b, &jsonData)
 
 						if err == nil {
-							preparedCallStatements.ResponseFormat[k] = &jsonData
+							preparedCallStatements.ResponseFormat[keyToUse] = &jsonData
 							assignStrVal = false
 						}
 
 					}
 					if assignStrVal {
-						preparedCallStatements.ResponseFormat[k] = strVal
+						preparedCallStatements.ResponseFormat[keyToUse] = strVal
 
 					}
 
-					if p.Mode == "OUT" && p.Name == "QHTTP_STATUS_MESSAGE" {
+					if p.Mode == "OUT" && keyToUse == "QHTTP_STATUS_MESSAGE" {
 						qhttp_status_message = strVal
-						delete(preparedCallStatements.ResponseFormat, k)
+						delete(preparedCallStatements.ResponseFormat, keyToUse)
 
 					}
 
 				} else {
-					preparedCallStatements.ResponseFormat[k] = v
+					preparedCallStatements.ResponseFormat[keyToUse] = v
 				}
 			} else {
 				cv, err := p.ConvertOUTVarToType(v)
 				if err == nil {
-					preparedCallStatements.ResponseFormat[k] = cv
+					preparedCallStatements.ResponseFormat[keyToUse] = cv
 				} else {
-					preparedCallStatements.ResponseFormat[k] = v
+					preparedCallStatements.ResponseFormat[keyToUse] = v
 				}
 
 			}
 
-			if p.Mode == "OUT" && p.Name == "QHTTP_STATUS_CODE" && p.IsInt() {
+			if p.Mode == "OUT" && keyToUse == "QHTTP_STATUS_CODE" && p.IsInt() {
 				intval, ok := 0, false
 
 				switch reflect.ValueOf(*v).Kind() {
@@ -538,7 +560,7 @@ func (sp *StoredProc) Call(ctx context.Context, s Server, givenParams map[string
 						qhttp_status_code = int(intval)
 
 						// remove QHTTP_STATUS_CODE from out params
-						delete(preparedCallStatements.ResponseFormat, k)
+						delete(preparedCallStatements.ResponseFormat, keyToUse)
 
 						if qhttp_status_message == "" {
 							qhttp_status_message = message
@@ -668,6 +690,8 @@ func (sp *StoredProc) GetResultSetCount(s Server) error {
 // -----------------------------------------------------------------
 func (sp *StoredProc) GetParameters(s Server) error {
 
+	originalParams := sp.Parameters
+
 	sqlToUse := fmt.Sprintf("SELECT ORDINAL_POSITION, upper(trim(PARAMETER_MODE)) , upper(trim(PARAMETER_NAME)),DATA_TYPE, ifnull(NUMERIC_SCALE,0), ifnull(NUMERIC_PRECISION,0), ifnull(CHARACTER_MAXIMUM_LENGTH,0),  default FROM qsys2.sysparms WHERE SPECIFIC_NAME='%s' and   SPECIFIC_SCHEMA ='%s' ORDER BY ORDINAL_POSITION", strings.ToUpper(sp.SpecificName), strings.ToUpper(sp.SpecificLib))
 
 	sp.Parameters = make([]*StoredProcParamter, 0)
@@ -713,6 +737,15 @@ func (sp *StoredProc) GetParameters(s Server) error {
 		}
 		sp.Parameters = append(sp.Parameters, spParamter)
 
+	}
+
+	// restore alias
+	for _, p := range sp.Parameters {
+		for _, op := range originalParams {
+			if p.Name == op.Name {
+				p.Alias = op.Alias
+			}
+		}
 	}
 
 	return nil

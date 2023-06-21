@@ -367,6 +367,23 @@ func (m *UserModel) GetByEmail(email string) (*User, error) {
 
 }
 
+
+// -----------------------------------------------------------------
+//
+// -----------------------------------------------------------------
+// We'll use the Exists method to check if a user exists with a specific ID.
+func (m *UserModel) GetByUserName(username string) (*User, error) {
+
+	for _, u := range m.List() {
+		if strings.EqualFold(u.Name, username) {
+			return u, nil
+		}
+	}
+
+	return nil, ErrInvalidCredentials
+
+}
+
 // -----------------------------------------------------------------
 //
 // -----------------------------------------------------------------

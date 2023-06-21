@@ -16,6 +16,7 @@ import (
 
 type application struct {
 	endPointMutex        sync.Mutex
+	requestMutex sync.Mutex
 	invalidEndPointCache bool
 	endPointCache        map[string]*models.StoredProc
 
