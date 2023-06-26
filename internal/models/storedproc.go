@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"runtime/debug"
 	"strconv"
 	"strings"
 	"time"
@@ -203,9 +204,9 @@ outerloop:
 // -----------------------------------------------------------------
 //
 // -----------------------------------------------------------------
-func (sp *StoredProc) Refresh(s Server) error {
+func (sp *StoredProc) Refresh(s *Server) error {
 	if sp.HasSPUpdated(s) {
-		err := sp.PreapreToSave(s)
+		err := sp.PreapreToSave(*s)
 		if err != nil {
 			return err
 		}
@@ -217,7 +218,7 @@ func (sp *StoredProc) Refresh(s Server) error {
 // -----------------------------------------------------------------
 //
 // -----------------------------------------------------------------
-func (sp *StoredProc) HasSPUpdated(s Server) bool {
+func (sp *StoredProc) HasSPUpdated(s *Server) bool {
 
 	hasModified := "N"
 
@@ -251,7 +252,7 @@ func (sp *StoredProc) HasSPUpdated(s Server) bool {
 // -----------------------------------------------------------------
 //
 // -----------------------------------------------------------------
-func (sp *StoredProc) Exists(s Server) (bool, error) {
+func (sp *StoredProc) Exists(s *Server) (bool, error) {
 
 	exists := "N"
 
@@ -289,12 +290,12 @@ func (sp *StoredProc) PreapreToSave(s Server) error {
 	sp.HttpMethod = strings.ToUpper(strings.TrimSpace(sp.HttpMethod))
 	sp.UseNamedParams = true
 
-	err := sp.GetResultSetCount(s)
+	err := sp.GetResultSetCount(&s)
 	if err != nil {
 		return err
 	}
 
-	err = sp.GetParameters(s)
+	err = sp.GetParameters(&s)
 	if err != nil {
 		return err
 	}
@@ -349,7 +350,7 @@ func (sp *StoredProc) buildCallStatement(useNamedParams bool) (err error) {
 // -----------------------------------------------------------------
 //
 // -----------------------------------------------------------------
-func (sp *StoredProc) prepareCallStatement(s Server, givenParams map[string]any) (*PreparedCallStatements, error) {
+func (sp *StoredProc) prepareCallStatement(s *Server, givenParams map[string]any) (*PreparedCallStatements, error) {
 
 	spResponseFormat := make(map[string]any)
 	inoutParams := make([]any, 0)
@@ -437,8 +438,25 @@ func (sp *StoredProc) prepareCallStatement(s Server, givenParams map[string]any)
 // -----------------------------------------------------------------
 //
 // -----------------------------------------------------------------
-func (sp *StoredProc) APICall(ctx context.Context, s Server, apiCall *ApiCall) {
+func (sp *StoredProc) APICall(ctx context.Context, s *Server, apiCall *ApiCall) {
 	//log.Printf("%v: %v\n", "SeversCall005.001", time.Now())
+
+	defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
+
+	defer func() {
+		if r := recover(); r != nil {
+			responseFormat := &StoredProcResponse{
+				ReferenceId: "string",
+				Status:      500,
+				Message:     fmt.Sprintf("%s", r),
+				Data:        map[string]any{},
+				LogData:     []LogByType{{Text: fmt.Sprintf("%s", r), Type: "ERROR"}},
+			}
+			apiCall.Response = responseFormat
+			apiCall.Err = fmt.Errorf("%s", r)
+		}
+	}()
+
 	givenParams := make(map[string]any)
 	apiCall.LogInfo("Building parameters for SP call")
 	for k, v := range apiCall.RequestFlatMap {
@@ -451,7 +469,7 @@ func (sp *StoredProc) APICall(ctx context.Context, s Server, apiCall *ApiCall) {
 // -----------------------------------------------------------------
 //
 // -----------------------------------------------------------------
-func (sp *StoredProc) Call(ctx context.Context, s Server, givenParams map[string]any) (*StoredProcResponse, error) {
+func (sp *StoredProc) Call(ctx context.Context, s *Server, givenParams map[string]any) (*StoredProcResponse, error) {
 	//log.Printf("%v: %v\n", "SeversCall005.002", time.Now())
 
 	qhttp_status_code := 200
@@ -587,7 +605,7 @@ func (sp *StoredProc) Call(ctx context.Context, s Server, givenParams map[string
 // -----------------------------------------------------------------
 //
 // -----------------------------------------------------------------
-func (sp *StoredProc) DummyCall(s Server, givenParams map[string]any) (*StoredProcResponse, error) {
+func (sp *StoredProc) DummyCall(s *Server, givenParams map[string]any) (*StoredProcResponse, error) {
 	preparedCallStatements, err := sp.prepareCallStatement(s, givenParams)
 	if err != nil {
 		return nil, err
@@ -617,8 +635,15 @@ func (sp *StoredProc) DummyCall(s Server, givenParams map[string]any) (*StoredPr
 // -----------------------------------------------------------------
 //
 // -----------------------------------------------------------------
-func (sp *StoredProc) SeversCall(ctx context.Context, s Server, preparedCallStatements *PreparedCallStatements, dummyCall bool) error {
+func (sp *StoredProc) SeversCall(ctx context.Context, s *Server, preparedCallStatements *PreparedCallStatements, dummyCall bool) (ferr error) {
 
+	defer func() {
+		if r := recover(); r != nil {
+			ferr = fmt.Errorf("%s", r)
+		}
+	}()
+
+	defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
 	db, err := s.GetConnection()
 	if err != nil {
 		return err
@@ -650,7 +675,7 @@ func (sp *StoredProc) SeversCall(ctx context.Context, s Server, preparedCallStat
 // -----------------------------------------------------------------
 //
 // -----------------------------------------------------------------
-func (sp *StoredProc) GetResultSetCount(s Server) error {
+func (sp *StoredProc) GetResultSetCount(s *Server) error {
 
 	resultSets := 0
 
@@ -688,7 +713,7 @@ func (sp *StoredProc) GetResultSetCount(s Server) error {
 // -----------------------------------------------------------------
 //
 // -----------------------------------------------------------------
-func (sp *StoredProc) GetParameters(s Server) error {
+func (sp *StoredProc) GetParameters(s *Server) error {
 
 	originalParams := sp.Parameters
 

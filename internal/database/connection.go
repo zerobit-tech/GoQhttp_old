@@ -5,12 +5,14 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"runtime/debug"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/onlysumitg/GoQhttp/go_ibm_db"
 	_ "github.com/onlysumitg/GoQhttp/go_ibm_db"
+	"github.com/onlysumitg/GoQhttp/utils/concurrent"
 )
 
 var mapLock sync.Mutex
@@ -54,7 +56,7 @@ type DBServer interface {
 // ---------------------------------------------------
 //
 // ---------------------------------------------------
-var connectionMap MapInterface = NewSuperEfficientSyncMap(0)
+var connectionMap concurrent.MapInterface = concurrent.NewSuperEfficientSyncMap(0)
 
 //var connectionMap2 sync.Map
 
@@ -63,13 +65,18 @@ var connectionMap MapInterface = NewSuperEfficientSyncMap(0)
 // ---------------------------------------------------
 func ClearCache(server DBServer) {
 	//delete(connectionMap, server.GetConnectionID())
-	eraseSyncMap(connectionMap)
+	concurrent.EraseSyncMap(connectionMap)
 }
 
 // ---------------------------------------------------
 //
 // ---------------------------------------------------
 func GetConnectionFromCache(server DBServer) *sql.DB {
+	mapLock.Lock()
+
+	defer mapLock.Unlock()
+
+	defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
 	connectionID := server.GetConnectionID()
 	dbX, found := connectionMap.Load(connectionID)
 	if !found || dbX == nil {
@@ -79,6 +86,17 @@ func GetConnectionFromCache(server DBServer) *sql.DB {
 	db, ok := dbX.(*sql.DB)
 	if !ok {
 		return nil
+	}
+
+	//fmt.Println(" >>>>>>>>>>>>>>>>>>>>> db.Stats().InUse ", db.Stats().InUse)
+	//fmt.Println(" >>>>>>>>>>>>>>>>>>>>> db.Stats().OpenConnections ", db.Stats().OpenConnections)
+	//fmt.Println(" >>>>>>>>>>>>>>>>>>>>> db.Stats().MaxOpenConnections ", db.Stats().MaxOpenConnections)
+	//fmt.Println(" >>>>>>>>>>>>>>>>>>>>> db.Stats().Idle ", db.Stats().Idle)
+	//fmt.Println(" >>>>>>>>>>>>>>>>>>>>> db.Stats().WaitCount ", db.Stats().WaitCount)
+	//fmt.Println(" >>>>>>>>>>>>>>>>>>>>> db.Stats().WaitDuration ", db.Stats().WaitDuration)
+
+	if db.Stats().InUse > 0 {
+		return db
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), server.PingTimeoutDuration())
@@ -125,20 +143,23 @@ func GetConnection(server DBServer) (*sql.DB, error) {
 	db, err := sql.Open(strings.ToLower(server.GetConnectionType()), server.GetConnectionString())
 
 	if err == nil {
-
 		mapLock.Lock()
 		dboldX, found := connectionMap.Load(connectionID)
 		if found && dboldX != nil {
 			dbY, ok := dboldX.(*sql.DB)
 			if ok {
 				fmt.Println((" still in map ===================================="))
-
+				//fmt.Println(" >>>>>>>>>>>>>>>>>>>>> dbY.Stats().InUse ", db.Stats().InUse)
+				//fmt.Println(" >>>>>>>>>>>>>>>>>>>>> dbY.Stats().OpenConnections ", db.Stats().OpenConnections)
+				//fmt.Println(" >>>>>>>>>>>>>>>>>>>>> dbY.Stats().MaxOpenConnections ", db.Stats().MaxOpenConnections)
+				//fmt.Println(" >>>>>>>>>>>>>>>>>>>>> dbY.Stats().Idle ", db.Stats().Idle)
+				//fmt.Println(" >>>>>>>>>>>>>>>>>>>>> dbY.Stats().WaitCount ", db.Stats().WaitCount)
+				//fmt.Println(" >>>>>>>>>>>>>>>>>>>>> dbY.Stats().WaitDuration ", db.Stats().WaitDuration)
 				dbY.Close()
 			}
 		}
-		connectionMap.Store(connectionID, db)
 		mapLock.Unlock()
-		
+		connectionMap.Store(connectionID, db)
 		db.SetMaxOpenConns(server.MaxOpenConns())
 		db.SetMaxIdleConns(server.MaxIdleConns())
 		db.SetConnMaxIdleTime(server.ConnMaxIdleTime())

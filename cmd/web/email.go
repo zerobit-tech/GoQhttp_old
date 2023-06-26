@@ -32,7 +32,8 @@ func (app *application) SendEmail(r *models.EmailRequest) {
 
 	smtpClient, err := app.EmailServer.Connect()
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
+		return
 	}
 
 	// Create email
@@ -57,14 +58,13 @@ func (app *application) SendEmail(r *models.EmailRequest) {
 	// Send email
 	err = email.Send(smtpClient)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 }
 
-
-func (a *application)SendNotificationsToAdmins(r *models.EmailRequest){
-	emails := make([]string,0)
-	for _,u:= range a.users.List(){
+func (a *application) SendNotificationsToAdmins(r *models.EmailRequest) {
+	emails := make([]string, 0)
+	for _, u := range a.users.List() {
 		if u.IsSuperUser {
 			emails = append(emails, u.Email)
 		}

@@ -3,10 +3,12 @@ package models
 import (
 	"encoding/json"
 	"errors"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
 
+	"github.com/onlysumitg/GoQhttp/env"
 	bolt "go.etcd.io/bbolt"
 )
 
@@ -60,7 +62,27 @@ func (m *SPCallLogModel) AddLogid() {
 				logEntries := make([]LogEntry, 0)
 				splog = &SPCallLog{SpID: logE.SpID, Logs: logEntries}
 			}
-			splog.Logs = append(splog.Logs, logEntry)
+
+			//Prepend
+			splog.Logs = append([]LogEntry{logEntry}, splog.Logs...)
+
+			maxEntries, err := strconv.Atoi(env.GetEnvVariable("MAX_LOG_ENTRIES_FOR_ONE_ENDPOINT", "1000"))
+			if err != nil || maxEntries <= 0 {
+				maxEntries = 1000
+			}
+
+			if len(splog.Logs) > maxEntries {
+
+				//delete extra log entries
+				entriesToDelete := splog.Logs[maxEntries:]
+
+				for _, ed := range entriesToDelete {
+					DeleteLog(m.DB, ed.LogID)
+				}
+
+				splog.Logs = splog.Logs[0:maxEntries]
+			}
+
 			m.Save(splog)
 		}
 	}

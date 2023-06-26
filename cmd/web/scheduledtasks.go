@@ -20,7 +20,7 @@ func (app *application) RefreshStoredProces() {
 			server, err := app.servers.Get(serverRcd.ID)
 			if err == nil {
 				log.Println("Refreshing endpoint: ", sp.EndPointName, " ", sp.Name, " ", sp.Lib)
-				err := sp.Refresh(*server)
+				err := sp.Refresh(server)
 				if err == nil {
 					app.storedProcs.Save(sp)
 				}
@@ -41,7 +41,7 @@ func (app *application) RemoveDeletedStoredProcs() {
 		if serverRcd != nil && serverRcd.ID != "" {
 			server, err := app.servers.Get(serverRcd.ID)
 			if err == nil {
-				exits, err := sp.Exists(*server)
+				exits, err := sp.Exists(server)
 				if err == nil && !exits {
 					log.Println("Deleting endpoint: ", sp.EndPointName, " ", sp.Name, " ", sp.Lib)
 					app.storedProcs.Delete(sp.ID)

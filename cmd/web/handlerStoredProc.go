@@ -442,7 +442,7 @@ func (app *application) SPCall(w http.ResponseWriter, r *http.Request) {
 		dServer, err := app.servers.Get(sP.DefaultServer.ID)
 		if err == nil {
 
-			_, err = sP.DummyCall(*dServer, formToMap(r))
+			_, err = sP.DummyCall(dServer, formToMap(r))
 
 		}
 	} else {

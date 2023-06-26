@@ -1,0 +1,141 @@
+{{define "title"}}
+Dashboard
+{{end}}
+
+{{define "content"}}
+<br />
+
+<div class="row p-2">
+  <div class="col">
+    <div class="card ">
+      <div class="card-header">
+        <p class="h5">Dashboard
+
+
+        </p>
+
+      </div>
+
+
+      <div class="card-body">
+        <canvas id="graph" aria - label="chart"  ></canvas>
+      
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+<div class="row p-2">
+  <div class="col">
+    <div class="card ">
+   
+
+
+      <div class="card-body">
+
+<table id="dashboardlist" class="table   table-borderless table-responsive-sm table-striped    ">
+  <thead class="thead-dark">
+    <tr>
+      <th>Corelation ID</th>
+      <th>Endpoint</th>
+      <th>Status Code</th>
+      <th>Response time(MS)</th>
+      <th>Call time</th>
+
+
+  </tr>
+    </thead>
+    <tbody>
+      {{if .GraphData}}
+    
+      {{ range $key, $value := .GraphData }}
+
+      {{range $value}}
+      {{if .}}
+      <tr>
+        <td><a href="{{.LogUrl}}"> {{.Requestid}}</a></td>
+
+
+        <td><a href="{{.SpUrl}}">{{.SpName}}</a></td>
+
+        <td>{{.Httpcode}}</td>
+        <td>{{.Responsetime}}</td>
+
+        <td>{{.Calltime}}</td>
+
+
+
+      </tr>
+      {{end}}
+      {{end}}
+
+
+
+
+      {{end}}
+
+
+      {{end}}
+    </tbody>
+  </table>
+
+
+</div>
+</div>
+</div>
+</div>
+
+{{end}}
+
+{{define "aftercontent"}}
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.1.1/chart.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.1.1/helpers.esm.min.js"></script>
+<script>
+var chrt = document.getElementById("graph");
+var dashboardgraph = new Chart(chrt, {
+   type: 'line',
+   data: {
+       datasets: [ 
+
+
+    ],
+   },
+   options: {
+      responsive: true,
+      
+      plugins: {
+               title: {
+                  display: true,
+                  text: '',
+                  color: 'navy',
+                  position: 'bottom',
+                  align: 'center',
+                  font: {
+                     weight: 'bold'
+                  },
+                  padding: 8,
+                  fullSize: true,
+               }
+            }
+   },
+});
+</script>
+
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.1/css/jquery.dataTables.css">
+<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.13.1/js/jquery.dataTables.js"></script>
+
+<script>
+  var dashboardlisttable
+    $(document).ready( function () {
+       dashboardlisttable= $('#dashboardlist').DataTable(
+          {  "order": [[4, 'desc']], 
+              "language": {
+                "emptyTable": "No records."
+              }
+          }
+      );
+  } );
+</script>
+{{end}}

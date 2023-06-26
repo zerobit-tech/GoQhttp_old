@@ -103,9 +103,11 @@ func main() {
 
 	go app.clearLogsSchedular(db)
 
-	go app.refreshSchedule()
+	//go app.CaptureGraphData()
 
-	go app.PingServers()
+	 go app.refreshSchedule()
+
+	 go app.PingServers()
 	//--------------------------------------- Create super user ----------------------------
 
 	go app.CreateSuperUser(params.superuseremail, params.superuserpwd)

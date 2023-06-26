@@ -218,13 +218,15 @@
   
     <footer class="c-footer">
       <div><a href=""> </a> © 2023.</div>
-      <div class="mfs-auto">QHttp.com</div>
+      <div class="mfs-auto">ZeroBit.Tech</div>
   </footer>
   </div>
 
   <script>
-    var websocketurl = "ws://" + "{{ .HostUrl}}" + "/ws/notification"
+    var websocketurl = "wss://" + "{{.WebSocketUrl}}" + "/ws/notification"
+    //alert(websocketurl)
   </script>
+  <script type="text/javascript" src='https://cdn.plot.ly/plotly-2.24.1.min.js'></script>
 
 <script src="/static/coreui/vendors/coreui/coreui-pro/js/coreui.bundle.min.js"></script>
 
@@ -336,6 +338,8 @@
 
   <link rel="stylesheet" type="text/css" href="/static/css/work.css">
   <script src="/static/js/table.js"></script>
+
+
 
 </body>
 

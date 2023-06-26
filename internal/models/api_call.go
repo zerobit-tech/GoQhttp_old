@@ -27,7 +27,7 @@ type LogStruct struct {
 	TestMode bool
 }
 
-var LogChan chan LogStruct = make(chan LogStruct, 200)
+var LogChan chan LogStruct = make(chan LogStruct, 5000)
 
 type ApiCall struct {
 	ID string
@@ -375,7 +375,7 @@ func SaveLogs(db *bolt.DB) {
 	for {
 		logS := <-LogChan
 		scrubed := logS.Message
-		if !logS.TestMode {
+		if !logS.TestMode && logS.I <= 1000 {
 			scrubed = RemoveNonLogData(logS.Message)
 		}
 

@@ -1,4 +1,4 @@
-package database
+package concurrent
 
 import (
 	"fmt"
@@ -6,7 +6,7 @@ import (
 	"sync"
 )
 
-func eraseSyncMap(m MapInterface) {
+func EraseSyncMap(m MapInterface) {
 	m.Range(func(key interface{}, value interface{}) bool {
 		m.Delete(key)
 		return true

@@ -17,6 +17,15 @@ import (
 	"github.com/onlysumitg/GoQhttp/internal/models"
 )
 
+type ContextKey string
+
+const REQUEST_PROCESSING_DATA ContextKey = "REQUEST_PROCESSING_DATA"
+
+var TimeFormat string = "15:04:05"
+var DateFormat string = "2006-01-02"
+var TimestampFormat string = "2006-01-02 15:04:05.000000"
+var TimestampFormat2 string = "2006-01-02 15:04:05"
+
 // Create a NoSurf middleware function which uses a customized CSRF cookie with
 // the Secure, Path and HttpOnly attributes set.
 func noSurf(next http.Handler) http.Handler {
@@ -164,6 +173,9 @@ func (app *application) LogHandler(next http.Handler) http.Handler {
 
 				//models.SaveLogs(app.LogDB, 1000, requestId, fmt.Sprintf("HTTPCODE:%d", rec.Code), app.testMode)
 				logE = models.LogStruct{I: 1000, Id: requestId, Message: fmt.Sprintf("HTTPCODE:%d", rec.Code), TestMode: app.testMode}
+				graphStruc := GetGraphStruct(r.Context())
+				graphStruc.Httpcode = rec.Code
+
 				models.LogChan <- logE
 			}()
 		}
@@ -206,16 +218,15 @@ func RequestID(next http.Handler) http.Handler {
 		}
 		ctx = context.WithValue(ctx, middleware.RequestIDKey, requestID)
 
-		// ctx = context.WithValue(ctx, middleware.RequestIDKey, requestID)
-		// v := map[string]string{
-		// 	"requestid":    requestID,
-		// 	"spid":         "",
-		// 	"httpcode":     "0",
-		// 	"responsetime": "",
-		// }
-		// ctx = context.WithValue(ctx, "requestdata", v)
+		ctx = context.WithValue(ctx, middleware.RequestIDKey, requestID)
+		v := GetGraphStruct(ctx)
+		v.Requestid = requestID
+		v.LogUrl = fmt.Sprintf("/apilogs/%s", requestID)
+
+		ctx = context.WithValue(ctx, REQUEST_PROCESSING_DATA, v)
 
 		next.ServeHTTP(w, r.WithContext(ctx))
+
 	}
 	return http.HandlerFunc(fn)
 }
@@ -231,7 +242,15 @@ func (app *application) TimeTook(next http.Handler) http.Handler {
 			requestId := middleware.GetReqID(r.Context())
 			//go models.SaveLogs(app.LogDB, 1001, requestId, fmt.Sprintf("ResponseTime:%s", time.Since(t1)), app.testMode)
 
-			logE := models.LogStruct{I: 1001, Id: requestId, Message: fmt.Sprintf("ResponseTime:%s", time.Since(t1)), TestMode: app.testMode}
+			graphStruc := GetGraphStruct(r.Context())
+
+			durationPasses := time.Since(t1)
+			graphStruc.Responsetime = durationPasses.Milliseconds()
+			graphStruc.Calltime = time.Now().Local().Format(TimestampFormat)
+
+			fmt.Println("graphStruc", graphStruc, *graphStruc)
+
+			logE := models.LogStruct{I: 1001, Id: requestId, Message: fmt.Sprintf("ResponseTime:%s", durationPasses), TestMode: app.testMode}
 			go func() {
 				defer func() {
 					if r := recover(); r != nil {
@@ -239,9 +258,26 @@ func (app *application) TimeTook(next http.Handler) http.Handler {
 					}
 				}()
 				models.LogChan <- logE
+				//GraphChan <- graphStruc
+
 			}()
 		}()
 		next.ServeHTTP(w, r)
 	}
 	return http.HandlerFunc(fn)
+}
+
+//	------------------------------------------------------
+//
+// ------------------------------------------------------
+func GetGraphStruct(ctx context.Context) *GraphStruc {
+
+	if ctx == nil {
+		return &GraphStruc{Calltime: time.Now().Local().Format(TimestampFormat)}
+	}
+	graphStruc, ok := ctx.Value(REQUEST_PROCESSING_DATA).(*GraphStruc)
+	if ok {
+		return graphStruc
+	}
+	return &GraphStruc{Calltime: time.Now().Local().Format(TimestampFormat)}
 }

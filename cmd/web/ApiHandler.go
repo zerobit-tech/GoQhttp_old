@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"runtime/debug"
 	"strings"
 
 	"github.com/go-chi/chi/v5"
@@ -228,6 +229,9 @@ func (app *application) POST(w http.ResponseWriter, r *http.Request) {
 func (app *application) ProcessAPICall(w http.ResponseWriter, r *http.Request, endpointName string,
 	pathParams []httputils.PathParam,
 	requesyBodyFlatMap map[string]xmlutils.ValueDatatype) {
+
+	defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
+
 	requestId := middleware.GetReqID(r.Context())
 
 	response := &models.StoredProcResponse{ReferenceId: requestId}
@@ -263,6 +267,11 @@ func (app *application) ProcessAPICall(w http.ResponseWriter, r *http.Request, e
 		return
 
 	}
+
+	graphStruc := GetGraphStruct(r.Context())
+	graphStruc.Spid = endPoint.ID
+	graphStruc.SpName = endPoint.EndPointName
+	graphStruc.SpUrl = fmt.Sprintf("/sp/%s", endPoint.ID)
 
 	user, found := app.getCurrentUser(r)
 
@@ -306,7 +315,7 @@ func (app *application) ProcessAPICall(w http.ResponseWriter, r *http.Request, e
 	// apiCall.ResponseString = html.UnescapeString(endPoint.ResponsePlaceholder) //string(jsonByte)
 
 	apiCall.LogInfo(fmt.Sprintf("Calling SP %s (specific %s) on server %s", apiCall.CurrentSP.Name, apiCall.CurrentSP.SpecificName, server.Name))
-	endPoint.APICall(r.Context(), *server, apiCall)
+	endPoint.APICall(r.Context(), server, apiCall)
 	//log.Printf("%v: %v\n", "SeversCall006", time.Now())
 
 	apiCall.LogInfo("Finalizing response")

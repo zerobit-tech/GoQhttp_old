@@ -21,7 +21,8 @@ import (
 type templateData struct {
 	CurrentYear int
 
-	HostUrl string
+	HostUrl      string
+	WebSocketUrl string
 
 	Form any //use this Form field to pass the validation errors and previously submitted data back to the template when we re-display the form.
 
@@ -62,6 +63,8 @@ type templateData struct {
 	CurrentUser *models.User
 
 	TestMode bool
+
+	GraphData map[int][]*GraphStruc
 }
 
 func ListComparisonOperators() []string {
@@ -87,9 +90,11 @@ func ListComparisonOperators() []string {
 func (app *application) newTemplateData(r *http.Request) *templateData {
 
 	td := &templateData{
-		CurrentYear:         time.Now().Year(),
-		CSRFToken:           nosurf.Token(r), // Add the CSRF token.
-		HostUrl:             app.hostURL,
+		CurrentYear:  time.Now().Year(),
+		CSRFToken:    nosurf.Token(r), // Add the CSRF token.
+		HostUrl:      app.hostURL,
+		WebSocketUrl: strings.ReplaceAll(strings.ReplaceAll(app.hostURL, "https://", ""),"http://",""),
+
 		ComparisonOperators: ListComparisonOperators(),
 		IsAuthenticated:     app.isAuthenticated(r), // use {{if .IsAuthenticated}} in template
 		TestMode:            app.testMode,

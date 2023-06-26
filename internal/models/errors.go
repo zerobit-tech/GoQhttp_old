@@ -47,7 +47,12 @@ func OdbcErrMessage(odbcErr *go_ibm_db.Error) (int, string) {
 			return http.StatusInternalServerError, "OD10060"
 		case 30038:
 			return http.StatusInternalServerError, "OD30038"
-
+		case 30189:
+			return http.StatusInternalServerError, "OD30189" // {HYT00} [IBM][System i Access ODBC Driver]Connection login timed out.
+		case 10065:
+			return http.StatusInternalServerError, "OD10065" // "[IBM][System i Access ODBC Driver]Communication link failure. comm rc=10065 - CWBCO1003 - Sockets error, function  returned 10065 "
+		case 8002:
+			return http.StatusInternalServerError, "OD8002" // SQLDriverConnect: {28000} [IBM][System i Access ODBC Driver]Communication link failure. comm rc=8002 - CWBSY0002 - Password for user SUMITG33 on system PUB400.COM is not correct, Password length = 10, Prompt Mode = Never, System IP Address = 185.113.5.134
 		}
 
 	}
