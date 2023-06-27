@@ -1,0 +1,119 @@
+{{define "title"}}
+Stored Proc Help
+{{end}}
+
+{{define "content"}}
+<br />
+
+<div class="row p-2">
+  <div class="col">
+    <div class="card ">
+      <div class="card-header">
+        <p class="h5">QHTTP inbuilt Paramaters
+
+        </p>
+       
+      </div>
+
+ 
+      <div class="card-body">
+        <ol>
+          <li>Include following Parameter to receive Request data or change Response:</li>
+    
+        </ol>
+
+
+    <table id="promotionlist"    class="table   table-borderless table-responsive-sm table-striped    ">
+      <thead class="thead-dark">
+        <tr>
+            <th>Parameter Name</th> 
+            <th>Type</th>
+            <th>Data Type</th>
+            <th>Details</th>      
+
+        </tr>
+          </thead>
+          <tbody>
+           
+        <tr>
+            <td>QHTTP_CLIENT_IP</td>
+            <td>IN INOUT</td>
+            <td>String</td>
+
+            <td>Get client IP from Request</td>
+        </tr>
+        <tr>
+          <td>QHTTP_METHOD</td>
+          <td>IN INOUT</td>
+          <td>String</td>
+
+          <td>Request's HTTP Method</td>
+      </tr>
+ 
+
+
+
+      <tr>
+        <td>QHTTP_SERVER</td>
+        <td>IN INOUT</td>
+        <td>String</td>
+        <td>Server name used to process this request</td>
+      </tr>
+   
+      <tr>
+        <td>QHTTP_SERVER_USER</td>
+        <td>IN INOUT</td>
+        <td>String</td>
+        <td>Server USER name used to process this request</td>
+      </tr>
+
+
+      <tr>
+        <td>QHTTP_USER</td>
+        <td>IN INOUT</td>
+        <td>String</td>
+        <td>Request's QHTTP user</td>
+      </tr>
+
+      <tr>
+        <td>QHTTP_USER_TOKEN</td>
+        <td>IN INOUT</td>
+        <td>String</td>
+        <td>QHTTP user token</td>
+      </tr>
+
+
+      <tr>
+        <td>QHTTP_USER_EMAIL</td>
+        <td>IN INOUT</td>
+        <td>String</td>
+        <td>QHTTP user Email</td>
+      </tr>
+
+
+
+      <tr>
+        <td>QHTTP_STATUS_CODE</td>
+        <td>OUT</td>
+        <td>Int</td>
+        <td>Change Response's HTTP status code</td>
+      </tr>
+
+      <tr>
+        <td>QHTTP_STATUS_MESSAGE</td>
+        <td>OUT</td>
+        <td>String</td>
+        <td>Change Response's HTTP status messahe</td>
+      </tr>
+
+
+          </tbody>
+        </table>
+      </div>
+  </div>
+</div>
+</div>
+    {{end}}
+
+
+ 

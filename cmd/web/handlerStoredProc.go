@@ -48,8 +48,19 @@ func (app *application) StoredProcHandlers(router *chi.Mux) {
 		r.Get("/paramalias/{spId}", app.SpParamAlias)
 
 		r.Post("/saveparamalias", app.SPsaveparamalias)
+		r.Get("/help", app.SPHelp)
 
 	})
+
+}
+
+// ------------------------------------------------------
+//
+// ------------------------------------------------------
+func (app *application) SPHelp(w http.ResponseWriter, r *http.Request) {
+	data := app.newTemplateData(r)
+
+	app.render(w, r, http.StatusOK, "sp_help_inbuilt_param.tmpl", data)
 
 }
 
@@ -205,7 +216,7 @@ func (app *application) SpRefresh(w http.ResponseWriter, r *http.Request) {
 		dServer, err := app.servers.Get(sP.DefaultServer.ID)
 		if err == nil {
 
-			err = sP.PreapreToSave(*dServer)
+			err = sP.PreapreToSave(r.Context(), *dServer)
 			if err == nil {
 				app.storedProcs.Save(sP)
 				app.sessionManager.Put(r.Context(), "flash", "Done")
@@ -320,7 +331,15 @@ func (app *application) SPAddPost(w http.ResponseWriter, r *http.Request) {
 
 	// Check SP details from iBMI
 	if sP.Valid() {
-		err = sP.PreapreToSave(*server)
+
+		if sP.ID != "" {
+			orginalSp, err := app.storedProcs.Get(sP.ID)
+			if err == nil {
+				sP.Parameters = orginalSp.Parameters
+			}
+		}
+
+		err = sP.PreapreToSave(r.Context(), *server)
 
 		if err != nil {
 			sP.CheckField(false, "name", err.Error())

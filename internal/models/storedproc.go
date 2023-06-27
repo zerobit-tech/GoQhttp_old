@@ -204,9 +204,9 @@ outerloop:
 // -----------------------------------------------------------------
 //
 // -----------------------------------------------------------------
-func (sp *StoredProc) Refresh(s *Server) error {
-	if sp.HasSPUpdated(s) {
-		err := sp.PreapreToSave(*s)
+func (sp *StoredProc) Refresh(ctx context.Context, s *Server) error {
+	if sp.HasSPUpdated(ctx, s) {
+		err := sp.PreapreToSave(ctx, *s)
 		if err != nil {
 			return err
 		}
@@ -218,7 +218,7 @@ func (sp *StoredProc) Refresh(s *Server) error {
 // -----------------------------------------------------------------
 //
 // -----------------------------------------------------------------
-func (sp *StoredProc) HasSPUpdated(s *Server) bool {
+func (sp *StoredProc) HasSPUpdated(ctx context.Context, s *Server) bool {
 
 	hasModified := "N"
 
@@ -233,7 +233,7 @@ func (sp *StoredProc) HasSPUpdated(s *Server) bool {
 	if err != nil {
 		return false
 	}
-	row := conn.QueryRow(sqlToRun)
+	row := conn.QueryRowContext(ctx, sqlToRun)
 
 	err = row.Scan(&hasModified)
 
@@ -252,7 +252,7 @@ func (sp *StoredProc) HasSPUpdated(s *Server) bool {
 // -----------------------------------------------------------------
 //
 // -----------------------------------------------------------------
-func (sp *StoredProc) Exists(s *Server) (bool, error) {
+func (sp *StoredProc) Exists(ctx context.Context, s *Server) (bool, error) {
 
 	exists := "N"
 
@@ -265,7 +265,7 @@ func (sp *StoredProc) Exists(s *Server) (bool, error) {
 	if err != nil {
 		return true, err // to prevent delete
 	}
-	row := conn.QueryRow(sqlToRun)
+	row := conn.QueryRowContext(ctx, sqlToRun)
 
 	err = row.Scan(&exists)
 
@@ -284,18 +284,22 @@ func (sp *StoredProc) Exists(s *Server) (bool, error) {
 // -----------------------------------------------------------------
 //
 // -----------------------------------------------------------------
-func (sp *StoredProc) PreapreToSave(s Server) error {
+func (sp *StoredProc) PreapreToSave(ctx context.Context, s Server) error {
 	sp.Name = strings.ToUpper(strings.TrimSpace(sp.Name))
 	sp.Lib = strings.ToUpper(strings.TrimSpace(sp.Lib))
 	sp.HttpMethod = strings.ToUpper(strings.TrimSpace(sp.HttpMethod))
 	sp.UseNamedParams = true
 
-	err := sp.GetResultSetCount(&s)
+	ctx1, cancelFunc1 := context.WithTimeout(ctx, 5*time.Second)
+	defer cancelFunc1()
+	err := sp.GetResultSetCount(ctx1, &s)
 	if err != nil {
 		return err
 	}
 
-	err = sp.GetParameters(&s)
+	ctx2, cancelFunc2 := context.WithTimeout(ctx, 5*time.Second)
+	defer cancelFunc2()
+	err = sp.GetParameters(ctx2, &s)
 	if err != nil {
 		return err
 	}
@@ -675,7 +679,7 @@ func (sp *StoredProc) SeversCall(ctx context.Context, s *Server, preparedCallSta
 // -----------------------------------------------------------------
 //
 // -----------------------------------------------------------------
-func (sp *StoredProc) GetResultSetCount(s *Server) error {
+func (sp *StoredProc) GetResultSetCount(ctx context.Context, s *Server) error {
 
 	resultSets := 0
 
@@ -694,7 +698,7 @@ func (sp *StoredProc) GetResultSetCount(s *Server) error {
 	if err != nil {
 		return err
 	}
-	row := conn.QueryRow(sqlToRun)
+	row := conn.QueryRowContext(ctx, sqlToRun)
 
 	err = row.Scan(&sp.SpecificLib, &sp.SpecificName, &sp.Lib, &sp.Name, &resultSets, &sp.DataAccess, &sp.Modified)
 
@@ -713,7 +717,7 @@ func (sp *StoredProc) GetResultSetCount(s *Server) error {
 // -----------------------------------------------------------------
 //
 // -----------------------------------------------------------------
-func (sp *StoredProc) GetParameters(s *Server) error {
+func (sp *StoredProc) GetParameters(ctx context.Context, s *Server) error {
 
 	originalParams := sp.Parameters
 
@@ -727,7 +731,12 @@ func (sp *StoredProc) GetParameters(s *Server) error {
 		return err
 	}
 
-	rows, err := conn.Query(sqlToUse)
+	rows, err := conn.QueryContext(ctx, sqlToUse)
+
+	defer func() {
+		rows.Close()
+	}()
+
 	if err != nil {
 		// var odbcError *odbc.Error
 

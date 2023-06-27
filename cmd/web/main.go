@@ -93,7 +93,7 @@ func main() {
 
 	addr, hostUrl := params.getHttpAddress()
 
-	log.Printf("GoQHttp is live at %s  :: %s \n", addr, hostUrl)
+	log.Printf("QHttp is live at %s  :: %s \n", addr, hostUrl)
 
 	// this is short cut to create http.Server and  server.ListenAndServe()
 	// err := http.ListenAndServe(params.addr, routes)

@@ -7,42 +7,12 @@
 7. Param alias P2 Done
 8. retry on failure
 9. JWTselect * f
-`
+10. promotion param alias
+11: create promotion query
 
 
 
 Issues:
 1. rename endpoint => stuck
 
-
-
-2023/06/24 13:42:42 Mail Error on STARTTLS: tls: failed to verify certificate: x509: certificate is valid for *.stackmail.com, stackmail.com, not smtp.zerobit.tech
-2023/06/24 13:42:42 Mail Error on STARTTLS: tls: failed to verify certificate: x509: certificate is valid for *.stackmail.com, stackmail.com, not smtp.zerobit.tech
-2023/06/24 13:42:42 Mail Error on STARTTLS: tls: failed to verify certificate: x509: certificate is valid for *.stackmail.com, stackmail.com, not smtp.zerobit.tech
-2023/06/24 13:42:42 Mail Error on STARTTLS: tls: failed to verify certificate: x509: certificate is valid for *.stackmail.com, stackmail.com, not smtp.zerobit.tech
-2023/06/24 13:42:42 Mail Error on STARTTLS: tls: failed to verify certificate: x509: certificate is valid for *.stackmail.com, stackmail.com, not smtp.zerobit.tech
-2023/06/24 13:42:42 Mail Error on STARTTLS: tls: failed to verify certificate: x509: certificate is valid for *.stackmail.com, stackmail.com, not smtp.zerobit.tech
-2023/06/24 13:42:42 Mail Error on STARTTLS: tls: failed to verify certificate: x509: certificate is valid for *.stackmail.com, stackmail.com, not smtp.zerobit.tech
-2023/06/24 13:42:42 Mail Error on STARTTLS: tls: failed to verify certificate: x509: certificate relies on legacy Common Name field, use SANs instead
-2023/06/24 13:42:42 Mail Error on STARTTLS: tls: failed to verify certificate: x509: certificate is valid for *.stackmail.com, stackmail.com, not smtp.zerobit.tech
-2023/06/24 13:42:42 Mail Error on STARTTLS: tls: failed to verify certificate: x509: certificate is valid for *.stackmail.com, stackmail.com, not smtp.zerobit.tech
-2023/06/24 13:42:42 Mail Error on STARTTLS: tls: failed to verify certificate: x509: certificate is valid for *.stackmail.com, stackmail.com, not smtp.zerobit.tech
-2023/06/24 13:42:42 Mail Error on STARTTLS: tls: failed to verify certificate: x509: certificate is valid for *.stackmail.com, stackmail.com, not smtp.zerobit.tech
-2023/06/24 13:42:42 Mail Error on STARTTLS: tls: failed to verify certificate: x509: certificate relies on legacy Common Name field, use SANs instead
-2023/06/24 13:42:42 Mail Error on STARTTLS: tls: failed to verify certificate: x509: certificate is valid for *.stackmail.com, stackmail.com, not smtp.zerobit.tech
-2023/06/24 13:42:42 Mail Error on STARTTLS: tls: failed to verify certificate: x509: certificate is valid for *.stackmail.com, stackmail.com, not smtp.zerobit.tech
-2023/06/24 13:42:42 Mail Error on STARTTLS: tls: failed to verify certificate: x509: certificate relies on legacy Common Name field, use SANs instead
-2023/06/24 13:42:42 Mail Error on STARTTLS: tls: failed to verify certificate: x509: certificate is valid for *.stackmail.com, stackmail.com, not smtp.zerobit.tech
-2023/06/24 13:42:42 Mail Error on STARTTLS: tls: failed to verify certificate: x509: certificate is valid for *.stackmail.com, stackmail.com, not smtp.zerobit.tech
-2023/06/24 13:42:42 Mail Error on STARTTLS: tls: failed to verify certificate: x509: certificate is valid for *.stackmail.com, stackmail.com, not smtp.zerobit.tech
-2023/06/24 13:42:43 Mail Error on STARTTLS: tls: failed to verify certificate: x509: certificate is valid for *.stackmail.com, stackmail.com, not smtp.zerobit.tech
-2023/06/24 13:42:43 Mail Error on STARTTLS: tls: failed to verify certificate: x509: certificate is valid for *.stackmail.com, stackmail.com, not smtp.zerobit.tech
-2023/06/24 13:42:43 Mail Error on STARTTLS: tls: failed to verify certificate: x509: certificate is valid for *.stackmail.com, stackmail.com, not smtp.zerobit.tech
-2023/06/24 13:42:43 Mail Error on STARTTLS: tls: failed to verify certificate: x509: certificate relies on legacy Common Name field, use SANs instead
-2023/06/24 13:42:44 Mail Error on STARTTLS: tls: failed to verify certificate: x509: certificate relies on legacy Common Name field, use SANs instead
-2023/06/24 13:42:44 Mail Error on STARTTLS: tls: failed to verify certificate: x509: certificate relies on legacy Common Name field, use SANs instead
-2023/06/24 13:42:44 Mail Error on STARTTLS: tls: failed to verify certificate: x509: certificate relies on legacy Common Name field, use SANs instead
-2023/06/24 13:42:44 Mail Error on STARTTLS: tls: failed to verify certificate: x509: certificate relies on legacy Common Name field, use SANs instead
-2023/06/24 13:42:44 Mail Error on STARTTLS: tls: failed to verify certificate: x509: certificate is valid for *.stackmail.com, stackmail.com, not smtp.zerobit.tech
-2023/06/24 13:42:44 Mail Error on STARTTLS: tls: failed to verify certificate: x509: certificate relies on legacy Common Name field, use SANs instead
-2023/06/24 13:42:44 Mail Error on STARTTLS: tls: failed to verify certificate: x509: certificate is valid for *.stackmail.com, stackmail.com, not smtp.zerobit.tech
+ 
