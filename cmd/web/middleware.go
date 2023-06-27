@@ -15,11 +15,14 @@ import (
 	"github.com/google/uuid"
 	"github.com/justinas/nosurf" // New import
 	"github.com/onlysumitg/GoQhttp/internal/models"
+	"github.com/onlysumitg/GoQhttp/lic"
 )
 
 type ContextKey string
 
 const REQUEST_PROCESSING_DATA ContextKey = "REQUEST_PROCESSING_DATA"
+
+const LIC_INFO ContextKey = "LIC_INFO"
 
 var TimeFormat string = "15:04:05"
 var DateFormat string = "2006-01-02"
@@ -280,4 +283,89 @@ func GetGraphStruct(ctx context.Context) *GraphStruc {
 		return graphStruc
 	}
 	return &GraphStruc{Calltime: time.Now().Local().Format(TimestampFormat)}
+}
+
+//	------------------------------------------------------
+//
+// ------------------------------------------------------
+func GetLicInfo(ctx context.Context) *lic.LicenseFile {
+
+	if ctx != nil {
+
+		licFile, ok := ctx.Value(LIC_INFO).(*lic.LicenseFile)
+		if ok {
+			return licFile
+		}
+	}
+	return &lic.LicenseFile{Name: "Unavailable"}
+}
+
+//	------------------------------------------------------
+//
+// ------------------------------------------------------
+func CheckLicMiddleware(next http.Handler) http.Handler {
+	fn := func(w http.ResponseWriter, r *http.Request) {
+		goToUrl := "/license"
+
+		licFile, err := lic.VerifyLicFiles()
+		if err != nil {
+			http.Redirect(w, r, goToUrl, http.StatusSeeOther)
+
+		} else {
+
+			ctx := r.Context()
+
+			licFileData := &lic.LicenseFile{
+				Name: licFile,
+			}
+
+			expiryDate, _, expiryDays, err := lic.GetLicFileExpiryDuration(licFile)
+
+			if err == nil {
+				licFileData.ExpiryDays = expiryDays
+				licFileData.ValidTill = expiryDate
+			}
+			ctx = context.WithValue(ctx, LIC_INFO, licFileData)
+
+			next.ServeHTTP(w, r.WithContext(ctx))
+
+		}
+
+	}
+	return http.HandlerFunc(fn)
+}
+
+//	------------------------------------------------------
+//
+// ------------------------------------------------------
+func CheckLicMiddlewareNoRedirect(next http.Handler) http.Handler {
+	fn := func(w http.ResponseWriter, r *http.Request) {
+		//goToUrl := "/license"
+
+		licFile, err := lic.VerifyLicFiles()
+		if err != nil {
+			next.ServeHTTP(w, r)
+
+		} else {
+
+			ctx := r.Context()
+
+			licFileData := &lic.LicenseFile{
+				Name: licFile,
+			}
+
+			expiryDate, _, expiryDays, err := lic.GetLicFileExpiryDuration(licFile)
+
+			if err == nil {
+				licFileData.ExpiryDays = expiryDays
+				licFileData.ValidTill = expiryDate
+			}
+			ctx = context.WithValue(ctx, LIC_INFO, licFileData)
+
+			next.ServeHTTP(w, r.WithContext(ctx))
+
+		}
+
+	}
+	return http.HandlerFunc(fn)
 }

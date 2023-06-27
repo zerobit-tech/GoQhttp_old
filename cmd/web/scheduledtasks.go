@@ -6,6 +6,7 @@ import (
 
 	"github.com/onlysumitg/GoQhttp/go_ibm_db"
 	"github.com/onlysumitg/GoQhttp/internal/models"
+	"github.com/onlysumitg/GoQhttp/lic"
 )
 
 // --------------------------------
@@ -60,6 +61,12 @@ func (app *application) ProcessPromotions() {
 			log.Println("Recovered in refreshSchedule", r)
 		}
 	}()
+
+	_, err := lic.VerifyLicFiles()
+	if err != nil {
+		log.Println("Process Promotions Skipped.....: ", err.Error())
+	}
+
 	log.Println("Starting scheduled Promotion process")
 	for _, s := range app.servers.List() {
 		app.ProcessPromotion(s)

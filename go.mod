@@ -28,6 +28,7 @@ require (
 	github.com/go-test/deep v1.1.0 // indirect
 	github.com/gosimple/slug v1.13.1 // indirect
 	github.com/gosimple/unidecode v1.0.1 // indirect
+	github.com/hyperboloide/lk v0.0.0-20230325114855-ce3fecd34798 // indirect
 	github.com/robfig/cron/v3 v3.0.1 // indirect
 	github.com/toorop/go-dkim v0.0.0-20201103131630-e1cd1a0a5208 // indirect
 	go.uber.org/atomic v1.9.0 // indirect

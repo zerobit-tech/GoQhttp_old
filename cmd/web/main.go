@@ -36,6 +36,11 @@ func main() {
 		log.Fatal(err)
 	}
 
+	err = os.MkdirAll("./lic", os.ModePerm)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	// go run ./cmd/web -port=4002 -host="localhost"
 	// go run ./cmd/web -h  ==> help text
 	// default value for addr => ":4000"
@@ -105,9 +110,9 @@ func main() {
 
 	//go app.CaptureGraphData()
 
-	 go app.refreshSchedule()
+	go app.refreshSchedule()
 
-	 go app.PingServers()
+	go app.PingServers()
 	//--------------------------------------- Create super user ----------------------------
 
 	go app.CreateSuperUser(params.superuseremail, params.superuserpwd)

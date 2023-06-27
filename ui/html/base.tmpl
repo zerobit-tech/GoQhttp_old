@@ -183,7 +183,9 @@
                     
                     <ul class="c-header-nav mfs-auto">
                       <li class="c-header-nav-item mr-3">
-
+                          {{if .CurrentLicInfo}}
+                          <a href="/license">Lic Valid till: {{.CurrentLicInfo.ValidTill | humanDate}} ({{.CurrentLicInfo.ExpiryDays}} days)</a>
+                          {{end}}
                      
                       </li>
                                 <li class="c-header-nav-item mr-3">

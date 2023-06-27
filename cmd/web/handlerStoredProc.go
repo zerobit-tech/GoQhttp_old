@@ -17,6 +17,8 @@ import (
 func (app *application) StoredProcHandlers(router *chi.Mux) {
 	router.Route("/sp", func(r chi.Router) {
 		r.Use(app.RequireAuthentication)
+		r.Use(CheckLicMiddleware)
+
 		//r.Use(app.CurrentServerMiddleware)
 		//r.With(paginate).Get("/", listArticles)
 		r.Get("/", app.SPList)

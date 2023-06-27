@@ -1,0 +1,73 @@
+{{define "title"}}
+Licenses
+{{end}}
+
+{{define "content"}}
+<br />
+
+<div class="row p-2">
+  <div class="col">
+    <div class="card ">
+      <div class="card-header">
+        <p class="h5">License Files 
+
+        </p>
+       
+      </div>
+
+ 
+      <div class="card-body">
+
+    <table id="liclist"           class="table   table-borderless table-responsive-sm table-striped    ">
+      <thead class="thead-dark">
+        <tr>
+            <th>file</th>
+ 
+            <th>Status</th>
+            <th>Valid till</th>
+            <th>Expire in</th>
+
+        </tr>
+          </thead>
+          <tbody>
+            {{if .LicenseEntries}}
+
+        {{range .LicenseEntries}}
+        <tr>
+            <td> {{.Name}}</td>
+           
+            
+            <td>{{.Status}}</td>
+            <td>{{.ValidTill}}</td>
+            <td>{{.ExpiryDays}} days</td>
+
+        </tr>
+        {{end}}
+        {{end}}
+          </tbody>
+        </table>
+      </div>
+  </div>
+</div>
+</div>
+    {{end}}
+
+
+{{define "aftercontent"}}
+
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.1/css/jquery.dataTables.css">
+<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.13.1/js/jquery.dataTables.js"></script>
+
+<script>
+  
+    $(document).ready( function () {
+      $('#liclistxx').DataTable(
+          {
+              "language": {
+                "emptyTable": "No records."
+              }
+          }
+      );
+  } );
+</script>
+{{end}}

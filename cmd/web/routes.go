@@ -165,6 +165,8 @@ func (app *application) routes() *chi.Mux {
 	app.StoredProcHandlers(router)
 	//app.GraphHandlers(router)
 
+	app.LicHandlers(router)
+
 	// web socket
 	//app.WsHandlers(router)
 

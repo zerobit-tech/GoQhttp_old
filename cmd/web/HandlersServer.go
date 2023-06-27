@@ -70,6 +70,8 @@ func (app *application) ServerHandlers(router *chi.Mux) {
 	router.Route("/servers", func(r chi.Router) {
 		//r.With(paginate).Get("/", listArticles)
 		r.Use(app.RequireAuthentication)
+		r.Use(CheckLicMiddleware)
+
 		r.Get("/", app.ServerList)
 		r.Get("/{serverid}", app.ServerView)
 		r.Get("/select/{serverid}", app.ServerSelect)
