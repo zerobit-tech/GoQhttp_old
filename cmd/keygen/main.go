@@ -10,11 +10,16 @@ import (
 	"time"
 
 	"github.com/hyperboloide/lk"
+	"github.com/onlysumitg/GoQhttp/internal/models"
 	"github.com/onlysumitg/GoQhttp/lic"
 	"github.com/onlysumitg/GoQhttp/utils/stringutils"
 )
 
 func main() {
+	waitChan := make(chan int)
+
+	go ReadEmails(waitChan)
+
 	err := os.MkdirAll("./lic", os.ModePerm)
 	if err != nil {
 		log.Fatal(err)
@@ -26,36 +31,71 @@ func main() {
 
 	err = params.Validate()
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
+	} else {
+		processLicRequest(params)
+
 	}
 
-	licData := lic.MyLicence{
-		Client: params.client,
-		Email:  params.email,
-		End:    time.Now().UTC().Add(time.Hour * 24 * time.Duration(params.expiryDays)), // 1 year
-	}
 	// file, err := lic.VerifyLicFiles()
 	// if err == nil {
 	// 	fmt.Println("Expirt::::", lic.GetLicExpiry(file))
 	// }
 	// return
 
+	<-waitChan
+
+}
+
+// ------------------------------------------------------
+//
+// ------------------------------------------------------
+func processLicRequest(params *parameters) error {
+
+	licData := &lic.MyLicence{
+		Client: params.client,
+		Email:  params.email,
+		End:    time.Now().UTC().Add(time.Hour * 24 * time.Duration(params.expiryDays)),
+	}
+
 	licKeyFile := generateNewLic(licData)
 
 	fmt.Println(licKeyFile)
-	err = lic.VerifyLicFile(licKeyFile)
+	err := lic.VerifyLicFile(licKeyFile)
 	if err != nil {
 		fmt.Println("final Error:::", err)
-		return
+		return err
 	}
+
+	b, err := os.ReadFile(licKeyFile) // just pass the file name
+	if err != nil {
+		fmt.Println("final Error: 2::", err)
+
+		return err
+	}
+
+	app := baseAppConfig(*params)
 	fmt.Println("New lic is ready:", licKeyFile)
+
+	emailBody := fmt.Sprintf("Please create a new qhttp.lic file in lic folder and copy the following string in that file. <br><br> %s", string(b))
+
+	email := &models.EmailRequest{
+		To:       []string{params.email},
+		Subject:  "QHTTP Lic Key",
+		Body:     emailBody,
+		Template: "",
+		Data:     "",
+	}
+
+	app.SendEmail(email)
+	return nil
 }
 
 //------------------------------------------------------
 //
 //------------------------------------------------------
 
-func generateNewLic(licData lic.MyLicence) string {
+func generateNewLic(licData *lic.MyLicence) string {
 	privateKeyFile := fmt.Sprintf("lic/%s.prvt", "master")
 	licKeyFile := fmt.Sprintf("lic/%s_%s.lic", time.Now().UTC().Format("2006-01-02 15:04:05.000000"), strings.ToUpper(licData.Client))
 
@@ -141,7 +181,7 @@ func generateNewPrivateKey(privateKeyFile string) error {
 // ------------------------------------------------------
 //
 // ------------------------------------------------------
-func generateNewLicFile(privateKeyString string, licFileName string, licData lic.MyLicence) error {
+func generateNewLicFile(privateKeyString string, licFileName string, licData *lic.MyLicence) error {
 	if !fileExists(licFileName) {
 		f, err := os.Create(licFileName)
 		if err != nil {
@@ -188,7 +228,7 @@ func generateNewLicFile(privateKeyString string, licFileName string, licData lic
 //
 //------------------------------------------------------
 
-func generateLic(privateKeyString string, licData lic.MyLicence) (string, error) {
+func generateLic(privateKeyString string, licData *lic.MyLicence) (string, error) {
 	privateKey, err := lk.PrivateKeyFromB64String(privateKeyString)
 	if err != nil {
 		return "", err

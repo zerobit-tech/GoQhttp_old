@@ -12,7 +12,7 @@ package api
 // #cgo darwin CFLAGS: -I /usr/local/opt/unixodbc/include
 // #cgo linux LDFLAGS: -lodbc
 // #cgo freebsd LDFLAGS: -L /usr/local/lib -lodbc
-// #cgo freebsd CFLAGS: -I/usr/local/include
+// #cgo freebsd CFLAGS: -I /usr/local/include
 // #include <sql.h>
 // #include <sqlext.h>
 // #include <stdint.h>
@@ -174,3 +174,13 @@ type (
 	SQLLEN  C.SQLLEN
 	SQLULEN C.SQLULEN
 )
+
+func SQLSetEnvUIntPtrAttr(environmentHandle SQLHENV, attribute SQLINTEGER, valuePtr uintptr, stringLength SQLINTEGER) (ret SQLRETURN) {
+	r := C.sqlSetEnvUIntPtrAttr(C.SQLHENV(environmentHandle), C.SQLINTEGER(attribute), C.uintptr_t(valuePtr), C.SQLINTEGER(stringLength))
+	return SQLRETURN(r)
+}
+
+func SQLSetConnectUIntPtrAttr(connectionHandle SQLHDBC, attribute SQLINTEGER, valuePtr uintptr, stringLength SQLINTEGER) (ret SQLRETURN) {
+	r := C.sqlSetConnectUIntPtrAttr(C.SQLHDBC(connectionHandle), C.SQLINTEGER(attribute), C.uintptr_t(valuePtr), C.SQLINTEGER(stringLength))
+	return SQLRETURN(r)
+}

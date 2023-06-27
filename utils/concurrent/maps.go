@@ -1,7 +1,6 @@
 package concurrent
 
 import (
-	"fmt"
 	"runtime"
 	"sync"
 )
@@ -97,7 +96,7 @@ type MapInterface interface {
 }
 
 func NewSuperEfficientSyncMap(numOfCores int) MapInterface {
-	fmt.Println("runtime.GOMAXPROCS(0)", runtime.GOMAXPROCS(0))
+	//fmt.Println("runtime.GOMAXPROCS(0)", runtime.GOMAXPROCS(0))
 	if numOfCores == 0 {
 		numOfCores = runtime.GOMAXPROCS(0)
 	}
