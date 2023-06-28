@@ -14,6 +14,15 @@ import (
 //
 // -----------------------------------------------------------------
 
+type ParamAliasRcd struct {
+	Name  string
+	Alias string
+}
+
+// -----------------------------------------------------------------
+//
+// -----------------------------------------------------------------
+
 type PromotionRecord struct {
 	Rowid               int
 	Action              string // D: Delete   R:Refresh   I:Insert
@@ -23,6 +32,8 @@ type PromotionRecord struct {
 	Httpmethod          string
 	UseSpecificName     string
 	UseWithoutAuth      string
+	ParamAlias          string
+	ParamAliasRcds      []*ParamAliasRcd
 	Status              string
 	StatusMessage       string
 	validator.Validator `json:"-" db:"-" form:"-"`
@@ -31,7 +42,29 @@ type PromotionRecord struct {
 // ------------------------------------------------------------
 //
 // ------------------------------------------------------------
-func (p PromotionRecord) ToStoredProc(s Server) *StoredProc {
+
+func (p *PromotionRecord) BreakParamAlias() {
+	paramALiasRcds := make([]*ParamAliasRcd, 0)
+	byComa := strings.Split(p.ParamAlias, ",")
+
+	for _, oneMap := range byComa {
+		byColon := strings.Split(oneMap, ":")
+		if len(byColon) == 2 {
+			paramALiasRcd := &ParamAliasRcd{
+				Name:  strings.ToUpper(strings.TrimSpace(byColon[0])),
+				Alias: strings.ToUpper(strings.TrimSpace(byColon[1])),
+			}
+			paramALiasRcds = append(paramALiasRcds, paramALiasRcd)
+		}
+	}
+
+	p.ParamAliasRcds = paramALiasRcds
+}
+
+// ------------------------------------------------------------
+//
+// ------------------------------------------------------------
+func (p PromotionRecord) ToStoredProc(s *Server) *StoredProc {
 	sp := &StoredProc{
 		EndPointName: p.Endpoint,
 		HttpMethod:   p.Httpmethod,
@@ -82,7 +115,7 @@ func (s *Server) ListPromotion(withupdate bool) ([]*PromotionRecord, error) {
 	promotionRecords := make([]*PromotionRecord, 0)
 	if strings.TrimSpace(s.ConfigFile) != "" && strings.TrimSpace(s.ConfigFileLib) != "" {
 
-		sqlToUse := fmt.Sprintf("select rrn(a), upper(trim(action)) , upper(trim(endpoint)), trim(storedproc), trim(storedproclib), upper(trim(httpmethod)), upper(trim(usespecificname)), upper(trim(usewithoutauth)) from %s.%s a where status=''", s.ConfigFileLib, s.ConfigFile)
+		sqlToUse := fmt.Sprintf("select rrn(a), upper(trim(action)) , upper(trim(endpoint)), trim(storedproc), trim(storedproclib), upper(trim(httpmethod)), upper(trim(usespecificname)), upper(trim(usewithoutauth)) , upper(trim(paramalias)) from %s.%s a where status=''", s.ConfigFileLib, s.ConfigFile)
 
 		conn, err := s.GetConnection()
 
@@ -110,11 +143,12 @@ func (s *Server) ListPromotion(withupdate bool) ([]*PromotionRecord, error) {
 				&rcd.Storedproclib,
 				&rcd.Httpmethod,
 				&rcd.UseSpecificName,
-				&rcd.UseWithoutAuth)
+				&rcd.UseWithoutAuth,
+				&rcd.ParamAlias,
+			)
 			if err != nil {
 				rcd.Status = "E"
 				rcd.StatusMessage = err.Error()
-				//updateSQL = fmt.Sprintf("update %s.%s a set status='E' , statusmessage = '%s' where rrn(a) = %d", s.ConfigFileLib, s.ConfigFile, err.Error(), rcd.Rowid)
 			} else {
 				rcd.CheckField(validator.MustBeFromList(rcd.Action, "D", "I", "R"), "ErrorMsg", "Action: Invalid value")
 				rcd.CheckField(validator.NotBlank(rcd.Endpoint), "ErrorMsg", "Endpoint: This field cannot be blank")
@@ -129,11 +163,12 @@ func (s *Server) ListPromotion(withupdate bool) ([]*PromotionRecord, error) {
 
 				} else {
 					// update table with error
-					//updateSQL = fmt.Sprintf("update %s.%s a set status='E' , statusmessage = '%s' where rrn(a) = %d", s.ConfigFileLib, s.ConfigFile, rcd.Validator.FieldErrors["ErrorMsg"], rcd.Rowid)
 					rcd.Status = "E"
 					rcd.StatusMessage = rcd.Validator.FieldErrors["ErrorMsg"]
 				}
 			}
+
+			rcd.BreakParamAlias()
 			promotionRecords = append(promotionRecords, rcd)
 		}
 	}

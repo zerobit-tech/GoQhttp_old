@@ -15,7 +15,19 @@ import (
 	"github.com/google/uuid"
 	"github.com/justinas/nosurf" // New import
 	"github.com/onlysumitg/GoQhttp/internal/models"
+	"github.com/onlysumitg/GoQhttp/lic"
 )
+
+type ContextKey string
+
+const REQUEST_PROCESSING_DATA ContextKey = "REQUEST_PROCESSING_DATA"
+
+const LIC_INFO ContextKey = "LIC_INFO"
+
+var TimeFormat string = "15:04:05"
+var DateFormat string = "2006-01-02"
+var TimestampFormat string = "2006-01-02 15:04:05.000000"
+var TimestampFormat2 string = "2006-01-02 15:04:05"
 
 // Create a NoSurf middleware function which uses a customized CSRF cookie with
 // the Secure, Path and HttpOnly attributes set.
@@ -164,6 +176,9 @@ func (app *application) LogHandler(next http.Handler) http.Handler {
 
 				//models.SaveLogs(app.LogDB, 1000, requestId, fmt.Sprintf("HTTPCODE:%d", rec.Code), app.testMode)
 				logE = models.LogStruct{I: 1000, Id: requestId, Message: fmt.Sprintf("HTTPCODE:%d", rec.Code), TestMode: app.testMode}
+				graphStruc := GetGraphStruct(r.Context())
+				graphStruc.Httpcode = rec.Code
+
 				models.LogChan <- logE
 			}()
 		}
@@ -206,16 +221,15 @@ func RequestID(next http.Handler) http.Handler {
 		}
 		ctx = context.WithValue(ctx, middleware.RequestIDKey, requestID)
 
-		// ctx = context.WithValue(ctx, middleware.RequestIDKey, requestID)
-		// v := map[string]string{
-		// 	"requestid":    requestID,
-		// 	"spid":         "",
-		// 	"httpcode":     "0",
-		// 	"responsetime": "",
-		// }
-		// ctx = context.WithValue(ctx, "requestdata", v)
+		ctx = context.WithValue(ctx, middleware.RequestIDKey, requestID)
+		v := GetGraphStruct(ctx)
+		v.Requestid = requestID
+		v.LogUrl = fmt.Sprintf("/apilogs/%s", requestID)
+
+		ctx = context.WithValue(ctx, REQUEST_PROCESSING_DATA, v)
 
 		next.ServeHTTP(w, r.WithContext(ctx))
+
 	}
 	return http.HandlerFunc(fn)
 }
@@ -231,7 +245,15 @@ func (app *application) TimeTook(next http.Handler) http.Handler {
 			requestId := middleware.GetReqID(r.Context())
 			//go models.SaveLogs(app.LogDB, 1001, requestId, fmt.Sprintf("ResponseTime:%s", time.Since(t1)), app.testMode)
 
-			logE := models.LogStruct{I: 1001, Id: requestId, Message: fmt.Sprintf("ResponseTime:%s", time.Since(t1)), TestMode: app.testMode}
+			graphStruc := GetGraphStruct(r.Context())
+
+			durationPasses := time.Since(t1)
+			graphStruc.Responsetime = durationPasses.Milliseconds()
+			graphStruc.Calltime = time.Now().Local().Format(TimestampFormat)
+
+			fmt.Println("graphStruc", graphStruc, *graphStruc)
+
+			logE := models.LogStruct{I: 1001, Id: requestId, Message: fmt.Sprintf("ResponseTime:%s", durationPasses), TestMode: app.testMode}
 			go func() {
 				defer func() {
 					if r := recover(); r != nil {
@@ -239,9 +261,111 @@ func (app *application) TimeTook(next http.Handler) http.Handler {
 					}
 				}()
 				models.LogChan <- logE
+				//GraphChan <- graphStruc
+
 			}()
 		}()
 		next.ServeHTTP(w, r)
+	}
+	return http.HandlerFunc(fn)
+}
+
+//	------------------------------------------------------
+//
+// ------------------------------------------------------
+func GetGraphStruct(ctx context.Context) *GraphStruc {
+
+	if ctx == nil {
+		return &GraphStruc{Calltime: time.Now().Local().Format(TimestampFormat)}
+	}
+	graphStruc, ok := ctx.Value(REQUEST_PROCESSING_DATA).(*GraphStruc)
+	if ok {
+		return graphStruc
+	}
+	return &GraphStruc{Calltime: time.Now().Local().Format(TimestampFormat)}
+}
+
+//	------------------------------------------------------
+//
+// ------------------------------------------------------
+func GetLicInfo(ctx context.Context) *lic.LicenseFile {
+
+	if ctx != nil {
+
+		licFile, ok := ctx.Value(LIC_INFO).(*lic.LicenseFile)
+		if ok {
+			return licFile
+		}
+	}
+	return &lic.LicenseFile{Name: "Unavailable"}
+}
+
+//	------------------------------------------------------
+//
+// ------------------------------------------------------
+func CheckLicMiddleware(next http.Handler) http.Handler {
+	fn := func(w http.ResponseWriter, r *http.Request) {
+		goToUrl := "/license"
+
+		licFile, err := lic.VerifyLicFiles()
+		if err != nil {
+			http.Redirect(w, r, goToUrl, http.StatusSeeOther)
+
+		} else {
+
+			ctx := r.Context()
+
+			licFileData := &lic.LicenseFile{
+				Name: licFile,
+			}
+
+			expiryDate, _, expiryDays, err := lic.GetLicFileExpiryDuration(licFile)
+
+			if err == nil {
+				licFileData.ExpiryDays = expiryDays
+				licFileData.ValidTill = expiryDate
+			}
+			ctx = context.WithValue(ctx, LIC_INFO, licFileData)
+
+			next.ServeHTTP(w, r.WithContext(ctx))
+
+		}
+
+	}
+	return http.HandlerFunc(fn)
+}
+
+//	------------------------------------------------------
+//
+// ------------------------------------------------------
+func CheckLicMiddlewareNoRedirect(next http.Handler) http.Handler {
+	fn := func(w http.ResponseWriter, r *http.Request) {
+		//goToUrl := "/license"
+
+		licFile, err := lic.VerifyLicFiles()
+		if err != nil {
+			next.ServeHTTP(w, r)
+
+		} else {
+
+			ctx := r.Context()
+
+			licFileData := &lic.LicenseFile{
+				Name: licFile,
+			}
+
+			expiryDate, _, expiryDays, err := lic.GetLicFileExpiryDuration(licFile)
+
+			if err == nil {
+				licFileData.ExpiryDays = expiryDays
+				licFileData.ValidTill = expiryDate
+			}
+			ctx = context.WithValue(ctx, LIC_INFO, licFileData)
+
+			next.ServeHTTP(w, r.WithContext(ctx))
+
+		}
+
 	}
 	return http.HandlerFunc(fn)
 }

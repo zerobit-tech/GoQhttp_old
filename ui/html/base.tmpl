@@ -11,7 +11,7 @@
   
   
    <title>{{block "title" .}}
-    GoQHttp
+    QHttp
     {{end}}
   </title>
 
@@ -31,7 +31,7 @@
   <div style="opacity: 95%" class="c-sidebar c-sidebar-dark c-sidebar-fixed c-sidebar-lg-show" id="sidebar">
     <div class="c-sidebar-brand d-md-down-none">
       <div class="c-sidebar-brand-full">
-        <a href="/sp"><h5 style="color:white">#GoQHttp</h5> </a>
+        <a href="/sp"><h5 style="color:white">#QHttp</h5> </a>
       </div>
 
       <div class="c-sidebar-brand-minimized">
@@ -177,13 +177,15 @@
                 data-class="c-sidebar-show">
                 <svg class="c-icon c-icon-lg">
                     <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-menu"></use>
-                </svg>#GoQHttp
+                </svg>#QHttp
                     </button>
                     
                     
                     <ul class="c-header-nav mfs-auto">
                       <li class="c-header-nav-item mr-3">
-
+                          {{if .CurrentLicInfo}}
+                          <a href="/license">Lic Valid till: {{.CurrentLicInfo.ValidTill | humanDate}} ({{.CurrentLicInfo.ExpiryDays}} days)</a>
+                          {{end}}
                      
                       </li>
                                 <li class="c-header-nav-item mr-3">
@@ -218,13 +220,15 @@
   
     <footer class="c-footer">
       <div><a href=""> </a> © 2023.</div>
-      <div class="mfs-auto">QHttp.com</div>
+      <div class="mfs-auto">ZeroBit.Tech</div>
   </footer>
   </div>
 
   <script>
-    var websocketurl = "ws://" + "{{ .HostUrl}}" + "/ws/notification"
+    var websocketurl = "wss://" + "{{.WebSocketUrl}}" + "/ws/notification"
+    //alert(websocketurl)
   </script>
+  <script type="text/javascript" src='https://cdn.plot.ly/plotly-2.24.1.min.js'></script>
 
 <script src="/static/coreui/vendors/coreui/coreui-pro/js/coreui.bundle.min.js"></script>
 
@@ -336,6 +340,8 @@
 
   <link rel="stylesheet" type="text/css" href="/static/css/work.css">
   <script src="/static/js/table.js"></script>
+
+
 
 </body>
 

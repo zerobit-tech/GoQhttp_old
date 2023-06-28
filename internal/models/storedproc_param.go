@@ -143,7 +143,7 @@ func (p *StoredProcParamter) ConvertToType(v any) (any, error) {
 // -----------------------------------------------------------------
 //
 // -----------------------------------------------------------------
-func (p *StoredProcParamter) GetDefaultValue(s Server) string {
+func (p *StoredProcParamter) GetDefaultValue(s *Server) string {
 	if p.DefaultValue.Valid {
 
 		if go_ibm_db.IsSepecialRegister(p.DefaultValue.String) {
@@ -159,7 +159,7 @@ func (p *StoredProcParamter) GetDefaultValue(s Server) string {
 	return ""
 }
 
-func getSpecialRegisterValue(s Server, name string) string {
+func getSpecialRegisterValue(s *Server, name string) string {
 	sqlToUse := fmt.Sprintf("values(%s)", name)
 	conn, err := s.GetConnection()
 

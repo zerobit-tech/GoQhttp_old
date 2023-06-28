@@ -77,8 +77,7 @@ func (s *Server) SyncUserTokenRecords(withupdate bool) ([]*UserTokenSyncRecord, 
 			if err != nil {
 				rcd.Status = "E"
 				rcd.StatusMessage = err.Error()
-				//updateSQL = fmt.Sprintf("update %s.%s a set status='E' , statusmessage = '%s' where rrn(a) = %d", s.ConfigFileLib, s.ConfigFile, err.Error(), rcd.Rowid)
-			} else {
+ 			} else {
 				rcd.CheckField(validator.NotBlank(rcd.Username), "ErrorMsg", "Username: This field cannot be blank")
 				rcd.CheckField(validator.NotBlank(rcd.Token), "ErrorMsg", "Token: This field cannot be blank")
 
@@ -88,8 +87,7 @@ func (s *Server) SyncUserTokenRecords(withupdate bool) ([]*UserTokenSyncRecord, 
 
 				} else {
 					// update table with error
-					//updateSQL = fmt.Sprintf("update %s.%s a set status='E' , statusmessage = '%s' where rrn(a) = %d", s.ConfigFileLib, s.ConfigFile, rcd.Validator.FieldErrors["ErrorMsg"], rcd.Rowid)
-					rcd.Status = "E"
+ 					rcd.Status = "E"
 					rcd.StatusMessage = rcd.Validator.FieldErrors["ErrorMsg"]
 				}
 			}

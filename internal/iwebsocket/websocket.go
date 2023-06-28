@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"github.com/gorilla/websocket"
+	"github.com/onlysumitg/GoQhttp/utils/concurrent"
 )
 
 // ------------------------------------------------------
@@ -16,6 +17,11 @@ type WebSocketConnection struct {
 }
 
 // WsPayload defines the websocket request from the client
+// ------------------------------------------------------
+//
+//	payload from client to server
+//
+// ------------------------------------------------------
 type WsClientPayload struct {
 	Action   string              `json:"action"`
 	Username string              `json:"username"`
@@ -23,15 +29,23 @@ type WsClientPayload struct {
 	Conn     WebSocketConnection `json:"-"`
 }
 
-var Clients = make(map[WebSocketConnection]string)
+// ------------------------------------------------------
+// list of clients
+// ------------------------------------------------------
+//var Clients = make(map[WebSocketConnection]string)
+
+var Clients concurrent.MapInterface = concurrent.NewSuperEfficientSyncMap(0)
 
 // ------------------------------------------------------
+//
+//	payload from server to client
 //
 // ------------------------------------------------------
 type WsServerPayload struct {
 	Action      string `json:"action"`
 	Message     string `json:"message"`
 	MessageType string `json:"messagetype"`
+	Data        any    `json:"data"`
 }
 
 // ------------------------------------------------------
@@ -52,15 +66,28 @@ func BroadcastNotification(message, messageType string) {
 // ------------------------------------------------------
 // broadcastToAll sends ws response to all connected clients
 func BroadcastToAll(response WsServerPayload) {
-	for client := range Clients {
-		err := client.WriteJSON(response)
-		if err != nil {
-			// the user probably left the page, or their connection dropped
-			log.Println("websocket err")
-			_ = client.Close()
-			delete(Clients, client)
+
+	connectionToDelete := make([]WebSocketConnection, 0)
+
+	Clients.Range(func(k, v interface{}) bool {
+		conn, ok := k.(WebSocketConnection)
+		if ok {
+			err := conn.WriteJSON(response)
+			if err != nil {
+				// the user probably left the page, or their connection dropped
+				log.Println("websocket err.....................", err)
+				 _ = conn.Close()
+				connectionToDelete = append(connectionToDelete, conn)
+			}
 		}
+		return true
+	})
+
+	for _, c := range connectionToDelete {
+		Clients.Delete(c)
+
 	}
+
 }
 
 // ------------------------------------------------------
@@ -74,7 +101,7 @@ func BroadcastToOne(conn WebSocketConnection, response WsServerPayload) {
 		// the user probably left the page, or their connection dropped
 		log.Println("websocket err")
 		_ = conn.Close()
-		delete(Clients, conn)
+		Clients.Delete(conn)
 	}
 
 }

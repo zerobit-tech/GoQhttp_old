@@ -24,14 +24,53 @@ package main
 
 import (
 	"net/http"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
+	"github.com/go-chi/httprate"
 	"github.com/onlysumitg/GoQhttp/env"
 	"github.com/onlysumitg/GoQhttp/ui" // New import
 )
+
+// -----------------------------------------------------------------
+//
+// -----------------------------------------------------------------
+func addHttpRateLimiter(app *application, router *chi.Mux) {
+
+	//router.Use(httprate.LimitByIP(100, 1*time.Minute))
+
+	requestsPerHourByIP, err := strconv.Atoi(env.GetEnvVariable("REQUESTS_PER_HOUR_BY_IP", "0"))
+	if err != nil || requestsPerHourByIP <= 0 {
+		return
+	}
+
+	router.Use(httprate.Limit(
+		requestsPerHourByIP,                     // requests
+		1*time.Hour,                             // per duration
+		httprate.WithKeyFuncs(httprate.KeyByIP), // httprate.KeyByEndpoint),
+		httprate.WithLimitHandler(func(w http.ResponseWriter, r *http.Request) {
+			http.Error(w, "Too Many Requests", http.StatusTooManyRequests)
+		}),
+	))
+
+	requestsPerHourByUser, err := strconv.Atoi(env.GetEnvVariable("REQUESTS_PER_HOUR_BY_USER", "0"))
+	if err != nil || requestsPerHourByUser <= 0 {
+		return
+	}
+
+	router.Use(httprate.Limit(
+		requestsPerHourByUser, // requests
+		1*time.Hour,           // per duration
+		// an oversimplified example of rate limiting by a custom header
+		httprate.WithKeyFuncs(func(r *http.Request) (string, error) {
+			return r.Header.Get("Authorization"), nil
+		}),
+	))
+}
 
 // -----------------------------------------------------------------
 //
@@ -51,8 +90,6 @@ func addMiddleWares(app *application, router *chi.Mux) {
 	router.Use(middleware.RealIP)
 
 	router.Use(middleware.Logger)
-
-
 
 	//router.Use(middleware.Recoverer)
 	router.Use(middleware.SetHeader("X-Frame-Options", "DENY"))
@@ -114,6 +151,8 @@ func (app *application) routes() *chi.Mux {
 
 	addMiddleWares(app, router)
 
+	//addHttpRateLimiter(app, router)
+
 	addStaticFiles(router)
 
 	router.Get("/", app.langingPage)
@@ -124,7 +163,11 @@ func (app *application) routes() *chi.Mux {
 	app.APILogHandlers(router)
 	app.ServerHandlers(router)
 	app.StoredProcHandlers(router)
+	//app.GraphHandlers(router)
 
+	app.LicHandlers(router)
+
+	// web socket
 	//app.WsHandlers(router)
 
 	app.UserHandlers(router)

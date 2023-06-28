@@ -1,11 +1,14 @@
 package main
 
 import (
+	"context"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/onlysumitg/GoQhttp/go_ibm_db"
 	"github.com/onlysumitg/GoQhttp/internal/models"
+	"github.com/onlysumitg/GoQhttp/lic"
 )
 
 // --------------------------------
@@ -20,7 +23,7 @@ func (app *application) RefreshStoredProces() {
 			server, err := app.servers.Get(serverRcd.ID)
 			if err == nil {
 				log.Println("Refreshing endpoint: ", sp.EndPointName, " ", sp.Name, " ", sp.Lib)
-				err := sp.Refresh(*server)
+				err := sp.Refresh(context.Background(), server)
 				if err == nil {
 					app.storedProcs.Save(sp)
 				}
@@ -41,7 +44,7 @@ func (app *application) RemoveDeletedStoredProcs() {
 		if serverRcd != nil && serverRcd.ID != "" {
 			server, err := app.servers.Get(serverRcd.ID)
 			if err == nil {
-				exits, err := sp.Exists(*server)
+				exits, err := sp.Exists(context.Background(), server)
 				if err == nil && !exits {
 					log.Println("Deleting endpoint: ", sp.EndPointName, " ", sp.Name, " ", sp.Lib)
 					app.storedProcs.Delete(sp.ID)
@@ -60,6 +63,12 @@ func (app *application) ProcessPromotions() {
 			log.Println("Recovered in refreshSchedule", r)
 		}
 	}()
+
+	_, err := lic.VerifyLicFiles()
+	if err != nil {
+		log.Println("Process Promotions Skipped.....: ", err.Error())
+	}
+
 	log.Println("Starting scheduled Promotion process")
 	for _, s := range app.servers.List() {
 		app.ProcessPromotion(s)
@@ -114,14 +123,27 @@ func (app *application) ProcessPromotionRecord(s *models.Server, pr *models.Prom
 		case "D": // Delete end point
 			app.storedProcs.DeleteByName(pr.Endpoint, pr.Httpmethod)
 		case "I", "R": // insert /update endpoint
-			newSP := pr.ToStoredProc(*s)
+			newSP := pr.ToStoredProc(s)
 			newSP.ID = newSP.Slug()
 
-			err := newSP.PreapreToSave(*s)
+			err := newSP.PreapreToSave(context.Background(), *s)
 
 			if err == nil {
 				newSP.AddAllowedServer(s)
+
+				// handle param alias
+				for _, p := range newSP.Parameters {
+					for _, pALias := range pr.ParamAliasRcds {
+						if strings.EqualFold(p.Name, pALias.Name) {
+							p.Alias = strings.TrimSpace(strings.ToUpper(pALias.Alias))
+
+						}
+					}
+				}
+
 				app.storedProcs.Save(newSP)
+				app.invalidateEndPointCache()
+
 				pr.Status = "C"
 				pr.StatusMessage = "Completed"
 

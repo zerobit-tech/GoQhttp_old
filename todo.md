@@ -5,9 +5,14 @@
 5. Test connection p5
 6. List SP mames by lib p4
 7. Param alias P2 Done
-`
+8. retry on failure
+9. JWTselect * f
+10. promotion param alias
+11: create promotion query
 
 
 
 Issues:
 1. rename endpoint => stuck
+
+ 

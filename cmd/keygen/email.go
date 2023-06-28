@@ -1,8 +1,12 @@
 package main
 
 import (
+	"fmt"
 	"log"
+	"strings"
+	"time"
 
+	"github.com/jprobinson/eazye"
 	"github.com/onlysumitg/GoQhttp/internal/models"
 	mail "github.com/xhit/go-simple-mail/v2"
 )
@@ -43,14 +47,6 @@ func (app *application) SendEmail(r *models.EmailRequest) {
 	//email.AddCc("another_you@example.com")
 	email.SetSubject(r.Subject)
 
-	if r.Template != "" {
-		tBody, err := app.templateToString(r.Template, r.Data)
-
-		if err == nil && tBody != "" {
-			r.Body = tBody
-		}
-	}
-
 	email.SetBody(mail.TextHTML, r.Body)
 
 	//email.AddAttachment("super_cool_file.png")
@@ -62,15 +58,50 @@ func (app *application) SendEmail(r *models.EmailRequest) {
 	}
 }
 
-func (a *application) SendNotificationsToAdmins(r *models.EmailRequest) {
-	emails := make([]string, 0)
-	for _, u := range a.users.List() {
-		if u.IsSuperUser {
-			emails = append(emails, u.Email)
+// ------------------------------------------------------
+//
+// ------------------------------------------------------
+func   ReadEmails(waitC chan<- int) {
+
+	defer func() {
+		waitC <- 1
+	}()
+
+	for {
+		time.Sleep(10 * time.Second)
+		log.Println("Checking mail box")
+		mailBox := eazye.MailboxInfo{
+			Host:               "smtp.zerobit.tech",
+			TLS:                true,
+			InsecureSkipVerify: true,
+			User:               "support@zerobit.tech",
+			Pwd:                "Zer0#2023",
+			Folder:             "inbox",
+			ReadOnly:           false,
 		}
+
+		emails, errx := eazye.GetUnread(mailBox, true, false)
+		if errx != nil {
+			fmt.Println("eazye", errx)
+		}
+
+		for _, email := range emails {
+			fmt.Println(email.To, " : : ", email.From, " :: ", email.Subject)
+
+			if strings.EqualFold(strings.ToUpper(strings.TrimSpace(email.Subject)), "QHTTP LIC") {
+
+				
+				params := &parameters{
+					client:     email.From.Name,
+					email:      email.From.Address,
+					expiryDays: 30,
+				}
+
+				processLicRequest(params)
+			}
+
+		}
+
 	}
 
-	r.To = emails
-
-	a.SendEmail(r)
 }

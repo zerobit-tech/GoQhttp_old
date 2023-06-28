@@ -36,6 +36,11 @@ func main() {
 		log.Fatal(err)
 	}
 
+	err = os.MkdirAll("./lic", os.ModePerm)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	// go run ./cmd/web -port=4002 -host="localhost"
 	// go run ./cmd/web -h  ==> help text
 	// default value for addr => ":4000"
@@ -88,7 +93,7 @@ func main() {
 
 	addr, hostUrl := params.getHttpAddress()
 
-	log.Printf("GoQHttp is live at %s  :: %s \n", addr, hostUrl)
+	log.Printf("QHttp is live at %s  :: %s \n", addr, hostUrl)
 
 	// this is short cut to create http.Server and  server.ListenAndServe()
 	// err := http.ListenAndServe(params.addr, routes)
@@ -102,6 +107,8 @@ func main() {
 	//  --------------------------------------- Data clean up job----------------------------
 
 	go app.clearLogsSchedular(db)
+
+	//go app.CaptureGraphData()
 
 	go app.refreshSchedule()
 

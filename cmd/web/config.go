@@ -16,7 +16,7 @@ import (
 
 type application struct {
 	endPointMutex        sync.Mutex
-	requestMutex sync.Mutex
+	requestMutex         sync.Mutex
 	invalidEndPointCache bool
 	endPointCache        map[string]*models.StoredProc
 
@@ -88,7 +88,7 @@ func baseAppConfig(params parameters, db *bolt.DB, userdb *bolt.DB, logdb *bolt.
 		servers:     &models.ServerModel{DB: db},
 		storedProcs: &models.StoredProcModel{DB: db},
 
-		spCallLogModel:             &models.SPCallLogModel{DB: logdb, DataChan: make(chan models.SPCallLogEntry, 200)},
+		spCallLogModel:             &models.SPCallLogModel{DB: logdb, DataChan: make(chan models.SPCallLogEntry, 5000)},
 		useHttps:                   params.https,
 		maxAllowedEndPoints:        -1,
 		maxAllowedEndPointsPerUser: -1,

@@ -15,6 +15,8 @@ import (
 func (app *application) UsersHandlers(router *chi.Mux) {
 	router.Route("/users", func(r chi.Router) {
 		r.Use(app.RequireSuperAdmin)
+		r.Use(CheckLicMiddleware)
+
 		// CSRF
 		r.Use(noSurf)
 		r.Get("/", app.userList)

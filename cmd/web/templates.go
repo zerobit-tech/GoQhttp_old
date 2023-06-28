@@ -15,13 +15,15 @@ import (
 
 	"github.com/justinas/nosurf"
 	"github.com/onlysumitg/GoQhttp/internal/models"
+	"github.com/onlysumitg/GoQhttp/lic"
 	"github.com/onlysumitg/GoQhttp/ui"
 )
 
 type templateData struct {
 	CurrentYear int
 
-	HostUrl string
+	HostUrl      string
+	WebSocketUrl string
 
 	Form any //use this Form field to pass the validation errors and previously submitted data back to the template when we re-display the form.
 
@@ -49,7 +51,12 @@ type templateData struct {
 	ComparisonOperators []string
 
 	LogEntries []string
-	Next       string
+
+	LicenseEntries []*lic.LicenseFile
+
+	CurrentLicInfo *lic.LicenseFile
+
+	Next string
 
 	RbacRoles                   []string
 	RbacRole                    string
@@ -62,6 +69,8 @@ type templateData struct {
 	CurrentUser *models.User
 
 	TestMode bool
+
+	GraphData map[int][]*GraphStruc
 }
 
 func ListComparisonOperators() []string {
@@ -87,9 +96,11 @@ func ListComparisonOperators() []string {
 func (app *application) newTemplateData(r *http.Request) *templateData {
 
 	td := &templateData{
-		CurrentYear:         time.Now().Year(),
-		CSRFToken:           nosurf.Token(r), // Add the CSRF token.
-		HostUrl:             app.hostURL,
+		CurrentYear:  time.Now().Year(),
+		CSRFToken:    nosurf.Token(r), // Add the CSRF token.
+		HostUrl:      app.hostURL,
+		WebSocketUrl: strings.ReplaceAll(strings.ReplaceAll(app.hostURL, "https://", ""), "http://", ""),
+
 		ComparisonOperators: ListComparisonOperators(),
 		IsAuthenticated:     app.isAuthenticated(r), // use {{if .IsAuthenticated}} in template
 		TestMode:            app.testMode,
@@ -99,6 +110,8 @@ func (app *application) newTemplateData(r *http.Request) *templateData {
 		td.CurrentUser = user
 
 	}
+
+	td.CurrentLicInfo = GetLicInfo(r.Context())
 
 	return td
 }

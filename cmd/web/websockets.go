@@ -21,7 +21,7 @@ func (app *application) WsHandlers(router *chi.Mux) {
 
 }
 
-var wsChan = make(chan iwebsocket.WsClientPayload)
+var wsChan = make(chan iwebsocket.WsClientPayload, 500)
 
 // ------------------------------------------------------
 //
@@ -86,7 +86,7 @@ func ListenForWs(conn *iwebsocket.WebSocketConnection) {
 	// to recover from panics
 	defer func() {
 		if r := recover(); r != nil {
-			log.Println("Error", fmt.Sprintf("%v", r))
+			log.Println("ListenForWs Error", fmt.Sprintf("%v", r))
 		}
 	}()
 
@@ -96,8 +96,9 @@ func ListenForWs(conn *iwebsocket.WebSocketConnection) {
 		err := conn.ReadJSON(&payload)
 		if err != nil { // means connection closed
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
-				log.Printf("error: %v", err)
+				log.Printf("ListenForWs2 error: %v", err)
 			}
+			break
 		} else {
 			payload.Conn = *conn
 			wsChan <- payload
@@ -107,7 +108,7 @@ func ListenForWs(conn *iwebsocket.WebSocketConnection) {
 
 // ------------------------------------------------------
 //
-//	get data from   WS channel and process
+//	get data from   WS channel and process: check main.go
 //
 // ------------------------------------------------------@
 // ListenToWsChannel is a goroutine that waits for an entry on the wsChan, and handles it according to the
@@ -118,11 +119,13 @@ func ListenToWsChannel() {
 	for {
 		e := <-wsChan
 
+		fmt.Println(">>>>>>>>>>>>>>>> WS >>>>>>>>>>>>>.", e.Action)
+
 		switch e.Action {
 		case "pong":
 			// // get a list of all users and send it back via broadcast
 			log.Println("Ws is ready")
-			iwebsocket.Clients[e.Conn] = e.Username
+			iwebsocket.Clients.Store(e.Conn, e.Username)
 			// users := getUserList()
 			// response.Action = "notification"
 			// response.Message = "Websocket connection is sucessful."
@@ -133,15 +136,21 @@ func ListenToWsChannel() {
 		case "left":
 			// // handle the situation where a user leaves the page
 			// response.Action = "list_users"
-			delete(iwebsocket.Clients, e.Conn)
+			iwebsocket.Clients.Delete(e.Conn)
 			// users := getUserList()
 			// response.ConnectedUsers = users
 			//iwebsocket.BroadcastToAll(response)
 
+		case "getgraphdata":
+			response.Action = "graphdata"
+			response.Message = ""
+			response.Data = GetGraphDataPlotyl()
+			iwebsocket.BroadcastToOne(e.Conn, response)
+
 		case "broadcast":
 			response.Action = "broadcast"
 			response.Message = fmt.Sprintf("<strong>%s</strong>: %s", e.Username, e.Message)
-			//iwebsocket.BroadcastToAll(response)
+			iwebsocket.BroadcastToAll(response)
 		}
 	}
 }

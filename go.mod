@@ -23,10 +23,17 @@ require (
 )
 
 require (
+	github.com/cespare/xxhash/v2 v2.1.2 // indirect
+	github.com/go-chi/httprate v0.7.4 // indirect
 	github.com/go-test/deep v1.1.0 // indirect
 	github.com/gosimple/slug v1.13.1 // indirect
 	github.com/gosimple/unidecode v1.0.1 // indirect
+	github.com/hyperboloide/lk v0.0.0-20230325114855-ce3fecd34798 // indirect
+	github.com/jprobinson/eazye v0.0.0-20200316195029-00167c745a93 // indirect
+	github.com/mxk/go-imap v0.0.0-20150429134902-531c36c3f12d // indirect
+	github.com/paulrosania/go-charset v0.0.0-20190326053356-55c9d7a5834c // indirect
 	github.com/robfig/cron/v3 v3.0.1 // indirect
+	github.com/sloonz/go-qprintable v0.0.0-20210417175225-715103f9e6eb // indirect
 	github.com/toorop/go-dkim v0.0.0-20201103131630-e1cd1a0a5208 // indirect
 	go.uber.org/atomic v1.9.0 // indirect
 	golang.org/x/net v0.10.0 // indirect
