@@ -8,15 +8,22 @@ import (
 
 	"github.com/alexedwards/scs/v2"
 	"github.com/go-playground/form"
+	"github.com/onlysumitg/GoQhttp/internal/iwebsocket"
 	"github.com/onlysumitg/GoQhttp/internal/models"
+	"github.com/onlysumitg/GoQhttp/utils/concurrent"
 
 	mail "github.com/xhit/go-simple-mail/v2"
 	bolt "go.etcd.io/bbolt"
 )
 
 type application struct {
-	endPointMutex        sync.Mutex
-	requestMutex         sync.Mutex
+	version       string
+	endPointMutex sync.Mutex
+	requestMutex  sync.Mutex
+
+	graphMutex      sync.Mutex
+	requestLogMutex sync.Mutex
+
 	invalidEndPointCache bool
 	endPointCache        map[string]*models.StoredProc
 
@@ -51,6 +58,15 @@ type application struct {
 	testMode bool
 
 	redirectToHttps bool
+
+	ToWSChan  chan *iwebsocket.WsServerPayload
+	WSClients concurrent.MapInterface
+
+	GraphData100 []*GraphStruc
+	GraphData200 []*GraphStruc
+	GraphData300 []*GraphStruc
+	GraphData400 []*GraphStruc
+	GraphData500 []*GraphStruc
 }
 
 func baseAppConfig(params parameters, db *bolt.DB, userdb *bolt.DB, logdb *bolt.DB) *application {
@@ -70,6 +86,7 @@ func baseAppConfig(params parameters, db *bolt.DB, userdb *bolt.DB, logdb *bolt.
 	_, hostUrl := params.getHttpAddress()
 	//---------------------------------------  final app config ----------------------------
 	app := &application{
+		version:       "1.1.0",
 		errorLog:      errorLog,
 		infoLog:       infoLog,
 		templateCache: templateCache,
@@ -96,6 +113,14 @@ func baseAppConfig(params parameters, db *bolt.DB, userdb *bolt.DB, logdb *bolt.
 		redirectToHttps:            params.redirectToHttps,
 		domain:                     params.domain,
 		useletsencrypt:             params.useletsencrypt,
+		ToWSChan:                   make(chan *iwebsocket.WsServerPayload, 500),
+		WSClients:                  concurrent.NewSuperEfficientSyncMap(0),
+
+		GraphData100: make([]*GraphStruc, 0, 200),
+		GraphData200: make([]*GraphStruc, 0, 500),
+		GraphData300: make([]*GraphStruc, 0, 200),
+		GraphData400: make([]*GraphStruc, 0, 200),
+		GraphData500: make([]*GraphStruc, 0, 500),
 	}
 
 	if app.testMode {
@@ -103,8 +128,6 @@ func baseAppConfig(params parameters, db *bolt.DB, userdb *bolt.DB, logdb *bolt.
 		app.maxAllowedEndPointsPerUser = 2
 
 	}
-
-	go app.spCallLogModel.AddLogid()
 
 	go models.SaveLogs(app.LogDB)
 

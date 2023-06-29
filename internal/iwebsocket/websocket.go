@@ -1,10 +1,7 @@
 package iwebsocket
 
 import (
-	"log"
-
 	"github.com/gorilla/websocket"
-	"github.com/onlysumitg/GoQhttp/utils/concurrent"
 )
 
 // ------------------------------------------------------
@@ -34,7 +31,7 @@ type WsClientPayload struct {
 // ------------------------------------------------------
 //var Clients = make(map[WebSocketConnection]string)
 
-var Clients concurrent.MapInterface = concurrent.NewSuperEfficientSyncMap(0)
+//var Clients concurrent.MapInterface = concurrent.NewSuperEfficientSyncMap(0)
 
 // ------------------------------------------------------
 //
@@ -42,66 +39,67 @@ var Clients concurrent.MapInterface = concurrent.NewSuperEfficientSyncMap(0)
 //
 // ------------------------------------------------------
 type WsServerPayload struct {
-	Action      string `json:"action"`
-	Message     string `json:"message"`
-	MessageType string `json:"messagetype"`
-	Data        any    `json:"data"`
+	Action      string               `json:"action"`
+	Message     string               `json:"message"`
+	MessageType string               `json:"messagetype"`
+	Data        any                  `json:"data"`
+	Conn        *WebSocketConnection `json:"-"`
 }
 
 // ------------------------------------------------------
 //
 // ------------------------------------------------------
 // broadcastToAll sends ws response to all connected clients
-func BroadcastNotification(message, messageType string) {
-	serverPayload := WsServerPayload{
-		Action:      "notification",
-		Message:     message,
-		MessageType: messageType,
-	}
-	BroadcastToAll(serverPayload)
-}
+// func BroadcastNotification(message, messageType string) {
+// 	serverPayload := &WsServerPayload{
+// 		Action:      "notification",
+// 		Message:     message,
+// 		MessageType: messageType,
+// 	}
+// 	BroadcastToAll(serverPayload)
+// }
 
 // ------------------------------------------------------
 //
 // ------------------------------------------------------
 // broadcastToAll sends ws response to all connected clients
-func BroadcastToAll(response WsServerPayload) {
+// func BroadcastToAll(response *WsServerPayload) {
 
-	connectionToDelete := make([]WebSocketConnection, 0)
+// 	connectionToDelete := make([]WebSocketConnection, 0)
 
-	Clients.Range(func(k, v interface{}) bool {
-		conn, ok := k.(WebSocketConnection)
-		if ok {
-			err := conn.WriteJSON(response)
-			if err != nil {
-				// the user probably left the page, or their connection dropped
-				log.Println("websocket err.....................", err)
-				 _ = conn.Close()
-				connectionToDelete = append(connectionToDelete, conn)
-			}
-		}
-		return true
-	})
+// 	Clients.Range(func(k, v interface{}) bool {
+// 		conn, ok := k.(WebSocketConnection)
+// 		if ok {
+// 			err := conn.WriteJSON(response)
+// 			if err != nil {
+// 				// the user probably left the page, or their connection dropped
+// 				log.Println("websocket err.....................", err)
+// 				 _ = conn.Close()
+// 				connectionToDelete = append(connectionToDelete, conn)
+// 			}
+// 		}
+// 		return true
+// 	})
 
-	for _, c := range connectionToDelete {
-		Clients.Delete(c)
+// 	for _, c := range connectionToDelete {
+// 		Clients.Delete(c)
 
-	}
+// 	}
 
-}
+// }
 
 // ------------------------------------------------------
 //
 // ------------------------------------------------------
 // broadcastToAll sends ws response to all connected clients
-func BroadcastToOne(conn WebSocketConnection, response WsServerPayload) {
+// func BroadcastToOne(conn WebSocketConnection, response *WsServerPayload) {
 
-	err := conn.WriteJSON(response)
-	if err != nil {
-		// the user probably left the page, or their connection dropped
-		log.Println("websocket err")
-		_ = conn.Close()
-		Clients.Delete(conn)
-	}
+// 	err := conn.WriteJSON(response)
+// 	if err != nil {
+// 		// the user probably left the page, or their connection dropped
+// 		log.Println("websocket err")
+// 		_ = conn.Close()
+// 		Clients.Delete(conn)
+// 	}
 
-}
+// }

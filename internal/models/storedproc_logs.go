@@ -3,6 +3,7 @@ package models
 import (
 	"encoding/json"
 	"errors"
+	"runtime/debug"
 	"strconv"
 	"strings"
 	"sync"
@@ -47,9 +48,11 @@ func (m *SPCallLogModel) getTableName() []byte {
 // -----------------------------------------------------------------
 // We'll use the Insert method to add a new record to the "users" table.
 func (m *SPCallLogModel) AddLogid() {
+	defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
 
 	for {
 		logE, ok := <-m.DataChan
+		m.dbmux.Lock()
 		if ok {
 			logEntry := LogEntry{
 				LogID:    logE.LogId,
@@ -85,6 +88,7 @@ func (m *SPCallLogModel) AddLogid() {
 
 			m.Save(splog)
 		}
+		m.dbmux.Unlock()
 	}
 
 }

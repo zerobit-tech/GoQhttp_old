@@ -187,7 +187,16 @@ func (s *Server) GetConnection() (*sql.DB, error) {
 		return nil, fmt.Errorf("Server is on hold due to %s", s.OnHoldMessage)
 	}
 
-	return database.GetConnection(s)
+	db, err := database.GetConnection(s)
+
+	fmt.Println(" >>>>>>>>>>>>>>>>>>>>> dbY.Stats().InUse ", db.Stats().InUse)
+	fmt.Println(" >>>>>>>>>>>>>>>>>>>>> dbY.Stats().OpenConnections ", db.Stats().OpenConnections)
+	fmt.Println(" >>>>>>>>>>>>>>>>>>>>> dbY.Stats().MaxOpenConnections ", db.Stats().MaxOpenConnections)
+	fmt.Println(" >>>>>>>>>>>>>>>>>>>>> dbY.Stats().Idle ", db.Stats().Idle)
+	fmt.Println(" >>>>>>>>>>>>>>>>>>>>> dbY.Stats().WaitCount ", db.Stats().WaitCount)
+	fmt.Println(" >>>>>>>>>>>>>>>>>>>>> dbY.Stats().WaitDuration ", db.Stats().WaitDuration)
+
+	return db, err
 }
 
 // ------------------------------------------------------------

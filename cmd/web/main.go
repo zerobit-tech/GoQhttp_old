@@ -12,6 +12,7 @@ import (
 	"github.com/go-co-op/gocron"
 	"github.com/onlysumitg/GoQhttp/env"
 	"github.com/onlysumitg/GoQhttp/internal/models"
+	"github.com/onlysumitg/GoQhttp/utils/concurrent"
 	bolt "go.etcd.io/bbolt"
 )
 
@@ -89,7 +90,14 @@ func main() {
 	app.batches()
 
 	//--------------------------------------- Setup websockets ----------------------------
-	go ListenToWsChannel()
+	go concurrent.RecoverAndRestart(10, "ListenToWsChannel", app.ListenToWsChannel)
+	go concurrent.RecoverAndRestart(10, "SendToWsChannel", app.SendToWsChannel)
+	go concurrent.RecoverAndRestart(10, "CaptureGraphData", app.CaptureGraphData)
+
+
+	go concurrent.RecoverAndRestart(10, "spCallLogModel:AddLogid", app.spCallLogModel.AddLogid)
+
+
 
 	addr, hostUrl := params.getHttpAddress()
 
@@ -108,11 +116,9 @@ func main() {
 
 	go app.clearLogsSchedular(db)
 
-	//go app.CaptureGraphData()
-
 	go app.refreshSchedule()
 
-	go app.PingServers()
+	//go app.PingServers()
 	//--------------------------------------- Create super user ----------------------------
 
 	go app.CreateSuperUser(params.superuseremail, params.superuserpwd)

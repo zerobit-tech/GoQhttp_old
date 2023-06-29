@@ -3,7 +3,7 @@ var socket = null;
 
 // tell Ws that client is leaving
 window.onbeforeunload = function () {
-                 return
+                  
                 console.log("Leaving"); 
                 let jsonData = {};////WsClientPayload
                 jsonData["action"] = "left"; 
@@ -13,7 +13,7 @@ window.onbeforeunload = function () {
 
 
 $(document).ready(function () {
-         return
+          
         
         //socket = new WebSocket("ws://127.0.0.1:4000/ws/notification");
         socket = new ReconnectingWebSocket(websocketurl, null, {debug: true, reconectInterval: 3000});
@@ -42,8 +42,8 @@ $(document).ready(function () {
                
                 }
         socket.onmessage = msg => {
-            //console.log("msg.data")
-            //console.log(msg)
+            console.log("msg.data")
+            console.log(msg.data)
             var data = {}; // WsNotification
             try {
                 data = JSON.parse(msg.data);

@@ -261,7 +261,7 @@ func (app *application) TimeTook(next http.Handler) http.Handler {
 					}
 				}()
 				models.LogChan <- logE
-				//GraphChan <- graphStruc
+				GraphChan <- graphStruc
 
 			}()
 		}()

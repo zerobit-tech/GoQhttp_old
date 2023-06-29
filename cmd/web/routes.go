@@ -163,12 +163,12 @@ func (app *application) routes() *chi.Mux {
 	app.APILogHandlers(router)
 	app.ServerHandlers(router)
 	app.StoredProcHandlers(router)
-	//app.GraphHandlers(router)
+	app.GraphHandlers(router)
 
 	app.LicHandlers(router)
 
 	// web socket
-	//app.WsHandlers(router)
+	app.WsHandlers(router)
 
 	app.UserHandlers(router)
 	app.UsersHandlers(router)

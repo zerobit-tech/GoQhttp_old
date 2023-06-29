@@ -20,6 +20,7 @@ import (
 )
 
 type templateData struct {
+	Version     string
 	CurrentYear int
 
 	HostUrl      string
@@ -104,6 +105,7 @@ func (app *application) newTemplateData(r *http.Request) *templateData {
 		ComparisonOperators: ListComparisonOperators(),
 		IsAuthenticated:     app.isAuthenticated(r), // use {{if .IsAuthenticated}} in template
 		TestMode:            app.testMode,
+		Version:             app.version,
 	}
 	user, err := app.GetUser(r)
 	if err == nil {

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -98,14 +99,14 @@ func getGraphDataSetPlotly(graphStruc []*GraphStruc, httpcodeGroup int) *GraphDa
 // ------------------------------------------------------
 //
 // ------------------------------------------------------
-func GetGraphDataPlotyl() []*GraphDatasetPlotly {
+func (app *application) GetGraphDataPlotyl() []*GraphDatasetPlotly {
 
 	dataSet := make([]*GraphDatasetPlotly, 0)
-	dataSet = append(dataSet, getGraphDataSetPlotly(GraphData100, 100))
-	dataSet = append(dataSet, getGraphDataSetPlotly(GraphData200, 200))
-	dataSet = append(dataSet, getGraphDataSetPlotly(GraphData300, 300))
-	dataSet = append(dataSet, getGraphDataSetPlotly(GraphData400, 400))
-	dataSet = append(dataSet, getGraphDataSetPlotly(GraphData500, 500))
+	dataSet = append(dataSet, getGraphDataSetPlotly(app.GraphData100, 100))
+	dataSet = append(dataSet, getGraphDataSetPlotly(app.GraphData200, 200))
+	dataSet = append(dataSet, getGraphDataSetPlotly(app.GraphData300, 300))
+	dataSet = append(dataSet, getGraphDataSetPlotly(app.GraphData400, 400))
+	dataSet = append(dataSet, getGraphDataSetPlotly(app.GraphData500, 500))
 
 	return dataSet
 
@@ -146,15 +147,6 @@ func getGraphDataSet(graphStruc []*GraphStruc, httpcodeGroup int) *GraphDataset 
 // ------------------------------------------------------
 //
 // ------------------------------------------------------
-var GraphData100 []*GraphStruc = make([]*GraphStruc, 0, 200)
-var GraphData200 []*GraphStruc = make([]*GraphStruc, 0, 500)
-var GraphData300 []*GraphStruc = make([]*GraphStruc, 0, 200)
-var GraphData400 []*GraphStruc = make([]*GraphStruc, 0, 200)
-var GraphData500 []*GraphStruc = make([]*GraphStruc, 0, 500)
-
-// ------------------------------------------------------
-//
-// ------------------------------------------------------
 var GraphChan chan *GraphStruc = make(chan *GraphStruc, 5000)
 
 // ------------------------------------------------------
@@ -167,76 +159,92 @@ func (app *application) CaptureGraphData() {
 		maxEntries = 1000
 	}
 
+	counter := 0
+
 	for {
-		graphStruc := <-GraphChan
+
+		// adding little delay to complete JS render
+		//time.Sleep(500 * time.Millisecond)
+
+		graphStruc, ok := <-GraphChan
+		if !ok {
+			continue
+		}
+		counter += 1
+		fmt.Println("app...graphStruc ............", counter, " ....", graphStruc)
+
+		app.graphMutex.Lock()
 
 		httpCode := strconv.Itoa(graphStruc.Httpcode)
 
 		if strings.HasPrefix(httpCode, "1") {
 			graphStruc.HttpcodeGroup = 100
-			GraphData100 = append([]*GraphStruc{graphStruc}, GraphData100...)
-			if len(GraphData100) > maxEntries {
-				GraphData100 = GraphData100[0:maxEntries]
+			app.GraphData100 = append([]*GraphStruc{graphStruc}, app.GraphData100...)
+			if len(app.GraphData100) > maxEntries {
+				app.GraphData100 = app.GraphData100[0:maxEntries]
 			}
 
 		}
 		if strings.HasPrefix(httpCode, "2") {
 			graphStruc.HttpcodeGroup = 200
-			GraphData200 = append([]*GraphStruc{graphStruc}, GraphData200...)
-			if len(GraphData200) > maxEntries {
-				GraphData200 = GraphData200[0:maxEntries]
+			app.GraphData200 = append([]*GraphStruc{graphStruc}, app.GraphData200...)
+			if len(app.GraphData200) > maxEntries {
+				app.GraphData200 = app.GraphData200[0:maxEntries]
 			}
 		}
 
 		if strings.HasPrefix(httpCode, "3") {
 			graphStruc.HttpcodeGroup = 300
-			GraphData300 = append([]*GraphStruc{graphStruc}, GraphData300...)
-			if len(GraphData300) > maxEntries {
-				GraphData300 = GraphData300[0:maxEntries]
+			app.GraphData300 = append([]*GraphStruc{graphStruc}, app.GraphData300...)
+			if len(app.GraphData300) > maxEntries {
+				app.GraphData300 = app.GraphData300[0:maxEntries]
 			}
 		}
 
 		if strings.HasPrefix(httpCode, "4") {
 			graphStruc.HttpcodeGroup = 400
-			GraphData400 = append([]*GraphStruc{graphStruc}, GraphData400...)
-			if len(GraphData400) > maxEntries {
-				GraphData400 = GraphData400[0:maxEntries]
+			app.GraphData400 = append([]*GraphStruc{graphStruc}, app.GraphData400...)
+			if len(app.GraphData400) > maxEntries {
+				app.GraphData400 = app.GraphData400[0:maxEntries]
 			}
 		}
 
 		if strings.HasPrefix(httpCode, "5") {
 			graphStruc.HttpcodeGroup = 500
-			GraphData500 = append([]*GraphStruc{graphStruc}, GraphData500...)
-			if len(GraphData500) > maxEntries {
-				GraphData500 = GraphData500[0:maxEntries]
+			app.GraphData500 = append([]*GraphStruc{graphStruc}, app.GraphData500...)
+			if len(app.GraphData500) > maxEntries {
+				app.GraphData500 = app.GraphData500[0:maxEntries]
 			}
 		}
 
-		var response iwebsocket.WsServerPayload
+		response := &iwebsocket.WsServerPayload{}
 		response.Action = "graphdata"
 		response.Message = ""
-		response.Data = GetGraphDataPlotyl() // GetGraphData()
-		go func() {
-			defer func() {
-				if r := recover(); r != nil {
-				}
-			}()
-			iwebsocket.BroadcastToAll(response)
-		}()
+		response.Data = app.GetGraphDataPlotyl() // GetGraphData()
 
-		var response2 iwebsocket.WsServerPayload
+		app.ToWSChan <- response
+		// go func() {
+		// 	defer concurrent.Recoverer("graphdata")
+		// 	iwebsocket.BroadcastToAll(response)
+		// }()
+
+		response2 := &iwebsocket.WsServerPayload{}
 
 		response2.Action = "graphtablercd"
 		response2.Message = ""
 		response2.Data = graphStruc
-		go func() {
-			defer func() {
-				if r := recover(); r != nil {
-				}
-			}()
-			iwebsocket.BroadcastToAll(response2)
-		}()
+		app.ToWSChan <- response2
+
+		// go func() {
+		// 	defer concurrent.Recoverer("graphtablercd")
+		// 	time.Sleep(500 * time.Millisecond)
+
+		// 	iwebsocket.BroadcastToAll(response2)
+		// }()
 		//time.Sleep(2 * time.Second)
+		app.graphMutex.Unlock()
+
+		fmt.Println("app...GraphData200 ............", len(app.GraphData200), " ....", app.GraphData200)
 
 	}
 }
@@ -245,9 +253,12 @@ func (app *application) CaptureGraphData() {
 //
 // ------------------------------------------------------
 func (app *application) GraphHandlers(router *chi.Mux) {
-	router.Route("/graph", func(r chi.Router) {
+	router.Route("/dashboard", func(r chi.Router) {
 		//r.With(paginate).Get("/", listArticles)
+
 		r.Use(app.RequireAuthentication)
+		r.Use(CheckLicMiddleware)
+
 		r.Get("/", app.GraphData)
 	})
 }
@@ -255,18 +266,18 @@ func (app *application) GraphHandlers(router *chi.Mux) {
 // ------------------------------------------------------
 //
 // ------------------------------------------------------
-func GetGraphDataXX() []*GraphDataset {
+// func GetGraphDataXX() []*GraphDataset {
 
-	dataSet := make([]*GraphDataset, 0)
-	dataSet = append(dataSet, getGraphDataSet(GraphData100, 100))
-	dataSet = append(dataSet, getGraphDataSet(GraphData200, 200))
-	dataSet = append(dataSet, getGraphDataSet(GraphData300, 300))
-	dataSet = append(dataSet, getGraphDataSet(GraphData400, 400))
-	dataSet = append(dataSet, getGraphDataSet(GraphData500, 500))
+// 	dataSet := make([]*GraphDataset, 0)
+// 	dataSet = append(dataSet, getGraphDataSet(GraphData100, 100))
+// 	dataSet = append(dataSet, getGraphDataSet(GraphData200, 200))
+// 	dataSet = append(dataSet, getGraphDataSet(GraphData300, 300))
+// 	dataSet = append(dataSet, getGraphDataSet(GraphData400, 400))
+// 	dataSet = append(dataSet, getGraphDataSet(GraphData500, 500))
 
-	return dataSet
+// 	return dataSet
 
-}
+// }
 
 // ------------------------------------------------------
 //
@@ -292,11 +303,11 @@ func (app *application) GraphData(w http.ResponseWriter, r *http.Request) {
 	data := app.newTemplateData(r)
 
 	data.GraphData = map[int][]*GraphStruc{
-		100: GraphData100,
-		200: GraphData200,
-		300: GraphData300,
-		400: GraphData400,
-		500: GraphData500,
+		100: app.GraphData100,
+		200: app.GraphData200,
+		300: app.GraphData300,
+		400: app.GraphData400,
+		500: app.GraphData500,
 	}
 	//b, _ := json.Marshal(getGraphDataSet(GraphData500))
 	// fmt.Println("getGraphDataSet ", getGraphDataSet(GraphData500), ":: ", string(b))

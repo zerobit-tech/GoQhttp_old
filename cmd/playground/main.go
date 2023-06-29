@@ -7,13 +7,12 @@ import (
 	"net/http"
 	"strings"
 	"sync"
-	"time"
 )
 
 func main() {
 
 	var wg sync.WaitGroup
-	for i := 0; i <= 5000; i++ {
+	for i := 0; i <= 100; i++ {
 		wg.Add(1)
 		go main2(&wg)
 	}
@@ -23,7 +22,7 @@ func main() {
 func main2(wg *sync.WaitGroup) {
 	defer wg.Done()
 
-	time.Sleep(1 * time.Second)
+	//time.Sleep(1 * time.Second)
 
 	url := "https://0.0.0.0:4081/api/testchar"
 	method := "POST"
