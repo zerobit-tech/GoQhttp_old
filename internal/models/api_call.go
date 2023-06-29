@@ -8,9 +8,11 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"runtime/debug"
 	"sync"
 
 	"github.com/onlysumitg/GoQhttp/go_ibm_db"
+	"github.com/onlysumitg/GoQhttp/utils/concurrent"
 	"github.com/onlysumitg/GoQhttp/utils/xmlutils"
 	bolt "go.etcd.io/bbolt"
 )
@@ -371,6 +373,9 @@ func (m *ApiCall) SaveLogs(testMode bool) {
 //
 // ------------------------------------------------------
 func SaveLogs(db *bolt.DB) {
+
+	defer concurrent.Recoverer("SaveLogs")
+	defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
 
 	for {
 		logS := <-LogChan

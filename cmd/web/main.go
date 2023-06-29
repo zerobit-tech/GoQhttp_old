@@ -12,6 +12,7 @@ import (
 	"github.com/go-co-op/gocron"
 	"github.com/onlysumitg/GoQhttp/env"
 	"github.com/onlysumitg/GoQhttp/internal/models"
+	"github.com/onlysumitg/GoQhttp/utils/concurrent"
 	bolt "go.etcd.io/bbolt"
 )
 
@@ -91,6 +92,11 @@ func main() {
 	//--------------------------------------- Setup websockets ----------------------------
 	go ListenToWsChannel()
 
+	go concurrent.RecoverAndRestart(10, "spCallLogModel:AddLogid", app.spCallLogModel.AddLogid)
+
+
+	go models.SaveLogs(app.LogDB)
+	
 	addr, hostUrl := params.getHttpAddress()
 
 	log.Printf("QHttp is live at %s  :: %s \n", addr, hostUrl)

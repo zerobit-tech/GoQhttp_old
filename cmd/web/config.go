@@ -104,9 +104,7 @@ func baseAppConfig(params parameters, db *bolt.DB, userdb *bolt.DB, logdb *bolt.
 
 	}
 
-	go app.spCallLogModel.AddLogid()
 
-	go models.SaveLogs(app.LogDB)
 
 	//app.CreateHttpPathPermissions()
 	return app
