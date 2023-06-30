@@ -16,6 +16,7 @@ import (
 	"github.com/justinas/nosurf" // New import
 	"github.com/onlysumitg/GoQhttp/internal/models"
 	"github.com/onlysumitg/GoQhttp/lic"
+	"github.com/onlysumitg/GoQhttp/utils/concurrent"
 )
 
 type ContextKey string
@@ -153,6 +154,10 @@ func (app *application) LogHandler(next http.Handler) http.Handler {
 
 		// After processing ==> log response
 		responseBody := ""
+		graphStruc := GetGraphStruct(r.Context())
+		fmt.Println(">>>>>>>>>>> rec.Code rec.Code>>>>>>>>>>>>>.....", rec.Code)
+		graphStruc.Httpcode = rec.Code
+
 		y, err := httputil.DumpResponse(rec.Result(), true)
 		if err == nil {
 
@@ -176,11 +181,12 @@ func (app *application) LogHandler(next http.Handler) http.Handler {
 
 				//models.SaveLogs(app.LogDB, 1000, requestId, fmt.Sprintf("HTTPCODE:%d", rec.Code), app.testMode)
 				logE = models.LogStruct{I: 1000, Id: requestId, Message: fmt.Sprintf("HTTPCODE:%d", rec.Code), TestMode: app.testMode}
-				graphStruc := GetGraphStruct(r.Context())
-				graphStruc.Httpcode = rec.Code
 
 				models.LogChan <- logE
 			}()
+		} else {
+			fmt.Println(">>>>>>>>>>> ERROR rec.Code rec.Code>>>>>>>>>>>>>.....", err.Error())
+
 		}
 
 		// this copies the recorded response to the response writer
@@ -192,6 +198,7 @@ func (app *application) LogHandler(next http.Handler) http.Handler {
 
 		if rec.Code >= 400 {
 			go func() {
+				defer concurrent.Recoverer("EmailForErrResponse")
 				email := &models.EmailRequest{
 					Subject:  fmt.Sprintf("%d %s", rec.Code, requestId),
 					Body:     fmt.Sprintf("<h3>Request</h3><br><pre>%s</pre><br><br><br><br><h3>Response</h3><br><pre>%s</pre>", requestBody, responseBody),
@@ -260,8 +267,8 @@ func (app *application) TimeTook(next http.Handler) http.Handler {
 						log.Println("Recovered in TimeTook", r)
 					}
 				}()
-				models.LogChan <- logE
-				GraphChan <- graphStruc
+				models.LogChan <- logE				
+				app.GraphChan <- graphStruc
 
 			}()
 		}()

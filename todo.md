@@ -7,8 +7,8 @@
 7. Param alias P2 Done
 8. retry on failure
 9. JWTselect * f
-10. promotion param alias
-11: create promotion query
+10. promotion param alias done --> need to test
+11: create promotion query  -->
 
 
 

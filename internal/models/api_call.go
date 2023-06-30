@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"sync"
+	"time"
 
 	"github.com/onlysumitg/GoQhttp/go_ibm_db"
 	"github.com/onlysumitg/GoQhttp/utils/xmlutils"
@@ -51,6 +52,8 @@ type ApiCall struct {
 	CurrentSP *StoredProc
 
 	Server *Server
+
+	SPCallDuration time.Duration // int64 nanoseconds 
 }
 
 // ------------------------------------------------------

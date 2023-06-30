@@ -94,10 +94,7 @@ func main() {
 	go concurrent.RecoverAndRestart(10, "SendToWsChannel", app.SendToWsChannel)
 	go concurrent.RecoverAndRestart(10, "CaptureGraphData", app.CaptureGraphData)
 
-
 	go concurrent.RecoverAndRestart(10, "spCallLogModel:AddLogid", app.spCallLogModel.AddLogid)
-
-
 
 	addr, hostUrl := params.getHttpAddress()
 
@@ -128,8 +125,12 @@ func main() {
 	// --------------------- SINGAL HANDLER -------------------
 
 	cleanUpFunc := func() {
-		log.Println("Shutting down Server")
+		log.Println("Closing channels..")
 
+		close(app.GraphChan)
+		close(app.ToWSChan)
+
+		log.Println("Shutting down Server")
 		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 		defer func() {
 
@@ -140,7 +141,7 @@ func main() {
 		err := server.Shutdown(ctx)
 
 		if err != nil {
-			log.Printf("Server Shutdown Failed:%+v\n", err)
+			log.Printf("Forced Server Shutdown:%+v\n", err)
 		}
 
 		log.Println("Server Shutdown Completed")

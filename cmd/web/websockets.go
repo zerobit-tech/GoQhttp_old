@@ -119,7 +119,6 @@ func ListenForWs(conn *iwebsocket.WebSocketConnection) {
 // ListenToWsChannel is a goroutine that waits for an entry on the wsChan, and handles it according to the
 // specified action
 func (app *application) ListenToWsChannel() {
-	response := &iwebsocket.WsServerPayload{}
 
 	for {
 		e, ok := <-wsChan
@@ -151,6 +150,8 @@ func (app *application) ListenToWsChannel() {
 			//iwebsocket.BroadcastToAll(response)
 
 		case "getgraphdata":
+			response := &iwebsocket.WsServerPayload{}
+
 			response.Action = "graphdata"
 			response.Message = ""
 			response.Data = app.GetGraphDataPlotyl()
@@ -158,7 +159,19 @@ func (app *application) ListenToWsChannel() {
 			//iwebsocket.BroadcastToOne(e.Conn, response)
 			app.ToWSChan <- response
 
+		case "getgraphstats":
+			response := &iwebsocket.WsServerPayload{}
+
+			response.Action = "graphstats"
+			response.Message = ""
+			response.Data = app.GraphStats
+			response.Conn = &e.Conn
+			//iwebsocket.BroadcastToOne(e.Conn, response)
+			app.ToWSChan <- response
+
 		case "broadcast":
+			response := &iwebsocket.WsServerPayload{}
+
 			response.Action = "broadcast"
 			response.Message = fmt.Sprintf("<strong>%s</strong>: %s", e.Username, e.Message)
 			//iwebsocket.BroadcastToAll(response)

@@ -9,17 +9,68 @@ Dashboard
   <div class="col">
     <div class="card ">
       <div class="card-header">
-        <p class="h5">Dashboard
+        <span class="h5">Dashboard
+     
+  
+        </span>
+        <span class="float-right text-sm" >
+          <input type="checkbox" value="yes" name="autorefdashboard" checked="checked" id="autorefdashboard">  Auto Refresh 
+        </span>
 
-
-        </p>
-
+      
       </div>
 
 
       <div class="card-body">
          <div id='dashboardgraph'><!-- Plotly chart will be drawn inside this DIV --></div>
       
+      </div>
+
+      <div class="card-footer">
+        <div id="graphfooter" class="row text-center">
+    
+          <div class="col-sm-12 col-md mb-sm-2 mb-0">
+            <div class="text-muted">HTTP 100</div><strong>[[http100Count]] requests ([[http100Percent]]%)</strong>
+            <div class="progress progress-xs mt-2">
+              <div class="progress-bar bg-gradient-info" role="progressbar"  :style="{ width: http100Percent + '%' }"   :aria-valuenow="http100Percent" aria-valuemin="0" aria-valuemax="100"></div>
+            </div>
+          </div>
+
+          <div class="col-sm-12 col-md mb-sm-2 mb-0">
+            <div class="text-muted">HTTP 200</div><strong>[[http200Count]] requests ([[http200Percent]]%)</strong>
+            <div class="progress progress-xs mt-2">
+              <div class="progress-bar bg-gradient-success" role="progressbar"  :style="{ width: http200Percent + '%' }"   :aria-valuenow="http200Percent" aria-valuemin="0" aria-valuemax="100"></div>
+            </div>
+          </div>
+
+          <div class="col-sm-12 col-md mb-sm-2 mb-0">
+            <div class="text-muted">HTTP 300</div><strong>[[http300Count]] requests ([[http300Percent]]%)</strong>
+            <div class="progress progress-xs mt-2">
+              <div class="progress-bar " role="progressbar"  :style="{ width: http300Percent + '%' }"   :aria-valuenow="http300Percent" aria-valuemin="0" aria-valuemax="100"></div>
+            </div>
+          </div>
+
+          
+          <div class="col-sm-12 col-md mb-sm-2 mb-0">
+            <div class="text-muted">HTTP 400</div><strong>[[http400Count]] requests ([[http400Percent]]%)</strong>
+            <div class="progress progress-xs mt-2">
+              <div class="progress-bar bg-gradient-danger" role="progressbar"  :style="{ width: http400Percent + '%' }"   :aria-valuenow="http400Percent" aria-valuemin="0" aria-valuemax="100"></div>
+            </div>
+          </div>
+
+
+          <div class="col-sm-12 col-md mb-sm-2 mb-0">
+            <div class="text-muted">HTTP 500</div><strong>[[http500Count]] requests ([[http500Percent]]%)</strong>
+            <div class="progress progress-xs mt-2">
+              <div class="progress-bar bg-gradient-warning" role="progressbar"  :style="{ width: http500Percent + '%' }"   :aria-valuenow="http500Percent" aria-valuemin="0" aria-valuemax="100"></div>
+            </div>
+          </div>
+      
+
+       
+
+     
+        </div>
       </div>
     </div>
   </div>
@@ -34,14 +85,41 @@ Dashboard
 
 
       <div class="card-body">
+        <div id="tableheader" class="row">
+          <div class="col-sm-3">
+            <div class="c-callout c-callout-info"><small class="text-muted">Avg Response time</small>
+              <div class="text-value-lg">[[avgRspTime]] ms</div>
+            </div>
+          </div>
+
+          <div class="col-sm-3">
+            <div class="c-callout c-callout-danger"><small class="text-muted">Max Response time</small>
+              <div class="text-value-lg">[[maxRspTime]] ms</div>
+            </div>
+          </div>
+
+          <div class="col-sm-3">
+            <div class="c-callout c-callout-warning"><small class="text-muted">Avg DB time</small>
+              <div class="text-value-lg">[[avgDBTime]] ms</div>
+            </div>
+          </div>
+
+          <div class="col-sm-3">
+            <div class="c-callout c-callout-success"><small class="text-muted">Max DB time</small>
+              <div class="text-value-lg">[[maxDBTime]] ms</div>
+            </div>
+          </div>
+        </div>
+        <hr>
 
 <table id="dashboardlist" class="table   table-borderless table-responsive-sm table-striped    ">
   <thead class="thead-dark">
     <tr>
-      <th>Corelation ID</th>
+      <th>Correlation ID</th>
       <th>Endpoint</th>
       <th>Status Code</th>
-      <th>Response time(MS)</th>
+      <th>Total Response time(MS)</th>
+      <th>DB call time(MS)</th>
       <th>Call time</th>
 
 
@@ -62,6 +140,7 @@ Dashboard
 
         <td>{{.Httpcode}}</td>
         <td>{{.Responsetime}}</td>
+        <td>{{.SPResponsetime}}</td>
 
         <td>{{.Calltime}}</td>
 
@@ -102,9 +181,18 @@ Plotly.newPlot('dashboardgraph', dashboard_plot_data);
 
 <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.1/css/jquery.dataTables.css">
 <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.13.1/js/jquery.dataTables.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vue@2.6.12" type="text/javascript"></script>
 
 <script>
+ var autorefdashboard = true
+
+$("#autorefdashboard").click(function(){
+  autorefdashboard = $('#autorefdashboard').is(':checked');
+});
+
+
   var dashboardlisttable
+
     $(document).ready( function () {
        dashboardlisttable= $('#dashboardlist').DataTable(
           {  "order": [[4, 'desc']], 
@@ -116,5 +204,51 @@ Plotly.newPlot('dashboardgraph', dashboard_plot_data);
           }
       );
   } );
+
+
+
+  let graphfooter_vue = new Vue({
+    el: "#graphfooter",
+     delimiters: ['[[', ']]'],
+
+     data() {
+         return {
+         
+             http100Count: 0,
+             http100Percent: 0,
+
+             http200Count: 0,
+             http200Percent: 0,
+
+
+             http300Count: 0,
+             http300Percent: 0,
+
+             http400Count: 0,
+             http400Percent: 0,
+
+             http500Count: 0,
+             http500Percent: 0,
+          }
+     },
+  })
+
+
+
+  let graphtableheader = new Vue({
+    el: "#tableheader",
+     delimiters: ['[[', ']]'],
+
+     data() {
+         return {
+         
+             avgRspTime: 0,
+             maxRspTime: 0,
+
+             avgDBTime: 0,
+             maxDBTime: 0,
+          }
+     },
+  })
 </script>
 {{end}}

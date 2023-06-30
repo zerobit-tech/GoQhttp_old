@@ -24,7 +24,13 @@ $(document).ready(function () {
 
             jsonData["action"] = "getgraphdata"; 
             socket.send(JSON.stringify(jsonData)); // send left action to websocket
+        
+            jsonData["action"] = "getgraphstats"; 
+            socket.send(JSON.stringify(jsonData)); // send left action to websocket
+        
+        
         }
+
 
     // to send data to websocket
     //socket.send(JSON.stringify(jsonData));
@@ -74,14 +80,20 @@ $(document).ready(function () {
                 case "graphdata":
                     
                         var dashboardgraph = document.getElementById("dashboardgraph")
-                        if (typeof dashboardgraph !== null) {
-                            console.log("updating graph")
-                            //dashboardgraph.data.datasets=data.data
-                           Plotly.newPlot('dashboardgraph', data.data);
+                        if (typeof dashboardgraph !== null && typeof autorefdashboard !== 'undefined'){
+                            console.log("autorefdashboard",autorefdashboard)
+                            if (autorefdashboard) {
+                                console.log("updating graph")
+                                //dashboardgraph.data.datasets=data.data
+                               Plotly.newPlot('dashboardgraph', data.data);
+                            }
+                           
                         }
                         break;
 
                 case "graphtablercd":
+
+
                        
                 if (typeof dashboardlisttable !== 'undefined') {
                        
@@ -94,9 +106,51 @@ $(document).ready(function () {
                                 spUrl,
                                 data.data.Httpcode,
                             data.data.Responsetime,
+                            data.data.SPResponsetime,
                             data.data.Calltime]).draw(false);
                         }
                     break;
+
+
+
+
+                case "graphstats":
+
+                var dashboardgraph = document.getElementById("dashboardgraph")
+                if (typeof autorefdashboard === 'undefined' || !autorefdashboard){
+                    return
+                }
+                   //  console.log(data.data)
+                    if (typeof graphfooter_vue !== null && typeof graphfooter_vue !== 'undefined'){
+                        // alert(graphfooter_vue.http100Count)
+                         graphfooter_vue.http100Count = data.data.http100count
+                         graphfooter_vue.http100Percent=data.data.http100percent
+
+                         graphfooter_vue.http200Count = data.data.http200count
+                         graphfooter_vue.http200Percent=data.data.http200percent
+
+                         graphfooter_vue.http300Count = data.data.http300count
+                         graphfooter_vue.http300Percent=data.data.http300percent
+
+                         graphfooter_vue.http400Count = data.data.http400count
+                         graphfooter_vue.http400Percent=data.data.http400percent
+
+                         graphfooter_vue.http500Count = data.data.http500count
+                         graphfooter_vue.http500Percent=data.data.http500percent
+                     }
+
+                     if (typeof graphtableheader !== null && typeof graphtableheader !== 'undefined'){
+                        graphtableheader.avgRspTime =data.data.avgrestime
+                        graphtableheader.maxRspTime = data.data.maxrestime
+
+                        graphtableheader.avgDBTime = data.data.avgdbtime
+                        graphtableheader.maxDBTime =data.data.maxdbtime
+
+                     }
+
+
+                break;
+
 
              }
 

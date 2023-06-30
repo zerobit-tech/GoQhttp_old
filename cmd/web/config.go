@@ -67,6 +67,8 @@ type application struct {
 	GraphData300 []*GraphStruc
 	GraphData400 []*GraphStruc
 	GraphData500 []*GraphStruc
+	GraphStats   *GraphStats
+	GraphChan    chan *GraphStruc
 }
 
 func baseAppConfig(params parameters, db *bolt.DB, userdb *bolt.DB, logdb *bolt.DB) *application {
@@ -121,6 +123,8 @@ func baseAppConfig(params parameters, db *bolt.DB, userdb *bolt.DB, logdb *bolt.
 		GraphData300: make([]*GraphStruc, 0, 200),
 		GraphData400: make([]*GraphStruc, 0, 200),
 		GraphData500: make([]*GraphStruc, 0, 500),
+		GraphStats:   &GraphStats{},
+		GraphChan:    make(chan *GraphStruc, 5000),
 	}
 
 	if app.testMode {
@@ -135,3 +139,26 @@ func baseAppConfig(params parameters, db *bolt.DB, userdb *bolt.DB, logdb *bolt.
 	return app
 
 }
+
+// func (app *application) cleanUpFunc() {
+// 	log.Println("Closing channels..")
+
+// 	close(app.GraphChan)
+// 	close(app.ToWSChan)
+
+// 	log.Println("Shutting down Server")
+// 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+// 	defer func() {
+
+// 		cancel()
+// 		shutDownChan <- true
+// 	}()
+
+// 	err := server.Shutdown(ctx)
+
+// 	if err != nil {
+// 		log.Printf("Forced Server Shutdown:%+v\n", err)
+// 	}
+
+// 	log.Println("Server Shutdown Completed")
+// }

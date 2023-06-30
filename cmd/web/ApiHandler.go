@@ -25,9 +25,9 @@ func (app *application) APIHandlers(router *chi.Mux) {
 		//r.With(paginate).Get("/", listArticles)
 		// Log response time
 		r.Use(app.TimeTook)
+		r.Use(app.LogHandler)
 		r.Use(app.RequireTokenAuthentication)
 
-		r.Use(app.LogHandler)
 		r.Get("/", app.GET)
 		r.Post("/", app.POST)
 		r.Put("/", app.POST)
@@ -43,8 +43,8 @@ func (app *application) APIHandlers(router *chi.Mux) {
 	router.Route("/uapi/{apiname}", func(r chi.Router) {
 		//r.With(paginate).Get("/", listArticles)
 		r.Use(app.TimeTook)
-		r.Use(app.RequireUnAuthEndPoint)
 		r.Use(app.LogHandler)
+		r.Use(app.RequireUnAuthEndPoint)
 		r.Get("/", app.GET)
 		r.Post("/", app.POST)
 		r.Put("/", app.POST)
@@ -315,8 +315,15 @@ func (app *application) ProcessAPICall(w http.ResponseWriter, r *http.Request, e
 	// apiCall.ResponseString = html.UnescapeString(endPoint.ResponsePlaceholder) //string(jsonByte)
 
 	apiCall.LogInfo(fmt.Sprintf("Calling SP %s (specific %s) on server %s", apiCall.CurrentSP.Name, apiCall.CurrentSP.SpecificName, server.Name))
+	
+	
+
+// call the SP
 	endPoint.APICall(r.Context(), server, apiCall)
 	//log.Printf("%v: %v\n", "SeversCall006", time.Now())
+
+
+    graphStruc.SPResponsetime = apiCall.SPCallDuration.Milliseconds()
 
 	apiCall.LogInfo("Finalizing response")
 

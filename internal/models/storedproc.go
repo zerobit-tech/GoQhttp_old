@@ -466,14 +466,14 @@ func (sp *StoredProc) APICall(ctx context.Context, s *Server, apiCall *ApiCall) 
 	for k, v := range apiCall.RequestFlatMap {
 		givenParams[k] = v.Value
 	}
-	apiCall.Response, apiCall.Err = sp.Call(ctx, s, givenParams)
+	apiCall.Response, apiCall.SPCallDuration, apiCall.Err = sp.Call(ctx, s, givenParams)
 
 }
 
 // -----------------------------------------------------------------
 //
 // -----------------------------------------------------------------
-func (sp *StoredProc) Call(ctx context.Context, s *Server, givenParams map[string]any) (*StoredProcResponse, error) {
+func (sp *StoredProc) Call(ctx context.Context, s *Server, givenParams map[string]any) (*StoredProcResponse, time.Duration, error) {
 	//log.Printf("%v: %v\n", "SeversCall005.002", time.Now())
 
 	qhttp_status_code := 200
@@ -483,20 +483,23 @@ func (sp *StoredProc) Call(ctx context.Context, s *Server, givenParams map[strin
 	preparedCallStatements, err := sp.prepareCallStatement(s, givenParams)
 	if err != nil {
 		logEntries = append(logEntries, LogByType{Text: err.Error(), Type: "E"})
-		return &StoredProcResponse{LogData: logEntries}, err
+		return &StoredProcResponse{LogData: logEntries}, 0, err
 	}
 
 	t1 := time.Now()
 	logEntries = append(logEntries, LogByType{Text: "Starting DB CALL", Type: "I"})
 	err = sp.SeversCall(ctx, s, preparedCallStatements, false)
-	logEntries = append(logEntries, LogByType{Text: fmt.Sprintf("Finished DB CALL in: %s", time.Since(t1)), Type: "I"})
+
+	spCallDuration := time.Since(t1)
+
+	logEntries = append(logEntries, LogByType{Text: fmt.Sprintf("Finished DB CALL in: %s", spCallDuration), Type: "I"})
 
 	//log.Printf("%v: %v\n", "SeversCall005.004", time.Now())
 
 	if err != nil {
 		logEntries = append(logEntries, LogByType{Text: err.Error(), Type: "E"})
 
-		return &StoredProcResponse{LogData: logEntries}, err
+		return &StoredProcResponse{LogData: logEntries}, 0, err
 	}
 	logEntries = append(logEntries, LogByType{Text: "SP Call complete", Type: "I"})
 
@@ -603,7 +606,7 @@ func (sp *StoredProc) Call(ctx context.Context, s *Server, givenParams map[strin
 		LogData:     logEntries,
 	}
 
-	return responseFormat, nil
+	return responseFormat, spCallDuration, nil
 }
 
 // -----------------------------------------------------------------
