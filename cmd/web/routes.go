@@ -156,8 +156,6 @@ func (app *application) routes() *chi.Mux {
 	addStaticFiles(router)
 
 	router.Get("/", app.langingPage)
-	router.Get("/help", app.helpPage)
-	router.Get("/testmode", app.testModePage)
 
 	app.APIHandlers(router)
 	app.APILogHandlers(router)

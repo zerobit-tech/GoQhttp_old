@@ -41,6 +41,10 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	err = os.MkdirAll("./cert", os.ModePerm)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	// go run ./cmd/web -port=4002 -host="localhost"
 	// go run ./cmd/web -h  ==> help text
@@ -90,11 +94,11 @@ func main() {
 	app.batches()
 
 	//--------------------------------------- Setup websockets ----------------------------
-	go concurrent.RecoverAndRestart(10, "ListenToWsChannel", app.ListenToWsChannel)
-	go concurrent.RecoverAndRestart(10, "SendToWsChannel", app.SendToWsChannel)
-	go concurrent.RecoverAndRestart(10, "CaptureGraphData", app.CaptureGraphData)
+	go concurrent.RecoverAndRestart(10, "ListenToWsChannel", app.ListenToWsChannel) //goroutine
+	go concurrent.RecoverAndRestart(10, "SendToWsChannel", app.SendToWsChannel) //goroutine
+	go concurrent.RecoverAndRestart(10, "CaptureGraphData", app.CaptureGraphData) //goroutine
 
-	go concurrent.RecoverAndRestart(10, "spCallLogModel:AddLogid", app.spCallLogModel.AddLogid)
+	go concurrent.RecoverAndRestart(10, "spCallLogModel:AddLogid", app.spCallLogModel.AddLogid) //goroutine
 
 	addr, hostUrl := params.getHttpAddress()
 
@@ -111,16 +115,14 @@ func main() {
 
 	//  --------------------------------------- Data clean up job----------------------------
 
-	go app.clearLogsSchedular(db)
+	go app.clearLogsSchedular(db) //goroutine
 
-	go app.refreshSchedule()
+	go app.refreshSchedule() //goroutine
 
-	//go app.PingServers()
+	//go app.PingServers()  //goroutine
 	//--------------------------------------- Create super user ----------------------------
 
-	go app.CreateSuperUser(params.superuseremail, params.superuserpwd)
-
-	shutDownChan := make(chan bool)
+	go app.CreateSuperUser(params.superuseremail, params.superuserpwd) //goroutine
 
 	// --------------------- SINGAL HANDLER -------------------
 
@@ -135,7 +137,7 @@ func main() {
 		defer func() {
 
 			cancel()
-			shutDownChan <- true
+			app.shutDownChan <- 2
 		}()
 
 		err := server.Shutdown(ctx)
@@ -147,7 +149,7 @@ func main() {
 		log.Println("Server Shutdown Completed")
 	}
 
-	go initSignals(cleanUpFunc)
+	go initSignals(cleanUpFunc) //goroutine
 
 	// ---------------------LOAD SERVER -------------------
 
@@ -170,7 +172,7 @@ func main() {
 		//log.Fatal(err)
 	}
 
-	<-shutDownChan
+	<-app.shutDownChan
 	// mux := http.NewServeMux()
 	// mux.Handle("/", http.HandlerFunc(home))
 

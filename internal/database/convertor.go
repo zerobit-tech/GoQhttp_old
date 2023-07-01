@@ -36,7 +36,7 @@ func prepareColumnType(sql_column sql.ColumnType, index int) (column_type Column
 // -----------------------------------------------------------------
 //
 // -----------------------------------------------------------------
-func prepareColumnTypes(rows sql.Rows, wg *sync.WaitGroup, colch chan<- []ColumnType) { // (column_types []ColumnType) {
+func prepareColumnTypes(rows *sql.Rows, wg *sync.WaitGroup, colch chan<- []ColumnType) { // (column_types []ColumnType) {
 	column_types_p, _ := rows.ColumnTypes()
 
 	column_types := make([]ColumnType, 0)
@@ -91,7 +91,7 @@ func ToMap(rows *sql.Rows, maxRows int, scrollTo int) (return_rows []map[string]
 
 	var wg sync.WaitGroup
 	wg.Add(1)
-	go prepareColumnTypes(*rows, &wg, colch)
+	go prepareColumnTypes(rows, &wg, colch) //goroutine
 
 	//fmt.Println("ToMap rows.JumpToRow2(3)", rows.JumpToRow2(scrollTo))
 	for rows.Next() {
@@ -161,7 +161,7 @@ func ToMap2(rows *sql.Rows, maxRows int, scrollTo int) (return_rows []map[string
 
 	var wg sync.WaitGroup
 	wg.Add(1)
-	go prepareColumnTypes(*rows, &wg, colch)
+	go prepareColumnTypes(rows, &wg, colch) //goroutine
 
 	rowch := make(chan map[string]interface{})
 	defer close(rowch)
@@ -182,7 +182,7 @@ func ToMap2(rows *sql.Rows, maxRows int, scrollTo int) (return_rows []map[string
 
 		rows.Scan(scans...)
 
-		go processRow2(scans, fields, rowch, &wg)
+		go processRow2(scans, fields, rowch, &wg) //goroutine
 		if rowCount >= maxRows {
 			break
 		}

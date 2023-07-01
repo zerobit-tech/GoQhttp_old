@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/hyperboloide/lk"
-	"github.com/onlysumitg/GoQhttp/internal/models"
 	"github.com/onlysumitg/GoQhttp/lic"
 	"github.com/onlysumitg/GoQhttp/utils/stringutils"
 )
@@ -79,7 +78,7 @@ func processLicRequest(params *parameters) error {
 
 	emailBody := fmt.Sprintf("Please create a new qhttp.lic file in lic folder and copy the following string in that file. <br><br> %s", string(b))
 
-	email := &models.EmailRequest{
+	email := &EmailRequest{
 		To:       []string{params.email},
 		Subject:  "QHTTP Lic Key",
 		Body:     emailBody,

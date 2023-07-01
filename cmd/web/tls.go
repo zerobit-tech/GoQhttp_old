@@ -4,8 +4,9 @@ import (
 	"crypto/tls"
 	"fmt"
 	"log"
+	"os"
 
-	"github.com/onlysumitg/GoQhttp/ssl"
+	embdedTLS "github.com/onlysumitg/GoQhttp/tls"
 	"golang.org/x/crypto/acme/autocert"
 )
 
@@ -41,8 +42,17 @@ func (app *application) getSelfSignedOrLetsEncryptCert(certManager *autocert.Man
 			return c, err
 
 		} else {
-			fmt.Println("Loaded selfsigned certificate.")
+
+			// first check cert folder for goqhttp.crt and goqhttp.key
 			c, err := getSelfSignedCertificate()
+
+			if err == nil {
+				return c, nil
+			}
+
+			// check embded certificat
+
+			c, err = getEmdededSelfSignedCertificate()
 
 			if err != nil {
 				log.Panicln("Self signed certificate failed:", err)
@@ -55,12 +65,36 @@ func (app *application) getSelfSignedOrLetsEncryptCert(certManager *autocert.Man
 // -----------------------------------------------------------------
 //
 // -----------------------------------------------------------------
-func getSelfSignedCertificate() (*tls.Certificate, error) {
-	goqhttp_crt, err := ssl.SSLCertificats.ReadFile("cert/goqhttp.crt")
+func getEmdededSelfSignedCertificate() (*tls.Certificate, error) {
+	log.Println("Loading emdedded self signed certificate.")
+
+	goqhttp_crt, err := embdedTLS.SSLCertificats.ReadFile("cert/goqhttp.crt")
 	if err != nil {
 		return &tls.Certificate{}, err
 	}
-	goqhttp_api, err := ssl.SSLCertificats.ReadFile("cert/goqhttp.key")
+	goqhttp_api, err := embdedTLS.SSLCertificats.ReadFile("cert/goqhttp.key")
+	if err != nil {
+		return &tls.Certificate{}, err
+	}
+	cert, err := tls.X509KeyPair(goqhttp_crt, goqhttp_api)
+	if err != nil {
+		return &tls.Certificate{}, err
+	}
+
+	return &cert, nil
+}
+
+// -----------------------------------------------------------------
+//
+// -----------------------------------------------------------------
+func getSelfSignedCertificate() (*tls.Certificate, error) {
+	log.Println("Loading self signed certificate.")
+
+	goqhttp_crt, err := os.ReadFile("cert/goqhttp.crt")
+	if err != nil {
+		return &tls.Certificate{}, err
+	}
+	goqhttp_api, err := os.ReadFile("cert/goqhttp.key")
 	if err != nil {
 		return &tls.Certificate{}, err
 	}

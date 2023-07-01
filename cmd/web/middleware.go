@@ -129,6 +129,8 @@ func (app *application) LogHandler(next http.Handler) http.Handler {
 		} else {
 			requestBody = "Error :" + err.Error()
 		}
+
+		//goroutine
 		go func() {
 			defer func() {
 				if r := recover(); r != nil {
@@ -162,6 +164,7 @@ func (app *application) LogHandler(next http.Handler) http.Handler {
 		if err == nil {
 
 			responseBody = string(y)
+			//goroutine
 			go func() {
 				defer func() {
 					if r := recover(); r != nil {
@@ -197,6 +200,7 @@ func (app *application) LogHandler(next http.Handler) http.Handler {
 		rec.Body.WriteTo(w)
 
 		if rec.Code >= 400 {
+			//goroutine
 			go func() {
 				defer concurrent.Recoverer("EmailForErrResponse")
 				email := &models.EmailRequest{
@@ -261,13 +265,14 @@ func (app *application) TimeTook(next http.Handler) http.Handler {
 			fmt.Println("graphStruc", graphStruc, *graphStruc)
 
 			logE := models.LogStruct{I: 1001, Id: requestId, Message: fmt.Sprintf("ResponseTime:%s", durationPasses), TestMode: app.testMode}
+			//goroutine
 			go func() {
 				defer func() {
 					if r := recover(); r != nil {
 						log.Println("Recovered in TimeTook", r)
 					}
 				}()
-				models.LogChan <- logE				
+				models.LogChan <- logE
 				app.GraphChan <- graphStruc
 
 			}()

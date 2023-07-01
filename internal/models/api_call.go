@@ -66,19 +66,19 @@ func (a *ApiCall) HasError() bool {
 		if errors.Is(a.Err, driver.ErrBadConn) {
 			a.StatusCode = http.StatusInternalServerError
 			a.StatusMessage = a.Err.Error()
-			go a.LogError(fmt.Sprintf("Connection Error: %s", a.Server.Name))
+			go a.LogError(fmt.Sprintf("Connection Error: %s", a.Server.Name)) //goroutine
 
 			return true
 		}
 
 		if errors.As(a.Err, &odbcError) {
 			a.StatusCode, a.StatusMessage = OdbcErrMessage(odbcError)
-			go a.LogError(fmt.Sprintf("ODBC Error %s:%s", a.StatusMessage, odbcError.Error()))
+			go a.LogError(fmt.Sprintf("ODBC Error %s:%s", a.StatusMessage, odbcError.Error())) //goroutine
 			return true
 		}
 		a.StatusCode = http.StatusBadRequest
 		a.StatusMessage = a.Err.Error()
-		go a.LogError(fmt.Sprintf("Error %s", a.Err.Error()))
+		go a.LogError(fmt.Sprintf("Error %s", a.Err.Error())) //goroutine
 
 		return true
 	}

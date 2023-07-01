@@ -17,16 +17,5 @@ func (app *application) appLangingPage() string {
 	return "/dashboard"
 
 }
-func (app *application) helpPage(w http.ResponseWriter, r *http.Request) {
-	data := app.newTemplateData(r)
-
-	app.render(w, r, http.StatusOK, "help.tmpl", data)
-
-}
-
-func (app *application) testModePage(w http.ResponseWriter, r *http.Request) {
-	data := app.newTemplateData(r)
-
-	app.render(w, r, http.StatusOK, "testmode.tmpl", data)
-
-}
+ 
+ 

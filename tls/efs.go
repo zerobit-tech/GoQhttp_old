@@ -1,4 +1,4 @@
-package ssl
+package tls
 
 import (
 	"embed"

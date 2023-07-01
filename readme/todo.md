@@ -9,6 +9,7 @@
 9. JWTselect * f
 10. promotion param alias done --> need to test
 11: create promotion query  -->
+12: add version to sp
 
 
 

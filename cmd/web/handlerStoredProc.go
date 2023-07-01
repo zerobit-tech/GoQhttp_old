@@ -414,7 +414,7 @@ func (app *application) SPDeleteConfirm(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	go app.deleteSPData(spId)
+	go app.deleteSPData(spId) //goroutine
 	app.sessionManager.Put(r.Context(), "flash", "Endpoint deleted sucessfully")
 
 	http.Redirect(w, r, "/sp", http.StatusSeeOther)

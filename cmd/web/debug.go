@@ -9,6 +9,7 @@ import (
 
 func debugMe(params parameters) {
 	if params.testmode {
+		//goroutine
 		go func() {
 			addr, _ := params.getHttpAddressForProfile()
 

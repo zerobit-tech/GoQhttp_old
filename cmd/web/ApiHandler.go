@@ -253,7 +253,7 @@ func (app *application) ProcessAPICall(w http.ResponseWriter, r *http.Request, e
 
 	// log api data
 	defer func() {
-		go apiCall.SaveLogs(app.testMode)
+		go apiCall.SaveLogs(app.testMode)  //goroutine
 	}()
 
 	apiCall.LogInfo(fmt.Sprintf("Received call for EndPoint %s | Method %s", endpointName, strings.ToUpper(r.Method)))
@@ -336,6 +336,7 @@ func (app *application) ProcessAPICall(w http.ResponseWriter, r *http.Request, e
 	app.writeJSON(w, apiCall.StatusCode, apiCall.Response, nil)
 
 	// save SP logid
+	//goroutine
 	go func() {
 		defer func() {
 			if r := recover(); r != nil {

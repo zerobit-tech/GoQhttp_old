@@ -189,12 +189,12 @@ func (s *Server) GetConnection() (*sql.DB, error) {
 
 	db, err := database.GetConnection(s)
 
-	fmt.Println(" >>>>>>>>>>>>>>>>>>>>> dbY.Stats().InUse ", db.Stats().InUse)
-	fmt.Println(" >>>>>>>>>>>>>>>>>>>>> dbY.Stats().OpenConnections ", db.Stats().OpenConnections)
-	fmt.Println(" >>>>>>>>>>>>>>>>>>>>> dbY.Stats().MaxOpenConnections ", db.Stats().MaxOpenConnections)
-	fmt.Println(" >>>>>>>>>>>>>>>>>>>>> dbY.Stats().Idle ", db.Stats().Idle)
-	fmt.Println(" >>>>>>>>>>>>>>>>>>>>> dbY.Stats().WaitCount ", db.Stats().WaitCount)
-	fmt.Println(" >>>>>>>>>>>>>>>>>>>>> dbY.Stats().WaitDuration ", db.Stats().WaitDuration)
+	//fmt.Println(s.Name, " >>>>>>>>>>>>>>>>>>>>> dbY.Stats().InUse ", db.Stats().InUse)
+	//fmt.Println(s.Name, " >>>>>>>>>>>>>>>>>>>>> dbY.Stats().OpenConnections ", db.Stats().OpenConnections)
+	//fmt.Println(s.Name, " >>>>>>>>>>>>>>>>>>>>> dbY.Stats().MaxOpenConnections ", db.Stats().MaxOpenConnections)
+	//fmt.Println(s.Name, " >>>>>>>>>>>>>>>>>>>>> dbY.Stats().Idle ", db.Stats().Idle)
+	//fmt.Println(s.Name, " >>>>>>>>>>>>>>>>>>>>> dbY.Stats().WaitCount ", db.Stats().WaitCount)
+	//fmt.Println(s.Name, " >>>>>>>>>>>>>>>>>>>>> dbY.Stats().WaitDuration ", db.Stats().WaitDuration)
 
 	return db, err
 }
@@ -263,11 +263,11 @@ func (m *ServerModel) Update(u *Server, clearCache bool) error {
 		if !u.OnHold {
 			u.OnHoldMessage = ""
 		} else {
-			go u.ClearCache()
+			go u.ClearCache() //goroutine
 		}
 
 		if clearCache {
-			go u.ClearCache()
+			go u.ClearCache() //goroutine
 		}
 
 		buf, err := json.Marshal(u)

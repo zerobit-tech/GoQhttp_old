@@ -57,10 +57,10 @@ func (app *application) WsNotification(w http.ResponseWriter, r *http.Request) {
 	conn := iwebsocket.WebSocketConnection{Conn: ws}
 
 	// after 1st call this GoRoutine will process all websocket requests.
-	go ListenForWs(&conn)
+	go ListenForWs(&conn) //goroutine
 
 	// ping clien
-	go app.ping(&conn)
+	go app.ping(&conn) //goroutine
 }
 
 // ------------------------------------------------------
@@ -127,7 +127,7 @@ func (app *application) ListenToWsChannel() {
 			continue
 		}
 
-		fmt.Println(">>>>>>>>>>>>>>>> WS >>>>>>>>>>>>>.", e.Action)
+		//fmt.Println(">>>>>>>>>>>>>>>> WS >>>>>>>>>>>>>.", e.Action)
 
 		switch e.Action {
 		case "pong":

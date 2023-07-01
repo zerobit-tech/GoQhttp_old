@@ -120,7 +120,7 @@ func (w *Simple) Perform(job Job) error {
 	if h, ok := w.handlers[job.Handler]; ok {
 		// TODO(sio4): #road-to-v1 - consider timeout and/or cancellation
 		w.wg.Add(1)
-		go func() {
+		go func() { //goroutine
 			defer w.wg.Done()
 			err := safeRun(func() error {
 				return h(job.Args)
@@ -169,7 +169,7 @@ func (w *Simple) PerformIn(job Job, d time.Duration) error {
 	}
 
 	w.wg.Add(1) // waiting job also should be counted
-	go func() {
+	go func() { //goroutine
 		defer w.wg.Done()
 
 		for {

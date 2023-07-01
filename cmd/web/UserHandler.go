@@ -315,6 +315,8 @@ func (app *application) userSignupPost(w http.ResponseWriter, r *http.Request) {
 		app.serverError500(w, r, err)
 		return
 	}
+
+	//goroutine
 	go func() {
 		emailRequest := app.users.BuildVerificationEmail(user, app.hostURL)
 		app.SendEmail(emailRequest)
@@ -441,7 +443,7 @@ func (app *application) userVerification(w http.ResponseWriter, r *http.Request)
 	if app.users.Verify(user, verificationid, app.users.GetVerificationTableName()) {
 		user.HasVerified = true
 		app.users.Save(user, false)
-
+		//goroutine
 		go app.users.DeleteVerificationRecord(user, app.users.GetVerificationTableName())
 
 		app.sessionManager.Put(r.Context(), "flash", "You've been verified successfully!")
@@ -498,7 +500,7 @@ func (app *application) passwordReset(w http.ResponseWriter, r *http.Request) {
 				user.Password = form.Password
 				app.users.Save(user, true)
 				app.sessionManager.Put(r.Context(), "flash", "Password updated")
-
+				//goroutine
 				go app.users.DeleteVerificationRecord(user, app.users.GetPasswordResetTableName())
 
 				http.Redirect(w, r, app.appLangingPage(), http.StatusSeeOther)
@@ -548,7 +550,7 @@ func (app *application) userLoginTrouble(w http.ResponseWriter, r *http.Request)
 		if form.Valid() {
 			switch form.Option {
 			case "reverify":
-				go func() {
+				go func() { //goroutine
 
 					user, err := app.users.GetByEmail(form.Email)
 					if err == nil {
@@ -558,7 +560,7 @@ func (app *application) userLoginTrouble(w http.ResponseWriter, r *http.Request)
 				}()
 
 			default:
-				go func() {
+				go func() { //goroutine
 
 					user, err := app.users.GetByEmail(form.Email)
 					if err == nil {

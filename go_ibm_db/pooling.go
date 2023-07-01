@@ -204,7 +204,7 @@ func (d *DBP) Close() {
 			b.availablePool[d.con] = append(b.availablePool[d.con], dbpc)
 			delete(b.usedPool, d.con)
 		}
-		go d.Timeout()
+		go d.Timeout()  //goroutine
 	} else {
 		d.DB.Close()
 	}

@@ -279,7 +279,7 @@ func (app *application) RunPromotion(w http.ResponseWriter, r *http.Request) {
 		app.goBack(w, r, http.StatusSeeOther)
 		return
 	}
-	go app.ProcessPromotion(server)
+	go app.ProcessPromotion(server) //goroutine
 	app.sessionManager.Put(r.Context(), "flash", "Queued. Please wait.")
 
 	app.goBack(w, r, http.StatusSeeOther)

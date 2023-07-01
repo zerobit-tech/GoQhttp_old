@@ -69,6 +69,8 @@ type application struct {
 	GraphData500 []*GraphStruc
 	GraphStats   *GraphStats
 	GraphChan    chan *GraphStruc
+
+	shutDownChan chan int  // 1= restrt app  2= shutdown app
 }
 
 func baseAppConfig(params parameters, db *bolt.DB, userdb *bolt.DB, logdb *bolt.DB) *application {
@@ -125,6 +127,8 @@ func baseAppConfig(params parameters, db *bolt.DB, userdb *bolt.DB, logdb *bolt.
 		GraphData500: make([]*GraphStruc, 0, 500),
 		GraphStats:   &GraphStats{},
 		GraphChan:    make(chan *GraphStruc, 5000),
+
+		shutDownChan: make(chan int), // 1= restrt app  2= shutdown app
 	}
 
 	if app.testMode {
@@ -133,6 +137,7 @@ func baseAppConfig(params parameters, db *bolt.DB, userdb *bolt.DB, logdb *bolt.
 
 	}
 
+	//goroutine
 	go models.SaveLogs(app.LogDB)
 
 	//app.CreateHttpPathPermissions()
