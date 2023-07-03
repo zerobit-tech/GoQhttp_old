@@ -75,7 +75,7 @@ Add new Server
         <div class="form-group">
             <label for="serverpassword">Server Password</label>
 
-            <input id="serverpassword" value='{{.Form.Password}}' type="text"
+            <input id="serverpassword" value='{{.Form.Password}}' type="password"
                 class="form-control  {{with .Form.FieldErrors.password}} is-invalid {{end}}" name="password" required></input>
             {{with .Form.FieldErrors.password}}
             <div class='invalid-feedback'>{{.}}</div>

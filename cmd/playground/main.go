@@ -3,7 +3,6 @@ package main
 import (
 	"crypto/tls"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"strings"
 	"sync"
@@ -24,7 +23,7 @@ func main2(wg *sync.WaitGroup) {
 
 	//time.Sleep(1 * time.Second)
 
-	url := "https://0.0.0.0:4081/api/testchar"
+	url := "https://0.0.0.0:4081/api/spchar720"
 	method := "POST"
 
 	payload := strings.NewReader(` 	
@@ -47,7 +46,7 @@ func main2(wg *sync.WaitGroup) {
 		fmt.Println(err)
 		return
 	}
-	req.Header.Add("Authorization", "MGFjNjRmZWMzOTdmMTVkM2I5OGVmZTcxOTY2ZTFmYzg4YWNjODM4ZjhkMTY1NWE3YTdhZG1pbjJAZXhhbXBsZS5jb20=9969d9b5a54b5ba442c58c772c88eaf07efbbe648f850685ec")
+	req.Header.Add("Authorization", "M2MxODIyNmE3MmNmYjg2NmVlOWE4Y2RkMDdkMzZiYWFjNjMzMWRlNjIyODhhN2ViYjdkZXY3MjBAZXhhbXBsZS5jb20=994df748b305ea066d8ae4cd9bb2e22ad612667cdc5673fddd")
 	req.Header.Add("Content-Type", "application/json")
 
 	res, err := client.Do(req)
@@ -56,11 +55,11 @@ func main2(wg *sync.WaitGroup) {
 		return
 	}
 	defer res.Body.Close()
-
-	body, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	fmt.Println(string(body))
+	fmt.Println("res", res.StatusCode)
+	// body, err := ioutil.ReadAll(res.Body)
+	// if err != nil {
+	// 	fmt.Println(err)
+	// 	return
+	// }
+	// fmt.Println(string(body))
 }

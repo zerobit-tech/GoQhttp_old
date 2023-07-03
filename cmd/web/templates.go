@@ -104,7 +104,7 @@ func (app *application) newTemplateData(r *http.Request) *templateData {
 
 		ComparisonOperators: ListComparisonOperators(),
 		IsAuthenticated:     app.isAuthenticated(r), // use {{if .IsAuthenticated}} in template
-		TestMode:            app.testMode,
+		TestMode:            app.debugMode,
 		Version:             app.version,
 	}
 	user, err := app.GetUser(r)

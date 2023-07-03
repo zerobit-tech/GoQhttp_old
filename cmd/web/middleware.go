@@ -145,7 +145,7 @@ func (app *application) LogHandler(next http.Handler) http.Handler {
 
 			//models.SaveLogs(app.LogDB, 998, requestId, buf.String(), app.testMode)
 
-			logE := models.LogStruct{I: 998, Id: requestId, Message: buf.String(), TestMode: app.testMode}
+			logE := models.LogStruct{I: 998, Id: requestId, Message: buf.String(), TestMode: app.debugMode}
 			models.LogChan <- logE
 
 		}()
@@ -157,7 +157,6 @@ func (app *application) LogHandler(next http.Handler) http.Handler {
 		// After processing ==> log response
 		responseBody := ""
 		graphStruc := GetGraphStruct(r.Context())
-		fmt.Println(">>>>>>>>>>> rec.Code rec.Code>>>>>>>>>>>>>.....", rec.Code)
 		graphStruc.Httpcode = rec.Code
 
 		y, err := httputil.DumpResponse(rec.Result(), true)
@@ -179,11 +178,11 @@ func (app *application) LogHandler(next http.Handler) http.Handler {
 
 				//models.SaveLogs(app.LogDB, 999, requestId, buf.String(), app.testMode)
 
-				logE := models.LogStruct{I: 999, Id: requestId, Message: buf.String(), TestMode: app.testMode}
+				logE := models.LogStruct{I: 999, Id: requestId, Message: buf.String(), TestMode: app.debugMode}
 				models.LogChan <- logE
 
 				//models.SaveLogs(app.LogDB, 1000, requestId, fmt.Sprintf("HTTPCODE:%d", rec.Code), app.testMode)
-				logE = models.LogStruct{I: 1000, Id: requestId, Message: fmt.Sprintf("HTTPCODE:%d", rec.Code), TestMode: app.testMode}
+				logE = models.LogStruct{I: 1000, Id: requestId, Message: fmt.Sprintf("HTTPCODE:%d", rec.Code), TestMode: app.debugMode}
 
 				models.LogChan <- logE
 			}()
@@ -262,9 +261,7 @@ func (app *application) TimeTook(next http.Handler) http.Handler {
 			graphStruc.Responsetime = durationPasses.Milliseconds()
 			graphStruc.Calltime = time.Now().Local().Format(TimestampFormat)
 
-			fmt.Println("graphStruc", graphStruc, *graphStruc)
-
-			logE := models.LogStruct{I: 1001, Id: requestId, Message: fmt.Sprintf("ResponseTime:%s", durationPasses), TestMode: app.testMode}
+			logE := models.LogStruct{I: 1001, Id: requestId, Message: fmt.Sprintf("ResponseTime:%s", durationPasses), TestMode: app.debugMode}
 			//goroutine
 			go func() {
 				defer func() {
@@ -272,8 +269,20 @@ func (app *application) TimeTook(next http.Handler) http.Handler {
 						log.Println("Recovered in TimeTook", r)
 					}
 				}()
+
 				models.LogChan <- logE
-				app.GraphChan <- graphStruc
+
+				select {
+				case <-app.shutDownContext.Done():
+					if !app.hasClosedGraphChan {
+						//fmt.Println("closing GraphChan>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<    <<<<<<<<<<<<<<")
+						close(app.GraphChan)
+					}
+					app.hasClosedGraphChan = true
+
+				default:
+					app.GraphChan <- graphStruc
+				}
 
 			}()
 		}()

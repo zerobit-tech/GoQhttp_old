@@ -3,6 +3,7 @@ package env
 import (
 	"log"
 	"os"
+	"strings"
 
 	"github.com/joho/godotenv"
 )
@@ -23,4 +24,14 @@ func GetEnvVariable(key string, defaultVal string) string {
 	}
 
 	return val
+}
+
+func IsInDebugMode() bool {
+	debugS := strings.TrimSpace(strings.ToUpper(GetEnvVariable("DEBUG", "FALSE")))
+
+	if debugS == "TRUE" || debugS == "YES" || debugS == "Y" {
+		return true
+	}
+
+	return false
 }

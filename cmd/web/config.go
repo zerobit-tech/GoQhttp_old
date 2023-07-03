@@ -1,13 +1,18 @@
 package main
 
 import (
+	"context"
+	"fmt"
 	"html/template"
 	"log"
+	"net/http"
 	"os"
 	"sync"
+	"time"
 
 	"github.com/alexedwards/scs/v2"
 	"github.com/go-playground/form"
+	"github.com/onlysumitg/GoQhttp/env"
 	"github.com/onlysumitg/GoQhttp/internal/iwebsocket"
 	"github.com/onlysumitg/GoQhttp/internal/models"
 	"github.com/onlysumitg/GoQhttp/utils/concurrent"
@@ -17,10 +22,10 @@ import (
 )
 
 type application struct {
-	version       string
-	endPointMutex sync.Mutex
-	requestMutex  sync.Mutex
-
+	version         string
+	endPointMutex   sync.Mutex
+	requestMutex    sync.Mutex
+	mainAppServer   *http.Server
 	graphMutex      sync.Mutex
 	requestLogMutex sync.Mutex
 
@@ -55,9 +60,9 @@ type application struct {
 	useHttps       bool
 	useletsencrypt bool
 
-	testMode bool
+	debugMode bool
 
-	redirectToHttps bool
+	//redirectToHttps bool
 
 	ToWSChan  chan *iwebsocket.WsServerPayload
 	WSClients concurrent.MapInterface
@@ -70,7 +75,11 @@ type application struct {
 	GraphStats   *GraphStats
 	GraphChan    chan *GraphStruc
 
-	shutDownChan chan int  // 1= restrt app  2= shutdown app
+	hasClosedGraphChan bool
+
+	shutDownChan    chan int // 1= restrt app  2= shutdown app
+	shutDownContext context.Context
+	shutDownStart   context.CancelFunc
 }
 
 func baseAppConfig(params parameters, db *bolt.DB, userdb *bolt.DB, logdb *bolt.DB) *application {
@@ -88,6 +97,10 @@ func baseAppConfig(params parameters, db *bolt.DB, userdb *bolt.DB, logdb *bolt.
 	formDecoder := form.NewDecoder()
 
 	_, hostUrl := params.getHttpAddress()
+
+	//--------------------------------------- Setup shutdown  ----------------------------
+
+	shutDownctx, startShutdown := context.WithCancel(context.Background())
 	//---------------------------------------  final app config ----------------------------
 	app := &application{
 		version:       "1.1.0",
@@ -110,15 +123,15 @@ func baseAppConfig(params parameters, db *bolt.DB, userdb *bolt.DB, logdb *bolt.
 		storedProcs: &models.StoredProcModel{DB: db},
 
 		spCallLogModel:             &models.SPCallLogModel{DB: logdb, DataChan: make(chan models.SPCallLogEntry, 5000)},
-		useHttps:                   params.https,
+		useHttps:                   true,
 		maxAllowedEndPoints:        -1,
 		maxAllowedEndPointsPerUser: -1,
-		testMode:                   params.testmode,
-		redirectToHttps:            params.redirectToHttps,
-		domain:                     params.domain,
-		useletsencrypt:             params.useletsencrypt,
-		ToWSChan:                   make(chan *iwebsocket.WsServerPayload, 500),
-		WSClients:                  concurrent.NewSuperEfficientSyncMap(0),
+
+		//redirectToHttps: params.redirectToHttps,
+		domain:         params.domain,
+		useletsencrypt: params.useletsencrypt,
+		ToWSChan:       make(chan *iwebsocket.WsServerPayload, 500),
+		WSClients:      concurrent.NewSuperEfficientSyncMap(0),
 
 		GraphData100: make([]*GraphStruc, 0, 200),
 		GraphData200: make([]*GraphStruc, 0, 500),
@@ -128,10 +141,14 @@ func baseAppConfig(params parameters, db *bolt.DB, userdb *bolt.DB, logdb *bolt.
 		GraphStats:   &GraphStats{},
 		GraphChan:    make(chan *GraphStruc, 5000),
 
-		shutDownChan: make(chan int), // 1= restrt app  2= shutdown app
+		shutDownChan:    make(chan int), // 1= restrt app  2= shutdown app
+		shutDownContext: shutDownctx,
+		shutDownStart:   startShutdown,
+
+		debugMode: env.IsInDebugMode(),
 	}
 
-	if app.testMode {
+	if app.debugMode {
 		app.maxAllowedEndPoints = 50
 		app.maxAllowedEndPointsPerUser = 2
 
@@ -142,6 +159,36 @@ func baseAppConfig(params parameters, db *bolt.DB, userdb *bolt.DB, logdb *bolt.
 
 	//app.CreateHttpPathPermissions()
 	return app
+
+}
+
+func (app *application) CleanupAndShutDown() {
+	if app.shutDownStart != nil {
+
+		fmt.Println("Starting shut down>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<    <<<<<<<<<<<<<<")
+		app.shutDownStart()
+	}
+	close(app.ToWSChan)
+
+	log.Println("Closing channels..")
+
+	// close(app.GraphChan)  // closed in TimeTook middleware
+
+	log.Println("Shutting down Server")
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer func() {
+
+		cancel()
+		app.shutDownChan <- 2
+	}()
+
+	err := app.mainAppServer.Shutdown(ctx)
+
+	if err != nil {
+		log.Printf("Forced Server Shutdown:%+v\n", err)
+	}
+
+	log.Println("Server Shutdown Completed")
 
 }
 

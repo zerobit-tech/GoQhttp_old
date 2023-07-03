@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"net/http"
@@ -95,8 +94,8 @@ func main() {
 
 	//--------------------------------------- Setup websockets ----------------------------
 	go concurrent.RecoverAndRestart(10, "ListenToWsChannel", app.ListenToWsChannel) //goroutine
-	go concurrent.RecoverAndRestart(10, "SendToWsChannel", app.SendToWsChannel) //goroutine
-	go concurrent.RecoverAndRestart(10, "CaptureGraphData", app.CaptureGraphData) //goroutine
+	go concurrent.RecoverAndRestart(10, "SendToWsChannel", app.SendToWsChannel)     //goroutine
+	go concurrent.RecoverAndRestart(10, "CaptureGraphData", app.CaptureGraphData)   //goroutine
 
 	go concurrent.RecoverAndRestart(10, "spCallLogModel:AddLogid", app.spCallLogModel.AddLogid) //goroutine
 
@@ -107,7 +106,7 @@ func main() {
 	// this is short cut to create http.Server and  server.ListenAndServe()
 	// err := http.ListenAndServe(params.addr, routes)
 
-	server := &http.Server{
+	app.mainAppServer = &http.Server{
 		Addr:     addr,
 		Handler:  routes,
 		ErrorLog: app.errorLog,
@@ -126,30 +125,7 @@ func main() {
 
 	// --------------------- SINGAL HANDLER -------------------
 
-	cleanUpFunc := func() {
-		log.Println("Closing channels..")
-
-		close(app.GraphChan)
-		close(app.ToWSChan)
-
-		log.Println("Shutting down Server")
-		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-		defer func() {
-
-			cancel()
-			app.shutDownChan <- 2
-		}()
-
-		err := server.Shutdown(ctx)
-
-		if err != nil {
-			log.Printf("Forced Server Shutdown:%+v\n", err)
-		}
-
-		log.Println("Server Shutdown Completed")
-	}
-
-	go initSignals(cleanUpFunc) //goroutine
+	go initSignals(app.CleanupAndShutDown) //goroutine
 
 	// ---------------------LOAD SERVER -------------------
 
@@ -157,19 +133,19 @@ func main() {
 	debugMe(*params)
 
 	// go openbrowser(url)
-	if params.https {
+	//if params.https {
 
-		// Construct a tls.config
-		//tlsConfig := app.getCertificateToUse()
-		server.TLSConfig = app.getCertificateToUse()
-		err = server.ListenAndServeTLS("", "")
+	// Construct a tls.config
+	//tlsConfig := app.getCertificateToUse()
+	app.mainAppServer.TLSConfig = app.getCertificateToUse()
+	err = app.mainAppServer.ListenAndServeTLS("", "")
 
-	} else {
-		err = server.ListenAndServe()
+	// } else {
+	// 	err = server.ListenAndServe()
 
-	}
+	// }
 	if err != nil {
-		//log.Fatal(err)
+		log.Println(err)
 	}
 
 	<-app.shutDownChan
@@ -206,7 +182,7 @@ func (app *application) clearLogsSchedular(db *bolt.DB) {
 
 	//s.Jobs()
 
-	if app.testMode {
+	if app.debugMode {
 		t := gocron.NewScheduler(time.Local)
 
 		t.Every(1).Day().At("21:30").Do(func() {

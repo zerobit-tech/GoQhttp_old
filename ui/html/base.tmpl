@@ -43,7 +43,7 @@
 
       {{if .TestMode}}
       <li class="c-sidebar-nav-item">
-        <a class="c-sidebar-nav-link" href="/testmode" ><h5  data-toggle="tooltip" data-placement="bottom" title="Click to view test mode limitations" style="color:#e55353">TEST MODE</h5> </a>
+        <a class="c-sidebar-nav-link" href="" ><h5  data-toggle="tooltip" data-placement="bottom" title="Click to view test mode limitations" style="color:#e55353">DEBUG MODE</h5> </a>
 
      </li>
       {{end}}
@@ -341,7 +341,7 @@
   <script src="/static/js/main.js"></script>
 
   <link rel="stylesheet" type="text/css" href="/static/css/work.css">
-  <script src="/static/js/table.js"></script>
+  
 
 
 
@@ -373,14 +373,7 @@
   }
 
 
-
-  $(document).ready(function () {
-
-    document.cookie = "lasttabid" + "=" + getCookie("tabid")
-
-
-    document.cookie = "tabid" + "=" + uuidv4()
-  });
+ 
 </script>
 
 

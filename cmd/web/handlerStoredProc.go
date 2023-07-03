@@ -34,10 +34,12 @@ func (app *application) StoredProcHandlers(router *chi.Mux) {
 		r.Get("/delete/{spId}", app.SPDelete)
 		r.Post("/delete", app.SPDeleteConfirm)
 
-		r.Get("/run/{spId}", app.SPRun)
-		r.Get("/run", app.SPRun)
+		// r.Get("/run/{spId}", app.SPRun)
+		// r.Get("/run", app.SPRun)
 
-		r.Post("/build", app.SPBuild)
+		// r.Post("/build", app.SPBuild)
+
+
 		r.Get("/refresh/{spId}", app.SpRefresh)
 
 		r.Post("/assignserver", app.AssignServer)
@@ -76,116 +78,12 @@ func (app *application) SPList(w http.ResponseWriter, r *http.Request) {
 
 }
 
-// ------------------------------------------------------
-//
-// ------------------------------------------------------
-func (app *application) SPRun(w http.ResponseWriter, r *http.Request) {
-	// data := app.newTemplateData(r)
+ 
 
-	// savesQueries := app.savedQueries.List()
-	// data.SavesQueries = savesQueries
-	// data.SavesQueriesByCategory = make(map[string][]*models.StoredProc)
-
-	// //spId := chi.URLParam(r, "spId")
-
-	// for _, savesQuery := range savesQueries {
-	// 	savesQuery.PopulateFields()
-
-	// 	queryList, found := data.SavesQueriesByCategory[savesQuery.Category]
-	// 	if !found {
-	// 		queryList = make([]*models.SP, 0)
-	// 	}
-	// 	queryList = append(queryList, savesQuery)
-	// 	data.SavesQueriesByCategory[savesQuery.Category] = queryList
-
-	// }
-
-	// nextUrl := r.URL.Query().Get("next") //filters=["color", "price", "brand"]
-	// data.Next = nextUrl
-	// app.render(w, r, http.StatusOK, "sp_run.tmpl", data)
-
-}
+ 
 
 // ------------------------------------------------------
-func (app *application) SPBuild(w http.ResponseWriter, r *http.Request) {
-
-	// formMap := map[string]string{}
-	// err := json.NewDecoder(r.Body).Decode(&formMap)
-	// if err != nil {
-	// 	app.errorResponse(w, r, http.StatusBadRequest, err.Error())
-	// 	return
-	// }
-	// log.Println("><<>>>>>>", formMap)
-	// savedQueeryId, found := formMap["sPid"]
-	// if savedQueeryId == "" || !found {
-	// 	app.serverError(w, r, errors.New("sPid is required"))
-	// 	return
-	// }
-	// sP, err := app.savedQueries.Get(savedQueeryId)
-	// log.Println("sP>>>", sP, err)
-	// if err != nil {
-	// 	app.serverError(w, r, err)
-	// 	return
-	// }
-
-	// sqlToRun, fieldError := sP.ReplaceFields(formMap)
-	// if len(fieldError) > 0 {
-	// 	// if has error field -> return blank sql to run
-	// 	sqlToRun = ""
-
-	// }
-
-	// sPBuild := models.SPBuild{SqlToRun: sqlToRun, FieldErrors: fieldError}
-
-	// app.writeJSON(w, http.StatusOK, sPBuild, nil)
-
-	// // need to return a json
-
-}
-
-// ------------------------------------------------------
-func (app *application) SPRunAsJson(w http.ResponseWriter, r *http.Request) {
-
-	// currentServerID := app.sessionManager.GetString(r.Context(), "currentserver")
-	// currentServer, err := app.servers.Get(currentServerID)
-	// if err != nil {
-	// 	app.errorResponse(w, r, http.StatusBadRequest, err.Error())
-	// 	return
-	// }
-
-	// if err := r.ParseForm(); err != nil {
-	// 	// handle error
-	// }
-	// savedQueeryId := r.PostForm.Get("sPid")
-	// if savedQueeryId != "" {
-	// 	app.serverError500(w, r, errors.New("sPid is required"))
-	// 	return
-	// }
-	// sP, err := app.savedQueries.Get(savedQueeryId)
-	// if err != nil {
-	// 	app.serverError(w, r, err)
-	// 	return
-	// }
-
-	// fieldMap := make(map[string]string)
-	// for key, values := range r.PostForm {
-	// 	fieldMap[key] = values[0]
-	// }
-
-	// sqlToRun, fieldError := sP.ReplaceFields(fieldMap)
-	// if len(fieldError) == 0 {
-	// 	// No error
-	// 	// run the sql
-	// }
-
-	// sessionID := app.sessionManager.Token(r.Context())
-
-	// currentTabId, lastTabid := getTabIds(r)
-
-	// queryResults := models.ProcessSQLStatements(sqlToRun, currentServer, sessionID, currentTabId, lastTabid)
-	// app.writeJSON(w, http.StatusOK, queryResults, nil)
-
-}
+ 
 
 // ------------------------------------------------------
 //
@@ -467,7 +365,7 @@ func (app *application) SPCall(w http.ResponseWriter, r *http.Request) {
 
 		}
 	} else {
-		err = errors.New("Default server is not defined.")
+		err = errors.New("default server is not defined")
 	}
 
 	if err != nil {

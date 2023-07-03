@@ -5,10 +5,12 @@ import (
 
 	"net/http"
 	_ "net/http/pprof"
+
+	"github.com/onlysumitg/GoQhttp/env"
 )
 
 func debugMe(params parameters) {
-	if params.testmode {
+	if env.IsInDebugMode() {
 		//goroutine
 		go func() {
 			addr, _ := params.getHttpAddressForProfile()
