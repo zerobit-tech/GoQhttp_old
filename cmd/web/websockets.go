@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"runtime/debug"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/gorilla/websocket"
@@ -16,6 +17,9 @@ import (
 // ------------------------------------------------------
 func (app *application) WsHandlers(router *chi.Mux) {
 	router.Route("/ws", func(r chi.Router) {
+		r.Use(app.RequireAuthentication)
+		r.Use(CheckLicMiddleware)
+
 		r.Get("/notification", app.WsNotification)
 
 	})
@@ -69,6 +73,8 @@ func (app *application) WsNotification(w http.ResponseWriter, r *http.Request) {
 //
 // ------------------------------------------------------@
 func (app *application) ping(conn *iwebsocket.WebSocketConnection) {
+	defer concurrent.Recoverer("ping")
+	defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
 
 	// ping client --> in reponse client will send pong --> check ListenToWsChannel()
 	response := &iwebsocket.WsServerPayload{}
@@ -88,12 +94,8 @@ func (app *application) ping(conn *iwebsocket.WebSocketConnection) {
 // feeds data into the wsChan
 func ListenForWs(conn *iwebsocket.WebSocketConnection) {
 
-	// to recover from panics
-	defer func() {
-		if r := recover(); r != nil {
-			log.Println("ListenForWs Error", fmt.Sprintf("%v", r))
-		}
-	}()
+	defer concurrent.Recoverer("ListenForWs Error")
+	defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
 
 	var payload iwebsocket.WsClientPayload
 

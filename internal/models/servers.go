@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"runtime/debug"
 	"strings"
 	"sync"
 	"time"
@@ -14,6 +15,7 @@ import (
 	"github.com/onlysumitg/GoQhttp/go_ibm_db"
 	"github.com/onlysumitg/GoQhttp/internal/database"
 	"github.com/onlysumitg/GoQhttp/internal/validator"
+	"github.com/onlysumitg/GoQhttp/utils/concurrent"
 	"github.com/onlysumitg/GoQhttp/utils/stringutils"
 
 	bolt "go.etcd.io/bbolt"
@@ -176,6 +178,9 @@ func (s *Server) GetConnectionID() string {
 //
 // ------------------------------------------------------------
 func (s *Server) ClearCache() {
+	defer concurrent.Recoverer("ClearCache")
+	defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
+
 	database.ClearCache(s)
 }
 

@@ -4,9 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"runtime/debug"
 	"sync"
 	"time"
 
+	"github.com/onlysumitg/GoQhttp/utils/concurrent"
 	"github.com/sirupsen/logrus"
 )
 
@@ -121,6 +123,9 @@ func (w *Simple) Perform(job Job) error {
 		// TODO(sio4): #road-to-v1 - consider timeout and/or cancellation
 		w.wg.Add(1)
 		go func() { //goroutine
+			defer concurrent.Recoverer("Perform")
+			defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
+
 			defer w.wg.Done()
 			err := safeRun(func() error {
 				return h(job.Args)
@@ -170,6 +175,9 @@ func (w *Simple) PerformIn(job Job, d time.Duration) error {
 
 	w.wg.Add(1) // waiting job also should be counted
 	go func() { //goroutine
+		defer concurrent.Recoverer("safeRun")
+		defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
+
 		defer w.wg.Done()
 
 		for {

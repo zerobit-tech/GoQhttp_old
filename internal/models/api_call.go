@@ -8,10 +8,12 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"runtime/debug"
 	"sync"
 	"time"
 
 	"github.com/onlysumitg/GoQhttp/go_ibm_db"
+	"github.com/onlysumitg/GoQhttp/utils/concurrent"
 	"github.com/onlysumitg/GoQhttp/utils/xmlutils"
 	bolt "go.etcd.io/bbolt"
 )
@@ -53,7 +55,7 @@ type ApiCall struct {
 
 	Server *Server
 
-	SPCallDuration time.Duration // int64 nanoseconds 
+	SPCallDuration time.Duration // int64 nanoseconds
 }
 
 // ------------------------------------------------------
@@ -307,6 +309,9 @@ func (apiCall *ApiCall) LogInfo(logEntry string) {
 //
 // ------------------------------------------------------
 func (apiCall *ApiCall) LogError(logEntry string) {
+	defer concurrent.Recoverer("LogError")
+	defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
+
 	defer apiCall.logMutex.Unlock()
 
 	buf := bytes.NewBufferString("")
@@ -335,6 +340,9 @@ func (apiCall *ApiCall) LogError(logEntry string) {
 //
 // ------------------------------------------------------
 func (m *ApiCall) SaveLogs(testMode bool) {
+	defer concurrent.Recoverer("SaveLogs")
+	defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
+
 	for _, l := range m.Response.LogData {
 		if l.Type == "E" {
 			m.LogError(l.Text)
@@ -374,6 +382,8 @@ func (m *ApiCall) SaveLogs(testMode bool) {
 //
 // ------------------------------------------------------
 func SaveLogs(db *bolt.DB) {
+	defer concurrent.Recoverer("SaveLogs")
+	defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
 
 	for {
 		logS := <-LogChan

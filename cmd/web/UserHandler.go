@@ -6,14 +6,18 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"runtime/debug"
 
 	"github.com/onlysumitg/GoQhttp/internal/validator"
+	"github.com/onlysumitg/GoQhttp/utils/concurrent"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/onlysumitg/GoQhttp/internal/models"
 )
 
 func (app *application) CreateSuperUser(email, password string) {
+	// defer concurrent.Recoverer("GetByEmail")
+	// defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
 
 	user, err := app.users.GetByEmail(email)
 
@@ -318,6 +322,9 @@ func (app *application) userSignupPost(w http.ResponseWriter, r *http.Request) {
 
 	//goroutine
 	go func() {
+		defer concurrent.Recoverer("BuildverificationEmail")
+		defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
+
 		emailRequest := app.users.BuildVerificationEmail(user, app.hostURL)
 		app.SendEmail(emailRequest)
 	}()
@@ -551,6 +558,8 @@ func (app *application) userLoginTrouble(w http.ResponseWriter, r *http.Request)
 			switch form.Option {
 			case "reverify":
 				go func() { //goroutine
+					defer concurrent.Recoverer("userLoginTrouble 1")
+					defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
 
 					user, err := app.users.GetByEmail(form.Email)
 					if err == nil {
@@ -561,6 +570,9 @@ func (app *application) userLoginTrouble(w http.ResponseWriter, r *http.Request)
 
 			default:
 				go func() { //goroutine
+					defer concurrent.Recoverer("userLoginTrouble 2")
+					defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
+
 
 					user, err := app.users.GetByEmail(form.Email)
 					if err == nil {

@@ -10,4 +10,5 @@ var InbuiltParams = []string{
 	"QHTTP_USER_EMAIL",
 	"QHTTP_STATUS_MESSAGE",
 	"QHTTP_STATUS_CODE",
+	"QHTTP_CORRELATION_ID",
 }

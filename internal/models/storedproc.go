@@ -475,6 +475,7 @@ func (sp *StoredProc) APICall(ctx context.Context, s *Server, apiCall *ApiCall) 
 // -----------------------------------------------------------------
 func (sp *StoredProc) Call(ctx context.Context, s *Server, givenParams map[string]any) (*StoredProcResponse, time.Duration, error) {
 	//log.Printf("%v: %v\n", "SeversCall005.002", time.Now())
+	defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
 
 	qhttp_status_code := 200
 	qhttp_status_message := ""
@@ -651,6 +652,7 @@ func (sp *StoredProc) SeversCall(ctx context.Context, s *Server, preparedCallSta
 	}()
 
 	defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
+
 	db, err := s.GetConnection()
 	if err != nil {
 		return err

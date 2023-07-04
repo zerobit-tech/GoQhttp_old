@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"runtime/debug"
 	"sync"
 )
 
@@ -37,6 +38,14 @@ func prepareColumnType(sql_column sql.ColumnType, index int) (column_type Column
 //
 // -----------------------------------------------------------------
 func prepareColumnTypes(rows *sql.Rows, wg *sync.WaitGroup, colch chan<- []ColumnType) { // (column_types []ColumnType) {
+
+	defer func() {
+		if r := recover(); r != nil {
+			log.Println("prepareColumnTypes", r)
+		}
+	}()
+	defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
+
 	column_types_p, _ := rows.ColumnTypes()
 
 	column_types := make([]ColumnType, 0)
@@ -125,6 +134,13 @@ func ToMap(rows *sql.Rows, maxRows int, scrollTo int) (return_rows []map[string]
 //
 // -----------------------------------------------------------------
 func processRow2(scans []interface{}, fields []string, rowch chan<- map[string]interface{}, wg *sync.WaitGroup) { //map[string]interface{} {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Println("processRow2", r)
+		}
+	}()
+	defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
+
 	wg.Add(1)
 	row := make(map[string]interface{})
 	for i, v := range scans {

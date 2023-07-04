@@ -6,12 +6,14 @@ import (
 	"net/http"
 	"strings"
 	"sync"
+
+	"github.com/onlysumitg/GoQhttp/utils/concurrent"
 )
 
 func main() {
 
 	var wg sync.WaitGroup
-	for i := 0; i <= 1000; i++ {
+	for i := 0; i <= 10000; i++ {
 		wg.Add(1)
 		go main2(&wg)
 	}
@@ -19,11 +21,12 @@ func main() {
 	wg.Wait()
 }
 func main2(wg *sync.WaitGroup) {
+	defer concurrent.Recoverer("main2")
 	defer wg.Done()
 
 	//time.Sleep(1 * time.Second)
 
-	url := "https://0.0.0.0:4081/api/spchar720"
+	url := "https://0.0.0.0:4081/api/spparm"
 	method := "POST"
 
 	payload := strings.NewReader(` 	

@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"runtime/debug"
 	"strconv"
 	"time"
 
@@ -173,6 +174,10 @@ func main() {
 //
 // -----------------------------------------------------------------
 func (app *application) clearLogsSchedular(db *bolt.DB) {
+
+	defer concurrent.Recoverer("clearLogsSchedular")
+	defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
+
 	s := gocron.NewScheduler(time.Local)
 
 	s.Every(1).Day().At("21:30").Do(func() {
@@ -197,11 +202,9 @@ func (app *application) clearLogsSchedular(db *bolt.DB) {
 //
 // -----------------------------------------------------------------
 func (app *application) refreshSchedule() {
-	defer func() {
-		if r := recover(); r != nil {
-			log.Println("Recovered in refreshSchedule", r)
-		}
-	}()
+
+	defer concurrent.Recoverer("Recovered in refreshSchedule")
+	defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
 
 	//return
 

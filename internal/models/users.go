@@ -8,11 +8,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"runtime/debug"
 	"strings"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/onlysumitg/GoQhttp/internal/validator"
+	"github.com/onlysumitg/GoQhttp/utils/concurrent"
 	bolt "go.etcd.io/bbolt"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -367,7 +369,6 @@ func (m *UserModel) GetByEmail(email string) (*User, error) {
 
 }
 
-
 // -----------------------------------------------------------------
 //
 // -----------------------------------------------------------------
@@ -549,6 +550,8 @@ func (m *UserModel) Verify(u *User, verificationId string, table []byte) bool {
 // -----------------------------------------------------------------
 // We'll use the Insert method to add a new record to the "users" table.
 func (m *UserModel) DeleteVerificationRecord(u *User, table []byte) error {
+	concurrent.Recoverer("DeleteVerificationRecord")
+	defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
 
 	err := m.DB.Update(func(tx *bolt.Tx) error {
 		bucket, err := tx.CreateBucketIfNotExists(table)

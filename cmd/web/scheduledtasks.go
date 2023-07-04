@@ -3,12 +3,14 @@ package main
 import (
 	"context"
 	"log"
+	"runtime/debug"
 	"strings"
 	"time"
 
 	"github.com/onlysumitg/GoQhttp/go_ibm_db"
 	"github.com/onlysumitg/GoQhttp/internal/models"
 	"github.com/onlysumitg/GoQhttp/lic"
+	"github.com/onlysumitg/GoQhttp/utils/concurrent"
 )
 
 // --------------------------------
@@ -84,11 +86,9 @@ func (app *application) ProcessPromotions() {
 //
 // --------------------------------
 func (app *application) ProcessPromotion(s *models.Server) {
-	defer func() {
-		if r := recover(); r != nil {
-			log.Println("Recovered in refreshSchedule", r)
-		}
-	}()
+
+	defer concurrent.Recoverer("ProcessPromotion")
+	defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
 
 	promotionRecords, err := s.ListPromotion(true)
 
@@ -116,6 +116,7 @@ func (app *application) ProcessPromotionRecord(s *models.Server, pr *models.Prom
 			log.Println("Recovered in refreshSchedule", r)
 		}
 	}()
+	defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
 
 	if pr.Status == "P" {
 

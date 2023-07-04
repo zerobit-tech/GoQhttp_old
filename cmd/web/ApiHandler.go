@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"runtime/debug"
 	"strings"
@@ -12,6 +11,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/onlysumitg/GoQhttp/internal/models"
+	"github.com/onlysumitg/GoQhttp/utils/concurrent"
 	"github.com/onlysumitg/GoQhttp/utils/httputils"
 	"github.com/onlysumitg/GoQhttp/utils/jsonutils"
 	"github.com/onlysumitg/GoQhttp/utils/xmlutils"
@@ -105,10 +105,18 @@ func (app *application) InjectRequestInfo(r *http.Request, requesyBodyFlatMap ma
 
 	} else {
 		requesyBodyFlatMap["QHTTP_USER_TOKEN"] = xmlutils.ValueDatatype{Value: "", DataType: "STRING"}
-		requesyBodyFlatMap["QHTTP_USER_EMAIL"] = xmlutils.ValueDatatype{Value: currentUser.Email, DataType: "STRING"}
+		requesyBodyFlatMap["QHTTP_USER_EMAIL"] = xmlutils.ValueDatatype{Value: "", DataType: "STRING"}
 
 	}
 
+	requestId := middleware.GetReqID(r.Context())
+	if requestId != "" {
+		requesyBodyFlatMap["QHTTP_CORRELATION_ID"] = xmlutils.ValueDatatype{Value: requestId, DataType: "STRING"}
+
+	} else {
+		requesyBodyFlatMap["QHTTP_CORRELATION_ID"] = xmlutils.ValueDatatype{Value: "", DataType: "STRING"}
+
+	}
 }
 
 // ------------------------------------------------------
@@ -253,7 +261,7 @@ func (app *application) ProcessAPICall(w http.ResponseWriter, r *http.Request, e
 
 	// log api data
 	defer func() {
-		go apiCall.SaveLogs(app.debugMode)  //goroutine
+		go apiCall.SaveLogs(app.debugMode) //goroutine
 	}()
 
 	apiCall.LogInfo(fmt.Sprintf("Received call for EndPoint %s | Method %s", endpointName, strings.ToUpper(r.Method)))
@@ -315,15 +323,12 @@ func (app *application) ProcessAPICall(w http.ResponseWriter, r *http.Request, e
 	// apiCall.ResponseString = html.UnescapeString(endPoint.ResponsePlaceholder) //string(jsonByte)
 
 	apiCall.LogInfo(fmt.Sprintf("Calling SP %s (specific %s) on server %s", apiCall.CurrentSP.Name, apiCall.CurrentSP.SpecificName, server.Name))
-	
-	
 
-// call the SP
+	// call the SP
 	endPoint.APICall(r.Context(), server, apiCall)
 	//log.Printf("%v: %v\n", "SeversCall006", time.Now())
 
-
-    graphStruc.SPResponsetime = apiCall.SPCallDuration.Milliseconds()
+	graphStruc.SPResponsetime = apiCall.SPCallDuration.Milliseconds()
 
 	apiCall.LogInfo("Finalizing response")
 
@@ -338,11 +343,9 @@ func (app *application) ProcessAPICall(w http.ResponseWriter, r *http.Request, e
 	// save SP logid
 	//goroutine
 	go func() {
-		defer func() {
-			if r := recover(); r != nil {
-				log.Println("Recovered in AddLogid", r)
-			}
-		}()
+
+		defer concurrent.Recoverer("Recovered in AddLogid")
+		defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
 
 		l := models.SPCallLogEntry{SpID: apiCall.CurrentSP.ID, LogId: apiCall.ID}
 		app.spCallLogModel.DataChan <- l

@@ -14,6 +14,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/form/v4"
 	"github.com/onlysumitg/GoQhttp/internal/models"
+	"github.com/onlysumitg/GoQhttp/utils/concurrent"
 )
 
 // -----------------------------------------------------------------
@@ -330,6 +331,9 @@ func getRoutePattern(r *http.Request) string {
 // Create a new decodePostForm() helper method. The second parameter here, dst,
 // is the target destination that we want to decode the form data into.
 func (app *application) deleteSPData(spid string) {
+	defer concurrent.Recoverer("deleteSPData")
+	defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
+
 	spcalllog, _ := app.spCallLogModel.Get(spid)
 	for _, l := range spcalllog.Logs {
 		logid := l.LogID

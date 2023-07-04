@@ -3,11 +3,13 @@ package main
 import (
 	"fmt"
 	"log"
+	"runtime/debug"
 	"strings"
 	"time"
 
 	"github.com/jprobinson/eazye"
-	 
+	"github.com/onlysumitg/GoQhttp/utils/concurrent"
+
 	mail "github.com/xhit/go-simple-mail/v2"
 )
 
@@ -69,6 +71,8 @@ func (app *application) SendEmail(r *EmailRequest) {
 //
 // ------------------------------------------------------
 func ReadEmails(waitC chan<- int) {
+	defer concurrent.Recoverer("GetByEmail")
+	defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
 
 	defer func() {
 		waitC <- 1

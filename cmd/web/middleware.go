@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/http/httputil"
+	"runtime/debug"
 	"sync/atomic"
 	"time"
 
@@ -132,11 +133,9 @@ func (app *application) LogHandler(next http.Handler) http.Handler {
 
 		//goroutine
 		go func() {
-			defer func() {
-				if r := recover(); r != nil {
-					log.Println("Recovered in LogHandler SaveLogs request", r)
-				}
-			}()
+
+			defer concurrent.Recoverer("Recovered in LogHandler SaveLogs request")
+			defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
 
 			buf := bytes.NewBufferString("")
 
@@ -165,11 +164,9 @@ func (app *application) LogHandler(next http.Handler) http.Handler {
 			responseBody = string(y)
 			//goroutine
 			go func() {
-				defer func() {
-					if r := recover(); r != nil {
-						log.Println("Recovered in LogHandler SaveLogs response", r)
-					}
-				}()
+
+				defer concurrent.Recoverer("Recovered in LogHandler SaveLogs request2")
+				defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
 
 				buf := bytes.NewBufferString("")
 
@@ -202,6 +199,8 @@ func (app *application) LogHandler(next http.Handler) http.Handler {
 			//goroutine
 			go func() {
 				defer concurrent.Recoverer("EmailForErrResponse")
+				defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
+
 				email := &models.EmailRequest{
 					Subject:  fmt.Sprintf("%d %s", rec.Code, requestId),
 					Body:     fmt.Sprintf("<h3>Request</h3><br><pre>%s</pre><br><br><br><br><h3>Response</h3><br><pre>%s</pre>", requestBody, responseBody),
@@ -264,11 +263,9 @@ func (app *application) TimeTook(next http.Handler) http.Handler {
 			logE := models.LogStruct{I: 1001, Id: requestId, Message: fmt.Sprintf("ResponseTime:%s", durationPasses), TestMode: app.debugMode}
 			//goroutine
 			go func() {
-				defer func() {
-					if r := recover(); r != nil {
-						log.Println("Recovered in TimeTook", r)
-					}
-				}()
+
+				defer concurrent.Recoverer("Recovered in TimeTook")
+				defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
 
 				models.LogChan <- logE
 

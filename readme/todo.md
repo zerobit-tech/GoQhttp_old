@@ -10,6 +10,7 @@
 10. promotion param alias done --> need to test
 11: create promotion query  -->
 12: add version to sp
+13: Use named DNS
 
 
 
