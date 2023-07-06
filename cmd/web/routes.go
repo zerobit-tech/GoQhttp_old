@@ -169,5 +169,6 @@ func (app *application) routes() *chi.Mux {
 	app.UsersHandlers(router)
 	// app.RbacHandlers(router)
 
+	app.PostmantHandlers(router)
 	return router // standard.Then(router)
 }

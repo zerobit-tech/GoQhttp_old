@@ -72,7 +72,7 @@
 <!--  sp options -->
       {{if .StoredProc}}
       {{if .StoredProc.ID}}
-          {{template "spoptions" .StoredProc}}
+          {{template "spoptions" .}}
          
           {{end}}
 
@@ -118,12 +118,12 @@
       </svg>Users</a>
       </li>
 
-      <li class="c-sidebar-nav-divider"></li>
+      <!-- <li class="c-sidebar-nav-divider"></li>
       <li class="c-sidebar-nav-item"><a class="c-sidebar-nav-link" href="/apilogs/clear">
         <svg class="c-icon mfe-2">
           <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-trash"></use>
       </svg>Clear all Logs</a>
-      </li>
+      </li> -->
       {{end}}
 
       <li class="c-sidebar-nav-divider"></li>
@@ -186,7 +186,7 @@
                     <ul class="c-header-nav mfs-auto">
                       <li class="c-header-nav-item mr-3">
                           {{if .CurrentLicInfo}}
-                          <a href="/license">Lic Valid till: {{.CurrentLicInfo.ValidTill | humanDate}} ({{.CurrentLicInfo.ExpiryDays}} days)</a>
+                          <a href="/license">Lic:  {{.CurrentLicInfo.AssignedToEmail}} ({{.CurrentLicInfo.ExpiryDays}} days remaining)</a>
                           {{end}}
                      
                       </li>

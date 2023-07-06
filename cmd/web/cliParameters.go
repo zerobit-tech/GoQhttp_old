@@ -3,7 +3,10 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log"
+	"os"
 	"runtime"
+	"strconv"
 
 	"github.com/onlysumitg/GoQhttp/env"
 )
@@ -76,4 +79,12 @@ func (params *parameters) Load() {
 	//flag.BoolVar(&params.redirectToHttps, "redirecttohttps", false, "Redirect to https")
 
 	flag.Parse()
+
+	envPort := os.Getenv("PORT")
+	port, err := strconv.Atoi(envPort)
+	if err == nil {
+
+		params.port = port
+		log.Println("Using port>>> ", port, params.port)
+	}
 }

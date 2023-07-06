@@ -158,7 +158,7 @@ func (app *application) UserDeleteConfirm(w http.ResponseWriter, r *http.Request
 	err := r.ParseForm()
 	if err != nil {
 		app.sessionManager.Put(r.Context(), "error", fmt.Sprintf("001 Error processing form %s", err.Error()))
-		app.goBack(w, r, http.StatusBadRequest)
+		app.goBack(w, r, http.StatusSeeOther)
 		return
 	}
 
@@ -168,7 +168,7 @@ func (app *application) UserDeleteConfirm(w http.ResponseWriter, r *http.Request
 	if err != nil {
 
 		app.sessionManager.Put(r.Context(), "error", fmt.Sprintf("Error deleting User: %s", err.Error()))
-		app.goBack(w, r, http.StatusBadRequest)
+		app.goBack(w, r, http.StatusSeeOther)
 		return
 	}
 	app.sessionManager.Put(r.Context(), "flash", "Deleted sucessfully")

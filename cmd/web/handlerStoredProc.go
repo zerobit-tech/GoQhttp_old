@@ -39,7 +39,6 @@ func (app *application) StoredProcHandlers(router *chi.Mux) {
 
 		// r.Post("/build", app.SPBuild)
 
-
 		r.Get("/refresh/{spId}", app.SpRefresh)
 
 		r.Post("/assignserver", app.AssignServer)
@@ -78,12 +77,7 @@ func (app *application) SPList(w http.ResponseWriter, r *http.Request) {
 
 }
 
- 
-
- 
-
 // ------------------------------------------------------
- 
 
 // ------------------------------------------------------
 //
@@ -176,6 +170,13 @@ func (app *application) SpLogs(w http.ResponseWriter, r *http.Request) {
 // Server details
 // ------------------------------------------------------
 func (app *application) SpParamAlias(w http.ResponseWriter, r *http.Request) {
+
+	if !app.features.ParameterAlias {
+		//app.sessionManager.Put(r.Context(), "error", fmt.Sprintf("Error: %s", err.Error()))
+		app.goBack(w, r, http.StatusNotFound)
+		return
+	}
+
 	data := app.newTemplateData(r)
 
 	spId := chi.URLParam(r, "spId")
@@ -383,6 +384,11 @@ func (app *application) SPCall(w http.ResponseWriter, r *http.Request) {
 //
 // ------------------------------------------------------
 func (app *application) SPsaveparamalias(w http.ResponseWriter, r *http.Request) {
+	if !app.features.ParameterAlias {
+		//app.sessionManager.Put(r.Context(), "error", fmt.Sprintf("Error: %s", err.Error()))
+		app.goBack(w, r, http.StatusNotFound)
+		return
+	}
 
 	spId := r.FormValue("id")
 

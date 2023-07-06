@@ -38,8 +38,9 @@ type templateData struct {
 
 	CSRFToken string // Add a CSRFToken field.   <input type='hidden' name='csrf_token' value='{{.CSRFToken}}'>
 
-	Server  *models.Server
-	Servers []*models.Server
+	Server            *models.Server
+	Servers           []*models.Server
+	AllowServerDelete bool
 
 	//CurrentServer *models.Server
 
@@ -72,6 +73,8 @@ type templateData struct {
 	TestMode bool
 
 	GraphData map[int][]*GraphStruc
+
+	Features *features
 }
 
 func ListComparisonOperators() []string {
@@ -106,6 +109,7 @@ func (app *application) newTemplateData(r *http.Request) *templateData {
 		IsAuthenticated:     app.isAuthenticated(r), // use {{if .IsAuthenticated}} in template
 		TestMode:            app.debugMode,
 		Version:             app.version,
+		Features:            app.features,
 	}
 	user, err := app.GetUser(r)
 	if err == nil {

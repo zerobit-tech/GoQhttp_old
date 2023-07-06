@@ -122,6 +122,9 @@ Add new Server
         </div>
         
         <br>
+
+        {{if .Features.Promotion}}
+
         <br>
         <div class="form-group">
             <label for="configfilelib">Auto promotion Prefix</label>
@@ -158,6 +161,10 @@ Add new Server
 
         
         <br>
+        {{end}}
+
+
+        {{if .Features.TokenSync}}
         <br>
         <div class="form-group">
             <label for="usertokenfile">User Token Table</label>
@@ -183,6 +190,8 @@ Add new Server
 
         
         <br>
+
+        {{end}}
         <br>
         
 

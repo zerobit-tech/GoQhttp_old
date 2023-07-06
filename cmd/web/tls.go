@@ -34,7 +34,7 @@ func (app *application) getSelfSignedOrLetsEncryptCert(certManager *autocert.Man
 
 		if app.useletsencrypt {
 
-			fmt.Printf("\nFalling back to Letsencrypt\n")
+			fmt.Printf("\nUsing Letsencrypt\n")
 			c, err := certManager.GetCertificate(hello)
 			if err != nil {
 				log.Panicln("Letsencrypt failed:", err)

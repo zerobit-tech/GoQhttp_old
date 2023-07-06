@@ -51,7 +51,7 @@ func (app *application) SendEmail(r *EmailRequest) {
 
 	// Create email
 	email := mail.NewMSG()
-	email.SetFrom("support@zerobit.tech")
+	email.SetFrom("qhttp@zerobit.tech")
 	email.AddTo(r.To...)
 	//email.AddCc("another_you@example.com")
 	email.SetSubject(r.Subject)
@@ -85,7 +85,7 @@ func ReadEmails(waitC chan<- int) {
 			Host:               "smtp.zerobit.tech",
 			TLS:                true,
 			InsecureSkipVerify: true,
-			User:               "support@zerobit.tech",
+			User:               "qhttp@zerobit.tech",
 			Pwd:                "Zer0#2023",
 			Folder:             "inbox",
 			ReadOnly:           false,

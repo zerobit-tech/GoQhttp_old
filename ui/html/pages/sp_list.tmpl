@@ -24,6 +24,7 @@ EndPoints
     <tr>
       <th>EndPoint name</th>
       <th>Method</th>
+      <th>Server</th>
       <th>StoredProc</th>
       <th>Specific</th>
       <th>Options</th>
@@ -35,6 +36,7 @@ EndPoints
     <tr>
       <td>{{.EndPointName}}</td>
       <td>{{.HttpMethod}}</td>
+      <td>{{if .DefaultServer}} {{.DefaultServer.Name}} {{end}}</td>
       <td>{{.Lib}}/{{.Name}}</td>
       <td>{{.SpecificLib}}/{{.SpecificName}}</td>
        <td nowrap>
@@ -42,12 +44,12 @@ EndPoints
         
           View</a>
 
-        <a class="btn btn-ghost-info" 
+        <!-- <a class="btn btn-ghost-info" 
         data-toggle="tooltip" data-placement="bottom" title="Edit" 
         href='/sp/update/{{.ID}}'>
           <svg class="c-icon mfe-2">
             <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-pencil"></use>
-        </svg></a>
+        </svg></a> -->
         <a class="btn btn-ghost-danger" 
         data-toggle="tooltip" data-placement="bottom" title="Delete" 
         href='/sp/delete/{{.ID}}'>

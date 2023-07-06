@@ -105,6 +105,13 @@ func (app *application) ServerHandlers(router *chi.Mux) {
 //
 // ------------------------------------------------------
 func (app *application) PromotionTableHelp(w http.ResponseWriter, r *http.Request) {
+
+	if !app.features.Promotion {
+		//app.sessionManager.Put(r.Context(), "error", fmt.Sprintf("Error: %s", err.Error()))
+		app.goBack(w, r, http.StatusNotFound)
+		return
+	}
+
 	data := app.newTemplateData(r)
 
 	app.render(w, r, http.StatusOK, "server_help_promotion_table.tmpl", data)
@@ -115,6 +122,12 @@ func (app *application) PromotionTableHelp(w http.ResponseWriter, r *http.Reques
 //
 // ------------------------------------------------------
 func (app *application) UserTokenTableHelp(w http.ResponseWriter, r *http.Request) {
+
+	if !app.features.TokenSync {
+		app.goBack(w, r, http.StatusNotFound)
+		return
+	}
+
 	data := app.newTemplateData(r)
 
 	app.render(w, r, http.StatusOK, "server_help_user_token_sync_table.tmpl", data)
@@ -232,6 +245,41 @@ func (app *application) ServerDelete(w http.ResponseWriter, r *http.Request) {
 	data := app.newTemplateData(r)
 	data.Server = server
 
+	data.StoredProcs = make([]*models.StoredProc, 0, 10)
+	for _, s := range app.storedProcs.List() {
+		if s == nil || s.DefaultServer == nil {
+			continue
+		}
+		allowed := false
+		if s.DefaultServer.ID == serverID {
+			allowed = true
+		} else {
+
+			for _, als := range s.AllowedOnServers {
+				if als.ID == serverID {
+					allowed = true
+				}
+
+			}
+		}
+		if allowed {
+			data.StoredProcs = append(data.StoredProcs, s)
+		}
+	}
+
+	data.Users = make([]*models.User, 0, 10)
+
+	for _, u := range app.users.List() {
+		if u.ServerId == serverID {
+			data.Users = append(data.Users, u)
+		}
+	}
+
+	data.AllowServerDelete = true
+	if len(data.Users) > 0 || len(data.StoredProcs) > 0 {
+		data.AllowServerDelete = false
+	}
+
 	app.render(w, r, http.StatusOK, "server_delete.tmpl", data)
 
 }
@@ -268,6 +316,12 @@ func (app *application) ServerDeleteConfirm(w http.ResponseWriter, r *http.Reque
 // run promotions
 // ------------------------------------------------------
 func (app *application) RunPromotion(w http.ResponseWriter, r *http.Request) {
+
+	if !app.features.Promotion {
+		//app.sessionManager.Put(r.Context(), "error", fmt.Sprintf("Error: %s", err.Error()))
+		app.goBack(w, r, http.StatusNotFound)
+		return
+	}
 
 	serverID := chi.URLParam(r, "serverid")
 
@@ -312,6 +366,11 @@ func (app *application) ClearCache(w http.ResponseWriter, r *http.Request) {
 // run promotions
 // ------------------------------------------------------
 func (app *application) ListPromotion(w http.ResponseWriter, r *http.Request) {
+	if !app.features.Promotion {
+		//app.sessionManager.Put(r.Context(), "error", fmt.Sprintf("Error: %s", err.Error()))
+		app.goBack(w, r, http.StatusNotFound)
+		return
+	}
 
 	data := app.newTemplateData(r)
 	serverID := chi.URLParam(r, "serverid")
@@ -521,6 +580,10 @@ func (app *application) ServerUpdatePost(w http.ResponseWriter, r *http.Request)
 // run promotions
 // ------------------------------------------------------
 func (app *application) SyncUserTokens(w http.ResponseWriter, r *http.Request) {
+	if !app.features.TokenSync {
+		app.goBack(w, r, http.StatusNotFound)
+		return
+	}
 
 	defer app.requestMutex.Unlock()
 	// inProgress := app.requestMutex.TryLock()

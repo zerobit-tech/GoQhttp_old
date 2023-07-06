@@ -1,6 +1,6 @@
 {{define "spoptions"}}
 
-{{if .EndPointName}}
+{{if .StoredProc.EndPointName}}
  
 
 
@@ -8,7 +8,7 @@
 </li>
         
 <li class="c-sidebar-nav-item">
-  <a class="c-sidebar-nav-link"  href='/sp/{{.ID}}'>{{.EndPointName}}</a>
+  <a class="c-sidebar-nav-link"  href='/sp/{{.StoredProc.ID}}'>{{.StoredProc.EndPointName}}</a>
 
     
  
@@ -21,7 +21,7 @@
 
 <li class="c-sidebar-nav-item">
       
-<a class="c-sidebar-nav-link" href='/sp/logs/{{.ID}}' >
+<a class="c-sidebar-nav-link" href='/sp/logs/{{.StoredProc.ID}}' >
     <svg class="c-icon mfe-2">
         <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-speech"></use>
     </svg>
@@ -30,8 +30,9 @@
 </li>
 
 
+{{if $.Features.ParameterAlias}}
 <li class="c-sidebar-nav-item">
-    <a class="c-sidebar-nav-link" href='/sp/paramalias/{{.ID}}' >
+    <a class="c-sidebar-nav-link" href='/sp/paramalias/{{.StoredProc.ID}}' >
          
           <svg class="c-icon mfe-2">
             <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-copy"></use>
@@ -39,11 +40,14 @@
 
         Param Alias</a>
  </li>
+ {{end}}
+
+
  <li class="c-sidebar-nav-item">
       
 
  
-    <a class="c-sidebar-nav-link" href='/sp/update/{{.ID}}' >
+    <a class="c-sidebar-nav-link" href='/sp/update/{{.StoredProc.ID}}' >
 
       <svg class="c-icon mfe-2">
         <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-pencil"></use>
@@ -53,7 +57,7 @@
 
 
 <li class="c-sidebar-nav-item">
-    <a class="c-sidebar-nav-link" href='/sp/delete/{{.ID}}' >
+    <a class="c-sidebar-nav-link" href='/sp/delete/{{.StoredProc.ID}}' >
          
           <svg class="c-icon mfe-2">
             <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-trash"></use>

@@ -68,6 +68,8 @@ type StoredProc struct {
 	Modified string `json:"modified" db:"modified" form:"modified"`
 
 	UseNamedParams bool `json:"useunnamedparams" db:"useunnamedparams" form:"-"`
+
+	Promotionsql string `json:"promotionsql" db:"promotionsql" form:"-"`
 }
 
 type PreparedCallStatements struct {
@@ -312,6 +314,8 @@ func (sp *StoredProc) PreapreToSave(ctx context.Context, s Server) error {
 
 	sp.buildCallStatement(sp.UseNamedParams)
 	sp.BuildMockUrl()
+
+	sp.BuildPromotionSQL(&s)
 
 	return nil
 }

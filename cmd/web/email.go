@@ -38,7 +38,7 @@ func (app *application) SendEmail(r *models.EmailRequest) {
 
 	// Create email
 	email := mail.NewMSG()
-	email.SetFrom("support@zerobit.tech")
+	email.SetFrom("qhttp@zerobit.tech")
 	email.AddTo(r.To...)
 	//email.AddCc("another_you@example.com")
 	email.SetSubject(r.Subject)

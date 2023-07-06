@@ -50,8 +50,8 @@ $(document).ready(function () {
                
                 }
         socket.onmessage = msg => {
-            console.log("msg.data")
-            console.log(msg.data)
+            //console.log("msg.data")
+            //console.log(msg.data)
             var data = {}; // WsNotification
             try {
                 data = JSON.parse(msg.data);
@@ -83,7 +83,7 @@ $(document).ready(function () {
                     
                         var dashboardgraph = document.getElementById("dashboardgraph")
                         if (typeof dashboardgraph !== null && typeof autorefdashboard !== 'undefined'){
-                            console.log("autorefdashboard",autorefdashboard)
+                            //console.log("autorefdashboard",autorefdashboard)
                             if (autorefdashboard) {
                                 console.log("updating graph")
                                 //dashboardgraph.data.datasets=data.data

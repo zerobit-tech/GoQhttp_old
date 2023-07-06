@@ -9,6 +9,7 @@ import (
 	"net/http/httptest"
 	"net/http/httputil"
 	"runtime/debug"
+	"strings"
 	"sync/atomic"
 	"time"
 
@@ -86,6 +87,14 @@ func (app *application) RequireTokenAuthentication(next http.Handler) http.Handl
 		if token == "" {
 			token = r.Header.Get("Authentication")
 
+		}
+
+		if strings.HasPrefix(token, "bearer ") {
+			token = strings.Trim(token, "bearer ")
+		}
+
+		if strings.HasPrefix(token, "Bearer ") {
+			token = strings.Trim(token, "Bearer ")
 		}
 
 		if token == "" {
@@ -337,11 +346,13 @@ func CheckLicMiddleware(next http.Handler) http.Handler {
 				Name: licFile,
 			}
 
-			expiryDate, _, expiryDays, err := lic.GetLicFileExpiryDuration(licFile)
+			licData, err := lic.GetLicFileExpiryDuration(licFile)
 
 			if err == nil {
-				licFileData.ExpiryDays = expiryDays
-				licFileData.ValidTill = expiryDate
+				licFileData.ExpiryDays = licData.ExpiryDays
+				licFileData.ValidTill = licData.End
+				licFileData.AssignedTo = licData.Client
+				licFileData.AssignedToEmail = licData.ClientEmail
 			}
 			ctx = context.WithValue(ctx, LIC_INFO, licFileData)
 
@@ -372,11 +383,13 @@ func CheckLicMiddlewareNoRedirect(next http.Handler) http.Handler {
 				Name: licFile,
 			}
 
-			expiryDate, _, expiryDays, err := lic.GetLicFileExpiryDuration(licFile)
+			licData, err := lic.GetLicFileExpiryDuration(licFile)
 
 			if err == nil {
-				licFileData.ExpiryDays = expiryDays
-				licFileData.ValidTill = expiryDate
+				licFileData.ExpiryDays = licData.ExpiryDays
+				licFileData.ValidTill = licData.End
+				licFileData.AssignedTo = licData.Client
+				licFileData.AssignedToEmail = licData.ClientEmail
 			}
 			ctx = context.WithValue(ctx, LIC_INFO, licFileData)
 

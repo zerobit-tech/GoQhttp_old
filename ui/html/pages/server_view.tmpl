@@ -13,10 +13,17 @@ Server detail
 
              {{if .CurrentUser.IsSuperUser}}
                          <a class="btn btn-ghost-info float-right" href="/servers/clearcache/{{.Server.ID}}">Clear Cache</a>
+                         {{if .Features.Promotion}}
                          <a class="btn btn-ghost-info float-right" href="/servers/listprom/{{.Server.ID}}">Promotions</a>
+                         {{end}}
+                         {{if .Features.TokenSync}}
                          <a class="btn btn-ghost-info float-right" href="/servers/syncusertoken/{{.Server.ID}}">Sync User tokens</a>
+                         {{end}}
 
             {{end}}
+
+            <a class="btn btn-ghost-info float-right" href="/postman/s/{{.Server.ID}}">Postman collection</a>
+
           </p>
          
         </div>
@@ -120,6 +127,7 @@ Server detail
         <td>{{.EndPointName}}</td>
         <td>{{.HttpMethod}}</td>
         <td>{{.Name}}</td>
+
         <td>{{.Lib}}</td>
          <td nowrap>
           <a class="btn btn-ghost-info" href='/sp/{{.ID}}'>

@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"os"
 	"runtime/debug"
-	"strconv"
 	"time"
 
 	"github.com/go-co-op/gocron"
@@ -60,13 +59,6 @@ func main() {
 	//--------------------------------------- Setup CLI paramters ----------------------------
 	params := &parameters{}
 	params.Load()
-
-	envPort := env.GetEnvVariable("PORT", "")
-
-	port, err := strconv.Atoi(envPort)
-	if err == nil {
-		params.port = port
-	}
 
 	// --------------------------------------- Setup database ----------------------------
 	db, err := bolt.Open("db/internal.db", 0600, nil)
@@ -214,15 +206,19 @@ func (app *application) refreshSchedule() {
 	if interval1 != "" {
 		//s.Every("5m").Do(func(){ ... })
 		//s.Every(interval1).Do(app.RefreshStoredProces)
-		s.Every(interval1).Do(app.ProcessPromotions)
+
+		if app.features.Promotion {
+			s.Every(interval1).Do(app.ProcessPromotions)
+		}
 	}
 
 	interval2 := env.GetEnvVariable("REFRESH_AT", "")
 	if interval2 != "" {
 		//s.Every(1).Day().At("10:30;08:00").Do(func(){ ... })
 		//s.Every(1).Day().At(interval2).Do(app.RefreshStoredProces)
-		s.Every(1).Day().At(interval2).Do(app.ProcessPromotions)
-
+		if app.features.Promotion {
+			s.Every(1).Day().At(interval2).Do(app.ProcessPromotions)
+		}
 	}
 
 	s.StartAsync()

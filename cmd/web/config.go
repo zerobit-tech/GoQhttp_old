@@ -20,6 +20,13 @@ import (
 	bolt "go.etcd.io/bbolt"
 )
 
+type features struct {
+	Promotion      bool // enable promotion logic
+	TokenSync      bool // enable token sync logic
+	Dashboard      bool // enable dashboard
+	ParameterAlias bool // enable parameter alias
+}
+
 type application struct {
 	version         string
 	endPointMutex   sync.Mutex
@@ -79,6 +86,8 @@ type application struct {
 	shutDownChan    chan int // 1= restrt app  2= shutdown app
 	shutDownContext context.Context
 	shutDownStart   context.CancelFunc
+
+	features *features
 }
 
 func baseAppConfig(params parameters, db *bolt.DB, userdb *bolt.DB, logdb *bolt.DB) *application {
@@ -152,6 +161,15 @@ func baseAppConfig(params parameters, db *bolt.DB, userdb *bolt.DB, logdb *bolt.
 		app.maxAllowedEndPointsPerUser = 2
 
 	}
+
+	appFeatures := &features{
+		Dashboard:      true,
+		Promotion:      false,
+		TokenSync:      false,
+		ParameterAlias: false,
+	}
+
+	app.features = appFeatures
 
 	//goroutine
 	go models.SaveLogs(app.LogDB)
