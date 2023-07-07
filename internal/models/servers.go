@@ -207,7 +207,7 @@ func (s *Server) GetConnection() (*sql.DB, error) {
 // ------------------------------------------------------------
 //
 // ------------------------------------------------------------
-func (s *Server) GetSingleonnection() (*sql.DB, error) {
+func (s *Server) GetSingleConnection() (*sql.DB, error) {
 	if s.OnHold {
 		return nil, fmt.Errorf("Server is on hold due to %s", s.OnHoldMessage)
 	}

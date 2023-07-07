@@ -479,7 +479,7 @@ func (app *application) ServerAddPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//db, err := server.GetSingleonnection()
+	//db, err := server.GetSingleConnection()
 	// defer db.Close()
 	// if err != nil {
 	// 	server.Password = server.GetPassword()

@@ -30,7 +30,7 @@ func (p UserTokenSyncRecord) UpdateStatusUserTokenTable(s *Server) {
 	}
 
 	updateSQL := fmt.Sprintf("update %s.%s a set status='%s' , statusmessage = '%s' where rrn(a) = %d", s.UserTokenFileLib, s.UserTokenFile, p.Status, p.StatusMessage, p.Rowid)
-	conn, err := s.GetSingleonnection()
+	conn, err := s.GetSingleConnection()
 	defer conn.Close()
 	if err != nil {
 		log.Println("Error updating User token file....", err.Error())
@@ -51,7 +51,7 @@ func (s *Server) SyncUserTokenRecords(withupdate bool) ([]*UserTokenSyncRecord, 
 
 		sqlToUse := fmt.Sprintf("select rrn(a), upper(trim(username)) , trim(token) from %s.%s a where status=''", s.UserTokenFileLib, s.UserTokenFile)
 
-		conn, err := s.GetSingleonnection()
+		conn, err := s.GetSingleConnection()
 		defer conn.Close()
 		if err != nil {
 
@@ -59,6 +59,8 @@ func (s *Server) SyncUserTokenRecords(withupdate bool) ([]*UserTokenSyncRecord, 
 		}
 
 		rows, err := conn.Query(sqlToUse)
+
+		defer rows.Close()
 		if err != nil {
 			// var odbcError *odbc.Error
 
