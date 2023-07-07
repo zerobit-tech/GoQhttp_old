@@ -3,8 +3,10 @@ package main
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/onlysumitg/GoQhttp/internal/models"
+	"github.com/onlysumitg/GoQhttp/utils/concurrent"
 )
 
 func (app *application) invalidateEndPointCache() {
@@ -31,5 +33,33 @@ func (app *application) GetEndPoint(endpoint string) (*models.StoredProc, error)
 	}
 
 	return endPoint, nil
+
+}
+
+var serverLastCall concurrent.MapInterface = concurrent.NewSuperEfficientSyncMap(0)
+
+func (app *application) AddServerLastCall(serverId string) {
+
+	serverLastCall.Store(serverId, time.Now())
+
+}
+
+func (app *application) ShouldPingServer(s *models.Server) bool {
+
+	lastCall, found := serverLastCall.Load(s.ID)
+
+	if !found {
+		return true
+	}
+
+	lastCallTime, ok := lastCall.(time.Time)
+
+	if !ok {
+		return true
+	}
+
+	idleDuration := time.Duration(s.ConnectionIdleAge) * time.Second
+	//fmt.Println("time.Since(lastCallTime)", time.Since(lastCallTime), "::", idleDuration)
+	return (time.Since(lastCallTime) >= idleDuration)
 
 }

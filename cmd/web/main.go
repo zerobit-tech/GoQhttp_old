@@ -121,7 +121,7 @@ func main() {
 
 	go app.refreshSchedule() //goroutine
 
-	app.PingServers() //goroutine
+	go app.pingServerSchedule() //goroutine
 	//--------------------------------------- Create super user ----------------------------
 
 	go app.CreateSuperUser(params.superuseremail, params.superuserpwd) //goroutine
@@ -233,6 +233,21 @@ func (app *application) refreshSchedule() {
 		}
 	}
 
+	s.StartAsync()
+
+}
+
+// -----------------------------------------------------------------
+//
+// -----------------------------------------------------------------
+func (app *application) pingServerSchedule() {
+
+	defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
+
+	//return
+
+	s := gocron.NewScheduler(time.Local)
+	s.Every("20s").Do(app.PingServers)
 	s.StartAsync()
 
 }

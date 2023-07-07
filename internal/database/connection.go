@@ -71,6 +71,21 @@ func ClearCache(server DBServer) {
 // ---------------------------------------------------
 //
 // ---------------------------------------------------
+func CloseConnections() {
+	//delete(connectionMap, server.GetConnectionID())
+	connectionMap.Range(func(key, value interface{}) bool {
+
+		dbY, ok := value.(*sql.DB)
+		if ok {
+			dbY.Close()
+		}
+		return true
+	})
+}
+
+// ---------------------------------------------------
+//
+// ---------------------------------------------------
 func GetConnectionFromCache(server DBServer) *sql.DB {
 	mapLock.Lock()
 
@@ -139,7 +154,7 @@ func GetConnection(server DBServer) (*sql.DB, error) {
 
 	connectionID := server.GetConnectionID()
 
-	fmt.Println((" ========================== BUILDING NEW CONNECTION ===================================="))
+	log.Println(("** Loading new DB connection **"))
 	db, err := sql.Open(strings.ToLower(server.GetConnectionType()), server.GetConnectionString())
 
 	if err == nil {
@@ -161,7 +176,7 @@ func GetConnection(server DBServer) (*sql.DB, error) {
 		mapLock.Unlock()
 		connectionMap.Store(connectionID, db)
 		db.SetMaxOpenConns(server.MaxOpenConns())
-		fmt.Println("server.MaxIdleConns(", server.MaxIdleConns())
+		//fmt.Println("server.MaxIdleConns(", server.MaxIdleConns())
 		db.SetMaxIdleConns(server.MaxIdleConns())
 		db.SetConnMaxIdleTime(server.ConnMaxIdleTime())
 		db.SetConnMaxLifetime(server.ConnMaxLifetime())
@@ -182,9 +197,11 @@ func GetConnection(server DBServer) (*sql.DB, error) {
 func GetSingleConnection(server DBServer) (*sql.DB, error) {
 
 	db, err := sql.Open(strings.ToLower(server.GetConnectionType()), server.GetConnectionString())
-
+	if err != nil {
+		return db, err
+	}
 	db.SetMaxOpenConns(1)
-	db.Ping()
+	err = db.PingContext(context.TODO())
 
 	return db, err
 }

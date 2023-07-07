@@ -328,6 +328,13 @@ func (app *application) ProcessAPICall(w http.ResponseWriter, r *http.Request, e
 	endPoint.APICall(r.Context(), server, apiCall)
 	//log.Printf("%v: %v\n", "SeversCall006", time.Now())
 
+	if apiCall.Err == nil {
+		go func() {
+			concurrent.Recoverer("AddServerLastCall")
+			app.AddServerLastCall(server.ID)
+		}()
+	}
+
 	graphStruc.SPResponsetime = apiCall.SPCallDuration.Milliseconds()
 
 	apiCall.LogInfo("Finalizing response")

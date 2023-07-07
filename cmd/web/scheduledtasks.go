@@ -175,6 +175,10 @@ func (app *application) PingServers() {
 	defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
 
 	for _, s := range app.servers.List() {
+		if !app.ShouldPingServer(s) {
+			continue
+		}
+
 		s.PingQuery = "select * from qsys2.systables"
 		log.Println("Pinging server:", s.Name)
 		s.GetConnection()

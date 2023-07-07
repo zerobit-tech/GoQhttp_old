@@ -427,7 +427,7 @@ func (app *application) ServerAddPost(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
 		app.sessionManager.Put(r.Context(), "error", fmt.Sprintf("001 Error processing form %s", err.Error()))
-		app.goBack(w, r, http.StatusBadRequest)
+		app.goBack(w, r, http.StatusSeeOther)
 		return
 	}
 
@@ -449,7 +449,7 @@ func (app *application) ServerAddPost(w http.ResponseWriter, r *http.Request) {
 	err = app.formDecoder.Decode(&server, r.PostForm)
 	if err != nil {
 		app.sessionManager.Put(r.Context(), "error", fmt.Sprintf("002 Error processing form %s", err.Error()))
-		app.goBack(w, r, http.StatusBadRequest)
+		app.goBack(w, r, http.StatusSeeOther)
 		return
 	}
 	server.CheckField(!app.servers.DuplicateName(&server), "name", "Duplicate Name")
@@ -478,6 +478,20 @@ func (app *application) ServerAddPost(w http.ResponseWriter, r *http.Request) {
 		app.serverError500(w, r, err)
 		return
 	}
+
+	//db, err := server.GetSingleonnection()
+	// defer db.Close()
+	// if err != nil {
+	// 	server.Password = server.GetPassword()
+	// 	app.servers.Delete(server.ID)
+	// 	data := app.newTemplateData(r)
+	// 	data.Form = server
+	// 	app.sessionManager.Put(r.Context(), "error", fmt.Sprintf("Can not verify server connection %s", err.Error()))
+	// 	app.render(w, r, http.StatusUnprocessableEntity, "server_add.tmpl", data)
+
+	// 	return
+	// }
+
 	app.sessionManager.Put(r.Context(), "flash", fmt.Sprintf("Server %s added sucessfully", server.Name))
 
 	http.Redirect(w, r, fmt.Sprintf("/servers/%s", id), http.StatusSeeOther)

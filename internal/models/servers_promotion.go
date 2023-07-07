@@ -96,8 +96,8 @@ func (p PromotionRecord) UpdateStatus(s *Server) {
 	}
 
 	updateSQL := fmt.Sprintf("update %s.%s a set status='%s' , statusmessage = '%s' where rrn(a) = %d", s.ConfigFileLib, s.ConfigFile, p.Status, p.StatusMessage, p.Rowid)
-	conn, err := s.GetSinglaConnection()
-
+	conn, err := s.GetSingleonnection()
+	defer conn.Close()
 	if err != nil {
 		log.Println("Error updating promotion file....", err.Error())
 	}
@@ -117,8 +117,8 @@ func (s *Server) ListPromotion(withupdate bool) ([]*PromotionRecord, error) {
 
 		sqlToUse := fmt.Sprintf("select rrn(a), upper(trim(action)) , upper(trim(endpoint)), trim(storedproc), trim(storedproclib), upper(trim(httpmethod)), upper(trim(usespecificname)), upper(trim(usewithoutauth)) , upper(trim(paramalias)) from %s.%s a where status=''", s.ConfigFileLib, s.ConfigFile)
 
-		conn, err := s.GetSinglaConnection()
-
+		conn, err := s.GetSingleonnection()
+		defer conn.Close()
 		if err != nil {
 
 			return promotionRecords, err
@@ -198,7 +198,7 @@ func (s *Server) ListAutoPromotion() ([]*PromotionRecord, error) {
 		}
 
 		sqlToUse := fmt.Sprintf("select upper(trim(SPECIFIC_NAME)) from qsys2.sysprocs where upper(SPECIFIC_NAME) like '%s' and SPECIFIC_SCHEMA='%s' and ROUTINE_CREATED >= '%s'", strings.ToUpper(prefixToCheck), strings.ToUpper(s.ConfigFileLib), s.LastAutoPromoteDate)
-		conn, err := s.GetSinglaConnection()
+		conn, err := s.GetSingleonnection()
 
 		if err != nil {
 

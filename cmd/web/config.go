@@ -12,6 +12,7 @@ import (
 	"github.com/alexedwards/scs/v2"
 	"github.com/go-playground/form"
 	"github.com/onlysumitg/GoQhttp/env"
+	"github.com/onlysumitg/GoQhttp/internal/database"
 	"github.com/onlysumitg/GoQhttp/internal/iwebsocket"
 	"github.com/onlysumitg/GoQhttp/internal/models"
 	"github.com/onlysumitg/GoQhttp/utils/concurrent"
@@ -180,6 +181,7 @@ func baseAppConfig(params parameters, db *bolt.DB, userdb *bolt.DB, logdb *bolt.
 }
 
 func (app *application) CleanupAndShutDown() {
+	log.Println("Closing channels...")
 	if app.shutDownStart != nil {
 
 		//fmt.Println("Starting shut down>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<    <<<<<<<<<<<<<<")
@@ -187,12 +189,12 @@ func (app *application) CleanupAndShutDown() {
 	}
 	close(app.ToWSChan)
 
-	log.Println("Closing channels..")
-
 	// close(app.GraphChan)  // closed in TimeTook middleware
 
-	log.Println("Shutting down Server")
-	app.CloseConnections()
+	log.Println("Closing database connections...")
+	database.CloseConnections()
+
+	log.Println("Shutting down Server...")
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer func() {
 
@@ -207,24 +209,6 @@ func (app *application) CleanupAndShutDown() {
 	}
 
 	log.Println("Server Shutdown Completed")
-
-}
-
-// --------------------------------
-//
-//	for all servers
-//
-// --------------------------------
-func (app *application) CloseConnections() {
-
-	for _, s := range app.servers.List() {
-		dbx, err := s.GetConnection()
-		if err == nil {
-			dbx.Close()
-		}
-
-	}
-	//time.Sleep(30 * time.Second)
 
 }
 
