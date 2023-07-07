@@ -408,9 +408,9 @@ func (app *application) ServerAdd(w http.ResponseWriter, r *http.Request) {
 	// set form initial values
 	data.Form = models.Server{
 		ConnectionsOpen:   20,
-		ConnectionsIdle:   10,
-		ConnectionMaxAge:  20,
-		ConnectionIdleAge: 20,
+		ConnectionsIdle:   20,
+		ConnectionMaxAge:  120,
+		ConnectionIdleAge: 120,
 	}
 	app.render(w, r, http.StatusOK, "server_add.tmpl", data)
 

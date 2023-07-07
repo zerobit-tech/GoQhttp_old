@@ -161,6 +161,7 @@ func GetConnection(server DBServer) (*sql.DB, error) {
 		mapLock.Unlock()
 		connectionMap.Store(connectionID, db)
 		db.SetMaxOpenConns(server.MaxOpenConns())
+		fmt.Println("server.MaxIdleConns(", server.MaxIdleConns())
 		db.SetMaxIdleConns(server.MaxIdleConns())
 		db.SetConnMaxIdleTime(server.ConnMaxIdleTime())
 		db.SetConnMaxLifetime(server.ConnMaxLifetime())

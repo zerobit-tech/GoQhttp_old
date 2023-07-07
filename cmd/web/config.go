@@ -192,6 +192,7 @@ func (app *application) CleanupAndShutDown() {
 	// close(app.GraphChan)  // closed in TimeTook middleware
 
 	log.Println("Shutting down Server")
+	app.CloseConnections()
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer func() {
 
@@ -206,6 +207,24 @@ func (app *application) CleanupAndShutDown() {
 	}
 
 	log.Println("Server Shutdown Completed")
+
+}
+
+// --------------------------------
+//
+//	for all servers
+//
+// --------------------------------
+func (app *application) CloseConnections() {
+
+	for _, s := range app.servers.List() {
+		dbx, err := s.GetConnection()
+		if err == nil {
+			dbx.Close()
+		}
+
+	}
+	//time.Sleep(30 * time.Second)
 
 }
 

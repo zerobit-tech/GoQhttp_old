@@ -13,7 +13,7 @@ import (
 func main() {
 
 	var wg sync.WaitGroup
-	for i := 0; i <= 10000; i++ {
+	for i := 0; i <= 20; i++ {
 		wg.Add(1)
 		go main2(&wg)
 	}
@@ -26,7 +26,7 @@ func main2(wg *sync.WaitGroup) {
 
 	//time.Sleep(1 * time.Second)
 
-	url := "https://0.0.0.0:4081/api/spparm"
+	url := "https://localhost:4081/api/spchar"
 	method := "POST"
 
 	payload := strings.NewReader(` 	
@@ -42,23 +42,43 @@ func main2(wg *sync.WaitGroup) {
 
 	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 
-	client := &http.Client{}
+	// t := &http.Transport{
+	// 	Dial: (&net.Dialer{
+	// 		Timeout:   60 * time.Second,
+	// 		KeepAlive: 30 * time.Second,
+	// 	}).Dial,
+	// 	ResponseHeaderTimeout: time.Hour,
+	// 	MaxConnsPerHost:       99999,
+	// 	DisableKeepAlives:     true,
+	// 	// We use ABSURDLY large keys, and should probably not.
+	// 	TLSHandshakeTimeout: 60 * time.Second,
+	// 	//InsecureSkipVerify:  true,
+	// }
+	// t.TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+	// c := &http.Client{
+	// 	Transport: t,
+	// }
+
+	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
+
+	c := &http.Client{}
+
 	req, err := http.NewRequest(method, url, payload)
 
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-	req.Header.Add("Authorization", "M2MxODIyNmE3MmNmYjg2NmVlOWE4Y2RkMDdkMzZiYWFjNjMzMWRlNjIyODhhN2ViYjdkZXY3MjBAZXhhbXBsZS5jb20=994df748b305ea066d8ae4cd9bb2e22ad612667cdc5673fddd")
+	req.Header.Add("Authorization", "OWVmYTI0NDcyZWNkNTc0NDdjNTkwMWVmN2ZmYTZkMDI4OWJhMTI3MmYxNGNkMjg1ODZhZG1pbjJAZXhhbXBsZS5jb20=ca7ba3a96b2cb49746879d025f9077c8b631eb02bdfa4bafc9")
 	req.Header.Add("Content-Type", "application/json")
 
-	res, err := client.Do(req)
+	res, err := c.Do(req)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 	defer res.Body.Close()
-	fmt.Println("res", res.StatusCode)
+	// fmt.Println("res", res.StatusCode)
 	// body, err := ioutil.ReadAll(res.Body)
 	// if err != nil {
 	// 	fmt.Println(err)

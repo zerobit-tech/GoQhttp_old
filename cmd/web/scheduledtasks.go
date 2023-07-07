@@ -169,19 +169,21 @@ func (app *application) ProcessPromotionRecord(s *models.Server, pr *models.Prom
 func (app *application) PingServers() {
 	defer func() {
 		if r := recover(); r != nil {
-			log.Println("Recovered in refreshSchedule", r)
+			log.Println("ping connection 1", r)
 		}
 	}()
+	defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
 
-	for {
-		for _, s := range app.servers.List() {
-			s.PingQuery = "values(1)"
-			log.Println("Pinging server:", s.Name)
-			s.GetConnection()
+	for _, s := range app.servers.List() {
+		s.PingQuery = "select * from qsys2.systables"
+		log.Println("Pinging server:", s.Name)
+		s.GetConnection()
+		// if err == nil {
+		// 	db.Close()
+		// }
 
-		}
-		time.Sleep(10 * time.Second)
 	}
+	//time.Sleep(30 * time.Second)
 
 }
 

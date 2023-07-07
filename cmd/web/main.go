@@ -17,6 +17,8 @@ import (
 
 func main() {
 
+	//validateSetup()
+
 	gocron.SetPanicHandler(func(jobName string, _ interface{}) {
 		fmt.Printf("Panic in job: %s", jobName)
 		fmt.Println("Recovering")
@@ -35,6 +37,12 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	myfile, e := os.Create("./env/.env")
+	if e != nil {
+		log.Fatal(e)
+	}
+	myfile.Close()
 
 	err = os.MkdirAll("./lic", os.ModePerm)
 	if err != nil {
@@ -59,6 +67,10 @@ func main() {
 	//--------------------------------------- Setup CLI paramters ----------------------------
 	params := &parameters{}
 	params.Load()
+
+	if params.validateSetup {
+		validateSetup()
+	}
 
 	// --------------------------------------- Setup database ----------------------------
 	db, err := bolt.Open("db/internal.db", 0600, nil)
@@ -94,8 +106,6 @@ func main() {
 
 	addr, hostUrl := params.getHttpAddress()
 
-	log.Printf("QHttp is live at %s  :: %s \n", addr, hostUrl)
-
 	// this is short cut to create http.Server and  server.ListenAndServe()
 	// err := http.ListenAndServe(params.addr, routes)
 
@@ -111,7 +121,7 @@ func main() {
 
 	go app.refreshSchedule() //goroutine
 
-	//go app.PingServers()  //goroutine
+	app.PingServers() //goroutine
 	//--------------------------------------- Create super user ----------------------------
 
 	go app.CreateSuperUser(params.superuseremail, params.superuserpwd) //goroutine
@@ -124,6 +134,8 @@ func main() {
 
 	// profiling server
 	debugMe(*params)
+
+	log.Printf("QHttp is live at  %s \n", hostUrl)
 
 	// go openbrowser(url)
 	//if params.https {

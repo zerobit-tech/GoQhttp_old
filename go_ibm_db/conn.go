@@ -7,7 +7,6 @@ package go_ibm_db
 import (
 	"context"
 	"database/sql/driver"
-	"fmt"
 	"strings"
 	"unsafe"
 
@@ -58,7 +57,7 @@ func (c *Conn) Ping(ctx context.Context) error {
 
 	}
 
-	fmt.Println("Pingging..:", sqlToPing)
+	//fmt.Println("Pingging..:", sqlToPing)
 	//args := make([]driver.Value, 0)
 
 	var out api.SQLHANDLE

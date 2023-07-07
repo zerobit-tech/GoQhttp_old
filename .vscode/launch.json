@@ -20,6 +20,18 @@
         },
 
         {
+            "name": "Debug keygen",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceRoot}/cmd/keygen/",
+            "cwd":"${workspaceRoot}",
+            "env": {},
+            "showLog": true,
+         
+            },
+
+        {
             "name": "Debug Playground go",
             "type": "go",
             "request": "launch",

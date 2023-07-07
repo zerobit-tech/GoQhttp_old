@@ -20,6 +20,7 @@ type parameters struct {
 	domain string
 	//redirectToHttps bool
 	useletsencrypt bool
+	validateSetup  bool
 
 	//staticDir string
 	//flag      bool
@@ -68,6 +69,7 @@ func (params *parameters) Load() {
 	flag.StringVar(&params.superuserpwd, "superuserpwd", "adminpass", "Super User password")
 
 	flag.BoolVar(&params.useletsencrypt, "useletsencrypt", false, "Use let's encrypt ssl certificate")
+	flag.BoolVar(&params.validateSetup, "validate", false, "Validate os setup")
 
 	domain := "0.0.0.0"
 	if runtime.GOOS == "windows" {
