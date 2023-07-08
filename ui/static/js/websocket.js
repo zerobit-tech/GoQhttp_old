@@ -144,6 +144,8 @@ $(document).ready(function () {
 
                          graphfooter_vue.http500Count = data.data.http500count
                          graphfooter_vue.http500Percent=data.data.http500percent
+                         graphUpdateCalls = graphUpdateCalls + 1
+
                      }
 
                      if (typeof graphtableheader !== null && typeof graphtableheader !== 'undefined'){
@@ -154,6 +156,9 @@ $(document).ready(function () {
                         graphtableheader.maxDBTime =data.data.maxdbtime
 
                      }
+                     if (graphUpdateCalls > 500){
+                        location.reload()
+                    }
 
 
                 break;
