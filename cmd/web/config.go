@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"crypto/tls"
 	"html/template"
 	"log"
 	"net/http"
@@ -29,6 +30,9 @@ type features struct {
 }
 
 type application struct {
+	tlsCertificate *tls.Certificate
+	tlsMutex   sync.Mutex
+
 	version         string
 	endPointMutex   sync.Mutex
 	requestMutex    sync.Mutex

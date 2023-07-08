@@ -69,6 +69,8 @@ func (app *application) CurrentServerMiddlewareXX(next http.Handler) http.Handle
 func (app *application) ServerHandlers(router *chi.Mux) {
 	router.Route("/servers", func(r chi.Router) {
 		//r.With(paginate).Get("/", listArticles)
+		r.Use(app.sessionManager.LoadAndSave)
+
 		r.Use(app.RequireAuthentication)
 		r.Use(CheckLicMiddleware)
 

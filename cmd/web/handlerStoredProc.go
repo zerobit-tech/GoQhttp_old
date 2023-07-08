@@ -16,6 +16,8 @@ import (
 // ------------------------------------------------------
 func (app *application) StoredProcHandlers(router *chi.Mux) {
 	router.Route("/sp", func(r chi.Router) {
+		r.Use(app.sessionManager.LoadAndSave)
+
 		r.Use(app.RequireAuthentication)
 		r.Use(CheckLicMiddleware)
 

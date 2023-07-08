@@ -79,7 +79,7 @@ func addMiddleWares(app *application, router *chi.Mux) {
 	// if app.redirectToHttps {
 	// 	router.Use(app.RedirectToHTTPS)
 	// }
-	router.Use(app.sessionManager.LoadAndSave)
+	//router.Use(app.sessionManager.LoadAndSave)
 
 	// A good base middleware stack : inbuilt in chi
 	router.Use(RequestID) //(middleware.RequestID)
@@ -91,7 +91,7 @@ func addMiddleWares(app *application, router *chi.Mux) {
 	//router.Use(middleware.Recoverer)
 	router.Use(middleware.SetHeader("X-Frame-Options", "DENY"))
 
-	router.Use(middleware.Heartbeat("/ping"))
+	//router.Use(middleware.Heartbeat("/ping"))
 
 	// CSRF
 	// router.Use(noSurf)

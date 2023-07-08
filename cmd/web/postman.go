@@ -19,6 +19,8 @@ import (
 func (app *application) PostmantHandlers(router *chi.Mux) {
 	router.Route("/postman", func(r chi.Router) {
 		//r.With(paginate).Get("/", listArticles)
+		r.Use(app.sessionManager.LoadAndSave)
+
 		r.Use(app.RequireAuthentication)
 		r.Use(CheckLicMiddleware)
 

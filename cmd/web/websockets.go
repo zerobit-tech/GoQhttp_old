@@ -17,6 +17,8 @@ import (
 // ------------------------------------------------------
 func (app *application) WsHandlers(router *chi.Mux) {
 	router.Route("/ws", func(r chi.Router) {
+		r.Use(app.sessionManager.LoadAndSave)
+
 		r.Use(app.RequireAuthentication)
 		r.Use(CheckLicMiddleware)
 

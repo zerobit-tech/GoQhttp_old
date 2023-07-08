@@ -32,6 +32,12 @@ func (app *application) getSelfSignedOrLetsEncryptCert(certManager *autocert.Man
 
 	return func(hello *tls.ClientHelloInfo) (*tls.Certificate, error) {
 
+		app.tlsMutex.Lock()
+		defer app.tlsMutex.Unlock()
+
+		if app.tlsCertificate != nil {
+			return app.tlsCertificate, nil
+		}
 		if app.useletsencrypt {
 
 			fmt.Printf("\nUsing Letsencrypt\n")
@@ -39,6 +45,9 @@ func (app *application) getSelfSignedOrLetsEncryptCert(certManager *autocert.Man
 			if err != nil {
 				log.Panicln("Letsencrypt failed:", err)
 			}
+
+			app.tlsCertificate = c
+
 			return c, err
 
 		} else {
@@ -47,6 +56,8 @@ func (app *application) getSelfSignedOrLetsEncryptCert(certManager *autocert.Man
 			c, err := getSelfSignedCertificate()
 
 			if err == nil {
+				app.tlsCertificate = c
+
 				return c, nil
 			}
 
@@ -57,6 +68,7 @@ func (app *application) getSelfSignedOrLetsEncryptCert(certManager *autocert.Man
 			if err != nil {
 				log.Panicln("Self signed certificate failed:", err)
 			}
+			app.tlsCertificate = c
 			return c, err
 		}
 	}
@@ -90,11 +102,11 @@ func getEmdededSelfSignedCertificate() (*tls.Certificate, error) {
 func getSelfSignedCertificate() (*tls.Certificate, error) {
 	log.Println("Loading self signed certificate.")
 
-	goqhttp_crt, err := os.ReadFile("cert/goqhttp.crt")
+	goqhttp_crt, err := os.ReadFile("cert/qhttp.crt")
 	if err != nil {
 		return &tls.Certificate{}, err
 	}
-	goqhttp_api, err := os.ReadFile("cert/goqhttp.key")
+	goqhttp_api, err := os.ReadFile("cert/qhttp.key")
 	if err != nil {
 		return &tls.Certificate{}, err
 	}

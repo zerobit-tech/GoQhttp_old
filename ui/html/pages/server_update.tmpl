@@ -113,7 +113,7 @@ Add new Server
             <label for="cage">Connection max age (seconds)</label>
 
             <input id="cage" aria-describedby="cageh"  value='{{.Form.ConnectionMaxAge}}' type="number" class="form-control" min="1"
-                max="1000" name="cage"></input>
+                max="100000" name="cage"></input>
                 <small id="cage" class="form-text text-muted">Default:10 seconds. More info <a href="https://go.dev/doc/database/manage-connections">here</a></small>
 
         </div>
@@ -122,7 +122,7 @@ Add new Server
             <label for="icage">Connection idle age (seconds)</label>
 
             <input id="icage" aria-describedby="icageh"  value='{{.Form.ConnectionIdleAge}}' type="number" class="form-control" min="1"
-                max="1000" name="icage"></input>
+                max="100000" name="icage"></input>
                 <small id="icage" class="form-text text-muted">Default:10 seconds. More info <a href="https://go.dev/doc/database/manage-connections">here</a></small>
 
         </div>

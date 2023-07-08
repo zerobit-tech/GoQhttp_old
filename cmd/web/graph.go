@@ -292,6 +292,7 @@ func (app *application) CaptureGraphData() {
 func (app *application) GraphHandlers(router *chi.Mux) {
 	router.Route("/dashboard", func(r chi.Router) {
 		//r.With(paginate).Get("/", listArticles)
+		r.Use(app.sessionManager.LoadAndSave)
 
 		r.Use(app.RequireAuthentication)
 		r.Use(CheckLicMiddleware)

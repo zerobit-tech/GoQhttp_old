@@ -50,6 +50,8 @@ func (app *application) CreateSuperUser(email, password string) {
 // ------------------------------------------------------
 func (app *application) UserHandlers(router *chi.Mux) {
 	router.Route("/user", func(r chi.Router) {
+		r.Use(app.sessionManager.LoadAndSave)
+
 		//r.With(paginate).Get("/", listArticles)
 		//	r.Get("/", app.EndPointList)
 		g1 := r.Group(nil)
@@ -572,7 +574,6 @@ func (app *application) userLoginTrouble(w http.ResponseWriter, r *http.Request)
 				go func() { //goroutine
 					defer concurrent.Recoverer("userLoginTrouble 2")
 					defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
-
 
 					user, err := app.users.GetByEmail(form.Email)
 					if err == nil {
