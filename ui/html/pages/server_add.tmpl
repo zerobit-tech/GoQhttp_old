@@ -22,6 +22,7 @@ Add new Server
             <input id="servername" class="form-control {{with .Form.FieldErrors.name}} is-invalid {{end}}" type="text"
                 name="name" aria-describedby="servernamehelp" placeholder="Server name" value='{{.Form.Name}}'
                 required></input>
+                <small id="servernameh" class="form-text text-muted">A human readable name</small>
 
 
             <!-- Use the `with` action to render the value of .Form.FieldErrors.title if it is not empty. -->
@@ -52,6 +53,9 @@ Add new Server
             <input id="serverport" value='{{.Form.Port}}'
                 class="form-control  {{with .Form.FieldErrors.port}} is-invalid {{end}}" type="text"
                 name="port" ></input>
+
+                                <small id="serverporth" class="form-text text-muted">Keep it zero if not sure about it.</small>
+
             {{with .Form.FieldErrors.port}}
             <div class='invalid-feedback'>{{.}}</div>
             {{end}}

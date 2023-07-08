@@ -9,6 +9,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/onlysumitg/GoQhttp/internal/models"
 	"github.com/onlysumitg/GoQhttp/internal/validator"
+	"github.com/onlysumitg/GoQhttp/utils/stringutils"
 )
 
 // ------------------------------------------------------
@@ -217,6 +218,9 @@ func (app *application) SPAddPost(w http.ResponseWriter, r *http.Request) {
 	sP.CheckField(validator.NotBlank(sP.Lib), "lib", "This field cannot be blank")
 	sP.CheckField(!app.storedProcs.Duplicate(&sP), "endpointname", "Endpoint with name and method already exists")
 	sP.CheckField(validator.NotBlank(sP.DefaultServerId), "serverid", "This field cannot be blank")
+
+	sP.EndPointName = stringutils.RemoveSpecialChars(stringutils.RemoveMultipleSpaces(sP.EndPointName))
+
 	sP.CheckField(!app.storedProcs.Duplicate(&sP), "endpointname", "Endpoint with name and method already exists")
 
 	// assign default server

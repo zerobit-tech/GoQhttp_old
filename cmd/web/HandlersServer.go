@@ -7,6 +7,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/onlysumitg/GoQhttp/internal/models"
 	"github.com/onlysumitg/GoQhttp/internal/validator"
+	"github.com/onlysumitg/GoQhttp/utils/stringutils"
 )
 
 // ------------------------------------------------------
@@ -411,8 +412,8 @@ func (app *application) ServerAdd(w http.ResponseWriter, r *http.Request) {
 	data.Form = models.Server{
 		ConnectionsOpen:   20,
 		ConnectionsIdle:   20,
-		ConnectionMaxAge:  120,
-		ConnectionIdleAge: 120,
+		ConnectionMaxAge:  600,
+		ConnectionIdleAge: 3600,
 	}
 	app.render(w, r, http.StatusOK, "server_add.tmpl", data)
 
@@ -454,6 +455,9 @@ func (app *application) ServerAddPost(w http.ResponseWriter, r *http.Request) {
 		app.goBack(w, r, http.StatusSeeOther)
 		return
 	}
+
+	server.Name = stringutils.RemoveSpecialChars(stringutils.RemoveMultipleSpaces(server.Name))
+
 	server.CheckField(!app.servers.DuplicateName(&server), "name", "Duplicate Name")
 
 	server.CheckField(validator.NotBlank(server.Name), "name", "This field cannot be blank")
@@ -561,6 +565,9 @@ func (app *application) ServerUpdatePost(w http.ResponseWriter, r *http.Request)
 		app.goBack(w, r, http.StatusBadRequest)
 		return
 	}
+
+	server.Name = stringutils.RemoveSpecialChars(stringutils.RemoveMultipleSpaces(server.Name))
+
 	server.CheckField(!app.servers.DuplicateName(&server), "name", "Duplicate Name")
 
 	server.CheckField(validator.NotBlank(server.Name), "name", "This field cannot be blank")

@@ -262,6 +262,8 @@ func (m *ServerModel) Update(u *Server, clearCache bool) error {
 		if err != nil {
 			return err
 		}
+
+		u.Name = stringutils.RemoveSpecialChars(stringutils.RemoveMultipleSpaces(u.Name))
 		u.Name = strings.ToUpper(strings.TrimSpace(u.Name))
 		u.Password, _ = stringutils.Encrypt(u.Password, MySecret)
 
