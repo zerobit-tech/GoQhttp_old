@@ -40,8 +40,10 @@ type templateData struct {
 
 	CSRFToken string // Add a CSRFToken field.   <input type='hidden' name='csrf_token' value='{{.CSRFToken}}'>
 
-	Server            *dbserver.Server
-	Servers           []*dbserver.Server
+	Server      *dbserver.Server
+	Servers     []*dbserver.Server
+	ServerTypes []string
+
 	AllowServerDelete bool
 
 	//CurrentServer *models.Server
@@ -112,6 +114,7 @@ func (app *application) newTemplateData(r *http.Request) *templateData {
 		TestMode:            app.debugMode,
 		Version:             app.version,
 		Features:            app.features,
+		ServerTypes:         dbserver.GetRegisterDrivers(),
 	}
 	user, err := app.GetUser(r)
 	if err == nil {
@@ -246,10 +249,10 @@ func yesNo(s bool) string {
 //
 // -----------------------------------------------------------------
 func IsPreFormatted(s string) bool {
-	if strings.HasPrefix(s, "00999") || strings.HasPrefix(s, "01000") {
-		return true
-	}
-	return false
+	// if strings.HasPrefix(s, "00999") || strings.HasPrefix(s, "01000") {
+	// 	return true
+	// }
+	return true
 }
 
 // -----------------------------------------------------------------

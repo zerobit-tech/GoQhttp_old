@@ -16,6 +16,7 @@ import (
 	"github.com/onlysumitg/GoQhttp/go_ibm_db"
 	"github.com/onlysumitg/GoQhttp/internal/storedProc"
 	"github.com/onlysumitg/GoQhttp/internal/validator"
+	"github.com/onlysumitg/GoQhttp/logger"
 	"github.com/onlysumitg/GoQhttp/utils/httputils"
 	"github.com/onlysumitg/GoQhttp/utils/stringutils"
 	"github.com/onlysumitg/GoQhttp/utils/xmlutils"
@@ -276,7 +277,7 @@ func (s *IBMiServer) prepareCallStatement(sp *storedProc.StoredProc, givenParams
 // -----------------------------------------------------------------
 //
 // -----------------------------------------------------------------
-func (s *IBMiServer) APICall(ctx context.Context, sp *storedProc.StoredProc, params map[string]xmlutils.ValueDatatype) (responseFormat *storedProc.StoredProcResponse, callDuration time.Duration, err error) {
+func (s *IBMiServer) APICall(ctx context.Context, callID string, sp *storedProc.StoredProc, params map[string]xmlutils.ValueDatatype) (responseFormat *storedProc.StoredProcResponse, callDuration time.Duration, err error) {
 	//log.Printf("%v: %v\n", "SeversCall005.001", time.Now())
 
 	defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
@@ -288,8 +289,9 @@ func (s *IBMiServer) APICall(ctx context.Context, sp *storedProc.StoredProc, par
 				Status:      500,
 				Message:     fmt.Sprintf("%s", r),
 				Data:        map[string]any{},
-				LogData:     []storedProc.LogByType{{Text: fmt.Sprintf("%s", r), Type: "ERROR"}},
+				//LogData:     []storedProc.LogByType{{Text: fmt.Sprintf("%s", r), Type: "ERROR"}},
 			}
+			responseFormat.LogData = []*logger.LogEvent{logger.GetLogEvent("ERROR", callID, fmt.Sprintf("%s", r), false)}
 			callDuration = time.Since(t1)
 			// apiCall.Response = responseFormat
 			err = fmt.Errorf("%s", r)
@@ -301,43 +303,44 @@ func (s *IBMiServer) APICall(ctx context.Context, sp *storedProc.StoredProc, par
 	for k, v := range params {
 		givenParams[k] = v.Value
 	}
-	return s.Call(ctx, sp, givenParams)
+	return s.Call(ctx, callID, sp, givenParams)
 
 }
 
 // -----------------------------------------------------------------
 //
 // -----------------------------------------------------------------
-func (s *IBMiServer) Call(ctx context.Context, sp *storedProc.StoredProc, givenParams map[string]any) (*storedProc.StoredProcResponse, time.Duration, error) {
+func (s *IBMiServer) Call(ctx context.Context, callID string, sp *storedProc.StoredProc, givenParams map[string]any) (*storedProc.StoredProcResponse, time.Duration, error) {
 	//log.Printf("%v: %v\n", "SeversCall005.002", time.Now())
 	defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
 
 	qhttp_status_code := 200
 	qhttp_status_message := ""
 
-	logEntries := make([]storedProc.LogByType, 0)
+	logEntries := make([]*logger.LogEvent, 0, 5)
 	preparedCallStatements, err := s.prepareCallStatement(sp, givenParams)
 	if err != nil {
-		logEntries = append(logEntries, storedProc.LogByType{Text: err.Error(), Type: "E"})
+		logEntries = append(logEntries, logger.GetLogEvent("ERROR", callID, err.Error(), false))
 		return &storedProc.StoredProcResponse{LogData: logEntries}, 0, err
 	}
 
 	t1 := time.Now()
-	logEntries = append(logEntries, storedProc.LogByType{Text: "Starting DB CALL", Type: "I"})
+	logEntries = append(logEntries, logger.GetLogEvent("INFO", callID, "Starting DB CALL", false))
+
 	err = s.SeversCall(ctx, sp, preparedCallStatements, false)
 
 	spCallDuration := time.Since(t1)
 
-	logEntries = append(logEntries, storedProc.LogByType{Text: fmt.Sprintf("Finished DB CALL in: %s", spCallDuration), Type: "I"})
+	logEntries = append(logEntries, logger.GetLogEvent("INFO", callID, fmt.Sprintf("Finished DB CALL in: %s", spCallDuration), false))
 
 	//log.Printf("%v: %v\n", "SeversCall005.004", time.Now())
 
 	if err != nil {
-		logEntries = append(logEntries, storedProc.LogByType{Text: err.Error(), Type: "E"})
+		logEntries = append(logEntries, logger.GetLogEvent("ERROR", callID, err.Error(), false))
 
 		return &storedProc.StoredProcResponse{LogData: logEntries}, 0, err
 	}
-	logEntries = append(logEntries, storedProc.LogByType{Text: "SP Call complete", Type: "I"})
+	logEntries = append(logEntries, logger.GetLogEvent("INFO", callID, "SP Call complete", false))
 
 	// read INOUT and OUT parameter values
 	for kXX, v := range preparedCallStatements.InOutParamVariables {

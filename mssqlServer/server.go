@@ -16,6 +16,7 @@ import (
 	"github.com/onlysumitg/GoQhttp/go_ibm_db"
 	"github.com/onlysumitg/GoQhttp/internal/storedProc"
 	"github.com/onlysumitg/GoQhttp/internal/validator"
+	"github.com/onlysumitg/GoQhttp/logger"
 	"github.com/onlysumitg/GoQhttp/utils/httputils"
 	"github.com/onlysumitg/GoQhttp/utils/stringutils"
 	"github.com/onlysumitg/GoQhttp/utils/xmlutils"
@@ -276,7 +277,7 @@ func (s *MSSqlServer) prepareCallStatement(sp *storedProc.StoredProc, givenParam
 // -----------------------------------------------------------------
 //
 // -----------------------------------------------------------------
-func (s *MSSqlServer) APICall(ctx context.Context, sp *storedProc.StoredProc, params map[string]xmlutils.ValueDatatype) (responseFormat *storedProc.StoredProcResponse, callDuration time.Duration, err error) {
+func (s *MSSqlServer) APICall(ctx context.Context, callId string, sp *storedProc.StoredProc, params map[string]xmlutils.ValueDatatype) (responseFormat *storedProc.StoredProcResponse, callDuration time.Duration, err error) {
 	//log.Printf("%v: %v\n", "SeversCall005.001", time.Now())
 
 	defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
@@ -288,7 +289,7 @@ func (s *MSSqlServer) APICall(ctx context.Context, sp *storedProc.StoredProc, pa
 				Status:      500,
 				Message:     fmt.Sprintf("%s", r),
 				Data:        map[string]any{},
-				LogData:     []storedProc.LogByType{{Text: fmt.Sprintf("%s", r), Type: "ERROR"}},
+				//LogData:     []storedProc.LogByType{{Text: fmt.Sprintf("%s", r), Type: "ERROR"}},
 			}
 			callDuration = time.Since(t1)
 			// apiCall.Response = responseFormat
@@ -315,29 +316,29 @@ func (s *MSSqlServer) Call(ctx context.Context, sp *storedProc.StoredProc, given
 	qhttp_status_code := 200
 	qhttp_status_message := ""
 
-	logEntries := make([]storedProc.LogByType, 0)
+	logEntries := make([]*logger.LogEvent, 0)
 	preparedCallStatements, err := s.prepareCallStatement(sp, givenParams)
 	if err != nil {
-		logEntries = append(logEntries, storedProc.LogByType{Text: err.Error(), Type: "E"})
+		//logEntries = append(logEntries, storedProc.LogByType{Text: err.Error(), Type: "E"})
 		return &storedProc.StoredProcResponse{LogData: logEntries}, 0, err
 	}
 
 	t1 := time.Now()
-	logEntries = append(logEntries, storedProc.LogByType{Text: "Starting DB CALL", Type: "I"})
+	//logEntries = append(logEntries, storedProc.LogByType{Text: "Starting DB CALL", Type: "I"})
 	err = s.SeversCall(ctx, sp, preparedCallStatements, false)
 
 	spCallDuration := time.Since(t1)
 
-	logEntries = append(logEntries, storedProc.LogByType{Text: fmt.Sprintf("Finished DB CALL in: %s", spCallDuration), Type: "I"})
+	//logEntries = append(logEntries, storedProc.LogByType{Text: fmt.Sprintf("Finished DB CALL in: %s", spCallDuration), Type: "I"})
 
 	//log.Printf("%v: %v\n", "SeversCall005.004", time.Now())
 
 	if err != nil {
-		logEntries = append(logEntries, storedProc.LogByType{Text: err.Error(), Type: "E"})
+		//logEntries = append(logEntries, storedProc.LogByType{Text: err.Error(), Type: "E"})
 
 		return &storedProc.StoredProcResponse{LogData: logEntries}, 0, err
 	}
-	logEntries = append(logEntries, storedProc.LogByType{Text: "SP Call complete", Type: "I"})
+	//logEntries = append(logEntries, storedProc.LogByType{Text: "SP Call complete", Type: "I"})
 
 	// read INOUT and OUT parameter values
 	for kXX, v := range preparedCallStatements.InOutParamVariables {

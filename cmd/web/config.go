@@ -17,6 +17,7 @@ import (
 	"github.com/onlysumitg/GoQhttp/internal/iwebsocket"
 	"github.com/onlysumitg/GoQhttp/internal/models"
 	"github.com/onlysumitg/GoQhttp/internal/storedProc"
+	"github.com/onlysumitg/GoQhttp/logger"
 	"github.com/onlysumitg/GoQhttp/utils/concurrent"
 
 	mail "github.com/xhit/go-simple-mail/v2"
@@ -180,7 +181,8 @@ func baseAppConfig(params parameters, db *bolt.DB, userdb *bolt.DB, logdb *bolt.
 	app.features = appFeatures
 
 	//goroutine
-	go models.SaveLogs(app.LogDB)
+	//go models.SaveLogs(app.LogDB)
+	go logger.StartLogging(app.LogDB)
 
 	//app.CreateHttpPathPermissions()
 	return app

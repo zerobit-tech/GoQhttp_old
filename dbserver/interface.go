@@ -12,7 +12,7 @@ import (
 type DbDriver interface {
 	Load(*Server)
 
-	APICall(ctx context.Context, sp *storedProc.StoredProc, params map[string]xmlutils.ValueDatatype) (responseFormat *storedProc.StoredProcResponse, callDuration time.Duration, err error)
+	APICall(ctx context.Context, callID string, sp *storedProc.StoredProc, params map[string]xmlutils.ValueDatatype) (responseFormat *storedProc.StoredProcResponse, callDuration time.Duration, err error)
 	ErrorToHttpStatus(inerr error) (int, string, string, bool)
 
 	GetConnectionString() string

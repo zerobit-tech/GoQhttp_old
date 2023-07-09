@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"context"
 	"fmt"
 	"log"
@@ -19,6 +18,7 @@ import (
 	"github.com/onlysumitg/GoQhttp/internal/models"
 	"github.com/onlysumitg/GoQhttp/internal/storedProc"
 	"github.com/onlysumitg/GoQhttp/lic"
+	"github.com/onlysumitg/GoQhttp/logger"
 	"github.com/onlysumitg/GoQhttp/utils/concurrent"
 )
 
@@ -146,16 +146,10 @@ func (app *application) LogHandler(next http.Handler) http.Handler {
 
 			defer concurrent.Recoverer("Recovered in LogHandler SaveLogs request")
 			defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
-
-			buf := bytes.NewBufferString("")
-
-			models.RequestLog.SetOutput(buf)
-			models.RequestLog.Println("\n\n" + requestBody)
-
 			//models.SaveLogs(app.LogDB, 998, requestId, buf.String(), app.testMode)
 
-			logE := models.LogStruct{I: 998, Id: requestId, Message: buf.String(), TestMode: app.debugMode}
-			models.LogChan <- logE
+			logE := logger.GetLogEvent("REQUEST",   requestId, ("\n\n" + requestBody), !app.debugMode)
+			logger.LoggerChan <- logE
 
 		}()
 
@@ -178,20 +172,12 @@ func (app *application) LogHandler(next http.Handler) http.Handler {
 				defer concurrent.Recoverer("Recovered in LogHandler SaveLogs request2")
 				defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
 
-				buf := bytes.NewBufferString("")
-
-				models.ResponseLog.SetOutput(buf)
-				models.ResponseLog.Println("\n\n" + responseBody)
-
-				//models.SaveLogs(app.LogDB, 999, requestId, buf.String(), app.testMode)
-
-				logE := models.LogStruct{I: 999, Id: requestId, Message: buf.String(), TestMode: app.debugMode}
-				models.LogChan <- logE
+				logEResp := logger.GetLogEvent("RESPONSE", requestId, ("\n\n" + responseBody), !app.debugMode)
+				logger.LoggerChan <- logEResp
 
 				//models.SaveLogs(app.LogDB, 1000, requestId, fmt.Sprintf("HTTPCODE:%d", rec.Code), app.testMode)
-				logE = models.LogStruct{I: 1000, Id: requestId, Message: fmt.Sprintf("HTTPCODE:%d", rec.Code), TestMode: app.debugMode}
-
-				models.LogChan <- logE
+				logEH := logger.GetLogEvent("INFO",  requestId, fmt.Sprintf("HTTPCODE:%d", rec.Code), false)
+				logger.LoggerChan <- logEH
 			}()
 		} else {
 			fmt.Println(">>>>>>>>>>> ERROR rec.Code rec.Code>>>>>>>>>>>>>.....", err.Error())
@@ -270,14 +256,15 @@ func (app *application) TimeTook(next http.Handler) http.Handler {
 			graphStruc.Responsetime = durationPasses.Milliseconds()
 			graphStruc.Calltime = time.Now().Local().Format(TimestampFormat)
 
-			logE := models.LogStruct{I: 1001, Id: requestId, Message: fmt.Sprintf("ResponseTime:%s", durationPasses), TestMode: app.debugMode}
+			logEH := logger.GetLogEvent("INFO",  requestId, fmt.Sprintf("ResponseTime:%s", durationPasses), false)
+
 			//goroutine
 			go func() {
 
 				defer concurrent.Recoverer("Recovered in TimeTook")
 				defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
 
-				models.LogChan <- logE
+				logger.LoggerChan <- logEH
 
 				select {
 				case <-app.shutDownContext.Done():

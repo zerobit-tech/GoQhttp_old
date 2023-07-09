@@ -13,6 +13,7 @@ import (
 	"github.com/onlysumitg/GoQhttp/dbserver"
 	"github.com/onlysumitg/GoQhttp/internal/models"
 	"github.com/onlysumitg/GoQhttp/internal/storedProc"
+	"github.com/onlysumitg/GoQhttp/logger"
 	"github.com/onlysumitg/GoQhttp/utils/concurrent"
 	"github.com/onlysumitg/GoQhttp/utils/httputils"
 	"github.com/onlysumitg/GoQhttp/utils/jsonutils"
@@ -254,7 +255,7 @@ func (app *application) ProcessAPICall(w http.ResponseWriter, r *http.Request, e
 
 		StatusCode: http.StatusOK,
 
-		Log:         make([]string, 0),
+		Log:         make([]*logger.LogEvent, 0, 10),
 		LogDB:       app.LogDB,
 		HttpRequest: r,
 
@@ -266,10 +267,10 @@ func (app *application) ProcessAPICall(w http.ResponseWriter, r *http.Request, e
 		go apiCall.SaveLogs(app.debugMode) //goroutine
 	}()
 
-	apiCall.LogInfo(fmt.Sprintf("Received call for EndPoint %s | Method %s", endpointName, strings.ToUpper(r.Method)))
+	apiCall.Logger("INFO", fmt.Sprintf("Received call for EndPoint %s | Method %s", endpointName, strings.ToUpper(r.Method)), false)
 	endPoint, err := app.GetEndPoint(fmt.Sprintf("%s_%s", strings.ToUpper(endpointName), strings.ToUpper(r.Method)))
 	if err != nil {
-		apiCall.LogInfo(fmt.Sprintf("%s endpoint %s not found", r.Method, endpointName))
+		apiCall.Logger("INFO", fmt.Sprintf("%s endpoint %s not found", r.Method, endpointName), false)
 
 		response.Status = http.StatusNotImplemented
 		response.Message = err.Error()
@@ -286,7 +287,7 @@ func (app *application) ProcessAPICall(w http.ResponseWriter, r *http.Request, e
 	user, found := app.getCurrentUser(r)
 
 	if !found && !endPoint.AllowWithoutAuth {
-		apiCall.LogError("Unauthoerized user")
+		apiCall.Logger("INFO", "Unauthoerized user", false)
 
 		response.Status = http.StatusUnauthorized
 		response.Message = http.StatusText(http.StatusUnauthorized)
@@ -294,15 +295,15 @@ func (app *application) ProcessAPICall(w http.ResponseWriter, r *http.Request, e
 		return
 	}
 	if found {
-		apiCall.LogInfo(fmt.Sprintf("Request user %s %s", user.Name, user.Email))
+		apiCall.Logger("INFO", fmt.Sprintf("Request user %s %s", user.Name, user.Email), false)
 	} else {
-		apiCall.LogInfo("Processing request without Auth")
+		apiCall.Logger("INFO", "Processing request without Auth", false)
 	}
 
 	server, level := app.getServerToUse(endPoint, user)
 	if server == nil || level == 0 {
 
-		apiCall.LogError("Could not find Server to use")
+		apiCall.Logger("ERROR", "Could not find Server to use", false)
 
 		response.Status = http.StatusNotImplemented
 		response.Message = "Please check assigned server to the user"
@@ -311,7 +312,7 @@ func (app *application) ProcessAPICall(w http.ResponseWriter, r *http.Request, e
 
 	}
 
-	apiCall.LogInfo(fmt.Sprintf("Server assigned %s@%s", server.UserName, server.Name))
+	apiCall.Logger("INFO", fmt.Sprintf("Server assigned %s@%s", server.UserName, server.Name), false)
 
 	app.InjectRequestInfo(r, requesyBodyFlatMap)
 	app.InjectServerInfo(server, requesyBodyFlatMap)
@@ -324,10 +325,10 @@ func (app *application) ProcessAPICall(w http.ResponseWriter, r *http.Request, e
 
 	// apiCall.ResponseString = html.UnescapeString(endPoint.ResponsePlaceholder) //string(jsonByte)
 
-	apiCall.LogInfo(fmt.Sprintf("Calling SP %s (specific %s) on server %s", apiCall.CurrentSP.Name, apiCall.CurrentSP.SpecificName, server.Name))
+	apiCall.Logger("INFO", fmt.Sprintf("Calling SP %s (specific %s) on server %s", apiCall.CurrentSP.Name, apiCall.CurrentSP.SpecificName, server.Name), false)
 
 	// call the SP
-	apiCall.Response, apiCall.SPCallDuration, apiCall.Err = server.APICall(r.Context(), endPoint, apiCall.RequestFlatMap)
+	apiCall.Response, apiCall.SPCallDuration, apiCall.Err = server.APICall(r.Context(), apiCall.ID, endPoint, apiCall.RequestFlatMap)
 	//log.Printf("%v: %v\n", "SeversCall006", time.Now())
 
 	if apiCall.Err == nil {
@@ -339,7 +340,7 @@ func (app *application) ProcessAPICall(w http.ResponseWriter, r *http.Request, e
 
 	graphStruc.SPResponsetime = apiCall.SPCallDuration.Milliseconds()
 
-	apiCall.LogInfo("Finalizing response")
+	apiCall.Logger("INFO", "Finalizing response", false)
 
 	apiCall.Finalize()
 

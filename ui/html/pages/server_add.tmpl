@@ -35,6 +35,35 @@ Add new Server
  
         </div>
 
+    <!--   type start    -->
+
+        <div class="form-group">
+            <label for="type">Server Type</label>
+        <SELECT id="type" class="form-control" name="type">
+            <OPTION value="">Server Type</OPTION>
+
+            {{if .ServerTypes}}
+            {{range .ServerTypes}}
+            <OPTION 
+
+            {{if $.Form.Type}}
+            {{if eq . $.Form.Type}} selected {{end}} 
+            {{end}}
+            value="{{.}}">
+                
+                {{.}}
+            </OPTION>
+            {{end}}
+            {{end}}
+        </SELECT>
+
+    </div>
+
+
+
+    <!--   type end    -->
+
+
         <div class="form-group">
             <label for="serverip">Server IP</label>
 
@@ -114,7 +143,7 @@ Add new Server
                 max="100000" name="cage"></input>
                 <small id="cage" class="form-text text-muted">Default:10 seconds. More info <a href="https://go.dev/doc/database/manage-connections">here</a></small>
 
-        </div>
+        </div> 
 
         <div class="form-group">
             <label for="icage">Connection idle age (seconds)</label>

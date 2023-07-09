@@ -11,7 +11,7 @@ Add new Server
         <div class="card ">
             <div class="card-header">
                 <p class="h5">
-                    {{if .Form.ID}} Edit {{.Form.Name}} {{else}} Add {{end}} Server</p>
+                    {{if .Form.ID}} {{.Form.Name}} |{{.Form.Type}} : Edit  {{else}} Add {{end}} Server</p>
             </div>
             <div class="card-body">
 <form action="/servers/update" method="POST">

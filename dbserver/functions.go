@@ -58,8 +58,8 @@ func (s *Server) GetDbDriver() DbDriver {
 //
 // ------------------------------------------------------------
 
-func (s *Server) APICall(ctx context.Context, sp *storedProc.StoredProc, params map[string]xmlutils.ValueDatatype) (responseFormat *storedProc.StoredProcResponse, callDuration time.Duration, err error) {
-	return s.GetDbDriver().APICall(ctx, sp, params)
+func (s *Server) APICall(ctx context.Context, callID string, sp *storedProc.StoredProc, params map[string]xmlutils.ValueDatatype) (responseFormat *storedProc.StoredProcResponse, callDuration time.Duration, err error) {
+	return s.GetDbDriver().APICall(ctx, callID, sp, params)
 }
 
 // ------------------------------------------------------------

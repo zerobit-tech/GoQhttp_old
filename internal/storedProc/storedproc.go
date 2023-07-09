@@ -7,19 +7,20 @@ import (
 
 	"github.com/gosimple/slug"
 	"github.com/onlysumitg/GoQhttp/internal/validator"
+	"github.com/onlysumitg/GoQhttp/logger"
 )
 
-type LogByType struct {
-	Text string `json:"-" db:"-" form:"-"`
-	Type string `json:"-" db:"-" form:"-"`
-}
+// type LogByType struct {
+// 	Text string `json:"-" db:"-" form:"-"`
+// 	Type string `json:"-" db:"-" form:"-"`
+// }
 
 type StoredProcResponse struct {
 	ReferenceId string
 	Status      int
 	Message     string
 	Data        map[string]any
-	LogData     []LogByType `json:"-" db:"-" form:"-"`
+	LogData     []*logger.LogEvent `json:"-" db:"-" form:"-"`
 }
 
 type ServerRecord struct {
