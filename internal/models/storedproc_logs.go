@@ -172,7 +172,7 @@ func (m *SPCallLogModel) Get(id string) (*SPCallLog, error) {
 
 	}
 
-	return &calllog, ErrServerNotFound
+	return &calllog, errors.New("Not Found")
 
 }
 

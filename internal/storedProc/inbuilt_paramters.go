@@ -1,4 +1,4 @@
-package models
+package storedProc
 
 var InbuiltParams = []string{
 	"QHTTP_CLIENT_IP",

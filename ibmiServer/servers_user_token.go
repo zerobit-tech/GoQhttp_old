@@ -1,30 +1,18 @@
-package models
+package ibmiServer
 
 import (
 	"fmt"
 	"log"
 	"strings"
 
+	"github.com/onlysumitg/GoQhttp/internal/storedProc"
 	"github.com/onlysumitg/GoQhttp/internal/validator"
 )
 
-// -----------------------------------------------------------------
-//
-// -----------------------------------------------------------------
-
-type UserTokenSyncRecord struct {
-	Rowid               int
-	Username            string // D: Delete   R:Refresh   I:Insert
-	Token               string
-	Status              string
-	StatusMessage       string
-	validator.Validator `json:"-" db:"-" form:"-"`
-}
-
 // ------------------------------------------------------------
 //
 // ------------------------------------------------------------
-func (p UserTokenSyncRecord) UpdateStatusUserTokenTable(s *Server) {
+func (s *IBMiServer) UpdateStatusUserTokenTable(p storedProc.UserTokenSyncRecord) {
 	if p.Rowid <= 0 {
 		return
 	}
@@ -44,9 +32,9 @@ func (p UserTokenSyncRecord) UpdateStatusUserTokenTable(s *Server) {
 // ------------------------------------------------------------
 //
 // ------------------------------------------------------------
-func (s *Server) SyncUserTokenRecords(withupdate bool) ([]*UserTokenSyncRecord, error) {
+func (s *IBMiServer) SyncUserTokenRecords(withupdate bool) ([]*storedProc.UserTokenSyncRecord, error) {
 
-	userTokens := make([]*UserTokenSyncRecord, 0)
+	userTokens := make([]*storedProc.UserTokenSyncRecord, 0)
 	if strings.TrimSpace(s.UserTokenFile) != "" && strings.TrimSpace(s.UserTokenFileLib) != "" {
 
 		sqlToUse := fmt.Sprintf("select rrn(a), upper(trim(username)) , trim(token) from %s.%s a where status=''", s.UserTokenFileLib, s.UserTokenFile)
@@ -71,7 +59,7 @@ func (s *Server) SyncUserTokenRecords(withupdate bool) ([]*UserTokenSyncRecord, 
 		}
 
 		for rows.Next() {
-			rcd := &UserTokenSyncRecord{}
+			rcd := &storedProc.UserTokenSyncRecord{}
 			err := rows.Scan(&rcd.Rowid,
 				&rcd.Username,
 				&rcd.Token,

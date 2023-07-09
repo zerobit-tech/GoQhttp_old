@@ -8,7 +8,9 @@ import (
 	"strings"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/onlysumitg/GoQhttp/dbserver"
 	"github.com/onlysumitg/GoQhttp/internal/models"
+	"github.com/onlysumitg/GoQhttp/internal/storedProc"
 	"github.com/onlysumitg/GoQhttp/utils/httputils"
 	postman "github.com/rbretecher/go-postman-collection"
 )
@@ -107,9 +109,9 @@ func (app *application) downloadPostmanCollectionForServer(w http.ResponseWriter
 // -----------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------
-func (app *application) getServerSPs(s *models.Server) []*models.StoredProc {
+func (app *application) getServerSPs(s *dbserver.Server) []*storedProc.StoredProc {
 
-	splist := make([]*models.StoredProc, 0, 10)
+	splist := make([]*storedProc.StoredProc, 0, 10)
 	for _, sp := range app.storedProcs.List() {
 		if sp == nil || sp.DefaultServer == nil {
 			continue
@@ -168,7 +170,7 @@ func (app *application) UserToPostmanCollection(user *models.User) (*postman.Col
 //
 // -----------------------------------------------------------------------
 
-func (app *application) ServerToPostmanCollection(s *models.Server) *postman.Collection {
+func (app *application) ServerToPostmanCollection(s *dbserver.Server) *postman.Collection {
 	c := postman.CreateCollection(fmt.Sprintf("QHTTP %s", s.Name), fmt.Sprintf("QHTTP collection for server %s", s.Name))
 	c.Variables = make([]*postman.Variable, 0)
 	folder := c.AddItemGroup(s.Name)
@@ -184,7 +186,7 @@ func (app *application) ServerToPostmanCollection(s *models.Server) *postman.Col
 // -----------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------
-func (app *application) EndPointToItem(sp models.StoredProc) *postman.Items {
+func (app *application) EndPointToItem(sp storedProc.StoredProc) *postman.Items {
 
 	/*
 			Name                    string      `json:"name"`

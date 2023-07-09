@@ -14,6 +14,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/form/v4"
 	"github.com/onlysumitg/GoQhttp/internal/models"
+	"github.com/onlysumitg/GoQhttp/internal/storedProc"
 	"github.com/onlysumitg/GoQhttp/utils/concurrent"
 )
 
@@ -86,7 +87,7 @@ func (app *application) writeJSON(w http.ResponseWriter, status int, data interf
 //
 // -----------------------------------------------------------------
 
-func (app *application) writeJSONAPI(w http.ResponseWriter, data *models.StoredProcResponse, headers http.Header) error {
+func (app *application) writeJSONAPI(w http.ResponseWriter, data *storedProc.StoredProcResponse, headers http.Header) error {
 	// Encode the data to JSON, returning the error if there was one.
 	js, err := json.Marshal(data)
 	if err != nil {

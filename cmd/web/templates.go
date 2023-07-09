@@ -14,7 +14,9 @@ import (
 	"time"
 
 	"github.com/justinas/nosurf"
+	"github.com/onlysumitg/GoQhttp/dbserver"
 	"github.com/onlysumitg/GoQhttp/internal/models"
+	"github.com/onlysumitg/GoQhttp/internal/storedProc"
 	"github.com/onlysumitg/GoQhttp/lic"
 	"github.com/onlysumitg/GoQhttp/ui"
 )
@@ -38,17 +40,17 @@ type templateData struct {
 
 	CSRFToken string // Add a CSRFToken field.   <input type='hidden' name='csrf_token' value='{{.CSRFToken}}'>
 
-	Server            *models.Server
-	Servers           []*models.Server
+	Server            *dbserver.Server
+	Servers           []*dbserver.Server
 	AllowServerDelete bool
 
 	//CurrentServer *models.Server
 
-	StoredProcs []*models.StoredProc
-	StoredProc  *models.StoredProc
+	StoredProcs []*storedProc.StoredProc
+	StoredProc  *storedProc.StoredProc
 	SPCallLog   *models.SPCallLog
 
-	Promotions []*models.PromotionRecord
+	Promotions []*storedProc.PromotionRecord
 
 	ComparisonOperators []string
 

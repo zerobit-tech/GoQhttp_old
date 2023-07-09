@@ -5,7 +5,9 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/onlysumitg/GoQhttp/dbserver"
 	"github.com/onlysumitg/GoQhttp/internal/models"
+	"github.com/onlysumitg/GoQhttp/internal/storedProc"
 	"github.com/onlysumitg/GoQhttp/internal/validator"
 )
 
@@ -196,7 +198,7 @@ func (app *application) ServerView(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	data.Server = server
-	data.StoredProcs = make([]*models.StoredProc, 0, 10)
+	data.StoredProcs = make([]*storedProc.StoredProc, 0, 10)
 	for _, s := range app.storedProcs.List() {
 		if s == nil || s.DefaultServer == nil {
 			continue
@@ -247,7 +249,7 @@ func (app *application) ServerDelete(w http.ResponseWriter, r *http.Request) {
 	data := app.newTemplateData(r)
 	data.Server = server
 
-	data.StoredProcs = make([]*models.StoredProc, 0, 10)
+	data.StoredProcs = make([]*storedProc.StoredProc, 0, 10)
 	for _, s := range app.storedProcs.List() {
 		if s == nil || s.DefaultServer == nil {
 			continue
@@ -408,7 +410,7 @@ func (app *application) ServerAdd(w http.ResponseWriter, r *http.Request) {
 	data := app.newTemplateData(r)
 
 	// set form initial values
-	data.Form = models.Server{
+	data.Form = dbserver.Server{
 		ConnectionsOpen:   20,
 		ConnectionsIdle:   20,
 		ConnectionMaxAge:  120,
@@ -443,7 +445,7 @@ func (app *application) ServerAddPost(w http.ResponseWriter, r *http.Request) {
 
 	// In contrast, the r.Form map is populated for all requests (irrespective of their HTTP method),
 
-	var server models.Server
+	var server dbserver.Server
 	// Call the Decode() method of the form decoder, passing in the current
 	// request and *a pointer* to our snippetCreateForm struct. This will
 	// essentially fill our struct with the relevant values from the HTML form.
@@ -547,7 +549,7 @@ func (app *application) ServerUpdatePost(w http.ResponseWriter, r *http.Request)
 
 	// In contrast, the r.Form map is populated for all requests (irrespective of their HTTP method),
 
-	var server models.Server
+	var server dbserver.Server
 	// Call the Decode() method of the form decoder, passing in the current
 	// request and *a pointer* to our snippetCreateForm struct. This will
 	// essentially fill our struct with the relevant values from the HTML form.
