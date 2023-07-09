@@ -1,4 +1,4 @@
-package models
+package ibmiServer
 
 import (
 	"fmt"
@@ -7,65 +7,15 @@ import (
 	"time"
 
 	"github.com/onlysumitg/GoQhttp/go_ibm_db"
+	"github.com/onlysumitg/GoQhttp/internal/storedProc"
 	"github.com/onlysumitg/GoQhttp/internal/validator"
 )
 
-// -----------------------------------------------------------------
-//
-// -----------------------------------------------------------------
-
-type ParamAliasRcd struct {
-	Name  string
-	Alias string
-}
-
-// -----------------------------------------------------------------
-//
-// -----------------------------------------------------------------
-
-type PromotionRecord struct {
-	Rowid               int
-	Action              string // D: Delete   R:Refresh   I:Insert
-	Endpoint            string
-	Storedproc          string
-	Storedproclib       string
-	Httpmethod          string
-	UseSpecificName     string
-	UseWithoutAuth      string
-	ParamAlias          string
-	ParamAliasRcds      []*ParamAliasRcd
-	Status              string
-	StatusMessage       string
-	validator.Validator `json:"-" db:"-" form:"-"`
-}
-
 // ------------------------------------------------------------
 //
 // ------------------------------------------------------------
-
-func (p *PromotionRecord) BreakParamAlias() {
-	paramALiasRcds := make([]*ParamAliasRcd, 0)
-	byComa := strings.Split(p.ParamAlias, ",")
-
-	for _, oneMap := range byComa {
-		byColon := strings.Split(oneMap, ":")
-		if len(byColon) == 2 {
-			paramALiasRcd := &ParamAliasRcd{
-				Name:  strings.ToUpper(strings.TrimSpace(byColon[0])),
-				Alias: strings.ToUpper(strings.TrimSpace(byColon[1])),
-			}
-			paramALiasRcds = append(paramALiasRcds, paramALiasRcd)
-		}
-	}
-
-	p.ParamAliasRcds = paramALiasRcds
-}
-
-// ------------------------------------------------------------
-//
-// ------------------------------------------------------------
-func (p PromotionRecord) ToStoredProc(s *Server) *StoredProc {
-	sp := &StoredProc{
+func (s *IBMiServer) PromotionRecordToStoredProc(p storedProc.PromotionRecord) *storedProc.StoredProc {
+	sp := &storedProc.StoredProc{
 		EndPointName: p.Endpoint,
 		HttpMethod:   p.Httpmethod,
 		Name:         p.Storedproc,
@@ -78,7 +28,7 @@ func (p PromotionRecord) ToStoredProc(s *Server) *StoredProc {
 	if p.UseWithoutAuth == "Y" {
 		sp.AllowWithoutAuth = true
 	}
-	srcd := &ServerRecord{
+	srcd := &storedProc.ServerRecord{
 		ID:   s.ID,
 		Name: s.Name,
 	}
@@ -90,7 +40,7 @@ func (p PromotionRecord) ToStoredProc(s *Server) *StoredProc {
 // ------------------------------------------------------------
 //
 // ------------------------------------------------------------
-func (p PromotionRecord) UpdateStatus(s *Server) {
+func (s *IBMiServer) UpdateStatusForPromotionRecord(p storedProc.PromotionRecord) {
 	if p.Rowid <= 0 {
 		return
 	}
@@ -110,9 +60,9 @@ func (p PromotionRecord) UpdateStatus(s *Server) {
 // ------------------------------------------------------------
 //
 // ------------------------------------------------------------
-func (s *Server) ListPromotion(withupdate bool) ([]*PromotionRecord, error) {
+func (s *IBMiServer) ListPromotion(withupdate bool) ([]*storedProc.PromotionRecord, error) {
 
-	promotionRecords := make([]*PromotionRecord, 0)
+	promotionRecords := make([]*storedProc.PromotionRecord, 0)
 	if strings.TrimSpace(s.ConfigFile) != "" && strings.TrimSpace(s.ConfigFileLib) != "" {
 
 		sqlToUse := fmt.Sprintf("select rrn(a), upper(trim(action)) , upper(trim(endpoint)), trim(storedproc), trim(storedproclib), upper(trim(httpmethod)), upper(trim(usespecificname)), upper(trim(usewithoutauth)) , upper(trim(paramalias)) from %s.%s a where status=''", s.ConfigFileLib, s.ConfigFile)
@@ -137,7 +87,7 @@ func (s *Server) ListPromotion(withupdate bool) ([]*PromotionRecord, error) {
 		}
 
 		for rows.Next() {
-			rcd := &PromotionRecord{}
+			rcd := &storedProc.PromotionRecord{}
 			err := rows.Scan(&rcd.Rowid,
 				&rcd.Action,
 				&rcd.Endpoint,
@@ -191,8 +141,8 @@ func (s *Server) ListPromotion(withupdate bool) ([]*PromotionRecord, error) {
 // ------------------------------------------------------------
 //
 // ------------------------------------------------------------
-func (s *Server) ListAutoPromotion() ([]*PromotionRecord, error) {
-	promotionRecords := make([]*PromotionRecord, 0)
+func (s *IBMiServer) ListAutoPromotion() ([]*storedProc.PromotionRecord, error) {
+	promotionRecords := make([]*storedProc.PromotionRecord, 0)
 	if strings.TrimSpace(s.AutoPromotePrefix) != "" && strings.TrimSpace(s.ConfigFileLib) != "" {
 		prefixToCheck := strings.ToUpper(strings.TrimSpace(s.AutoPromotePrefix)) + "%"
 		if s.LastAutoPromoteDate == "" {
@@ -225,7 +175,7 @@ func (s *Server) ListAutoPromotion() ([]*PromotionRecord, error) {
 			err := rows.Scan(&spName)
 			if err == nil {
 
-				rcd := &PromotionRecord{}
+				rcd := &storedProc.PromotionRecord{}
 				brokenSPName := strings.Split(spName, "_")
 				if len(brokenSPName) != 3 {
 					log.Println("Auto promotion record skipped for SP(Name format is not correct):", spName)
@@ -247,31 +197,4 @@ func (s *Server) ListAutoPromotion() ([]*PromotionRecord, error) {
 
 	return promotionRecords, nil
 
-}
-
-// ------------------------------------------------------------
-//
-// ------------------------------------------------------------
-func (sp *StoredProc) BuildPromotionSQL(s *Server) {
-	sp.Promotionsql = ""
-	if strings.TrimSpace(s.ConfigFile) == "" || strings.TrimSpace(s.ConfigFileLib) == "" {
-		return
-	}
-	paramAliasMap := make([]string, 0)
-
-	for _, p := range sp.Parameters {
-		if p.Alias != "" {
-			paramAliasMap = append(paramAliasMap, fmt.Sprintf("%s:%s", p.Name, p.Alias))
-		}
-	}
-	paramList := strings.Join(paramAliasMap, ", ")
-
-	allowWithoutAuth := "N"
-	if sp.AllowWithoutAuth {
-		allowWithoutAuth = "Y"
-	}
-
-	sqlToUse := fmt.Sprintf("insert into %s.%s \n (action,,endpoint,storedproc,storedproclib,httpmethod,usespecificname,usewithoutauth,paramalias)", s.ConfigFileLib, s.ConfigFile)
-	sqlToUse = fmt.Sprintf("%s \n values('%s','%s','%s','%s','%s','%s','%s','%s')", sqlToUse, "I", sp.EndPointName, sp.SpecificName, sp.SpecificLib, sp.HttpMethod, "Y", allowWithoutAuth, paramList)
-	sp.Promotionsql = sqlToUse
 }

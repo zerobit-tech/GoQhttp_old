@@ -1,4 +1,4 @@
-package models
+package ibmiServer
 
 var unsupportedDataType []string = []string{
 	"BINARY",

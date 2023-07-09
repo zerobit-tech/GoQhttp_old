@@ -1,9 +1,8 @@
-package models
+package storedProc
 
 import (
 	"database/sql"
 	"fmt"
-	"reflect"
 	"strconv"
 	"strings"
 	"time"
@@ -92,14 +91,14 @@ func (p *StoredProcParamter) ConvertOUTVarToType(v *any) (any, error) {
 	switch p.Datatype {
 
 	case "DECFLOAT":
-		fmt.Println("asString(v)", asString(v))
+		fmt.Println("asString(v)", stringutils.AsString(v))
 
 		x, ok := (*v).([]byte)
 		if ok {
 			return strconv.ParseFloat(string(x), 64)
 		}
 	case "ROWID":
-		fmt.Println("asString(v)", asString(v))
+		fmt.Println("asString(v)", stringutils.AsString(v))
 
 		x, ok := (*v).([]byte)
 		if ok {
@@ -116,13 +115,13 @@ func (p *StoredProcParamter) ConvertOUTVarToType(v *any) (any, error) {
 func (p *StoredProcParamter) ConvertToType(v any) (any, error) {
 	switch p.Datatype {
 	case "TIME":
-		return time.Parse(go_ibm_db.TimeFormat, asString(v))
+		return time.Parse(go_ibm_db.TimeFormat, stringutils.AsString(v))
 
 	case "DATE":
-		return time.Parse(go_ibm_db.DateFormat, asString(v))
+		return time.Parse(go_ibm_db.DateFormat, stringutils.AsString(v))
 
 	case "TIMESTAMP":
-		return time.Parse(go_ibm_db.TimestampFormat, asString(v))
+		return time.Parse(go_ibm_db.TimestampFormat, stringutils.AsString(v))
 
 	case "SMALLINT", "INTEGER", "BIGINT", "ROWID":
 		if v == nil {
@@ -130,53 +129,17 @@ func (p *StoredProcParamter) ConvertToType(v any) (any, error) {
 
 			return x, nil
 		}
-		return strconv.Atoi(asString(v))
+		return strconv.Atoi(stringutils.AsString(v))
 
 	case "DECIMAL", "NUMERIC", "DECFLOAT", "DOUBLE PRECISION", "REAL":
-		return strconv.ParseFloat(asString(v), 64)
+		return strconv.ParseFloat(stringutils.AsString(v), 64)
 
 	}
 
 	return v, nil
 }
 
-// -----------------------------------------------------------------
-//
-// -----------------------------------------------------------------
-func (p *StoredProcParamter) GetDefaultValue(s *Server) string {
-	if p.DefaultValue.Valid {
 
-		if go_ibm_db.IsSepecialRegister(p.DefaultValue.String) {
-			return getSpecialRegisterValue(s, p.DefaultValue.String)
-		}
-		d := strings.ReplaceAll(p.DefaultValue.String, " ", "")
-		if d == "''" {
-			return ""
-		}
-
-		return (p.DefaultValue.String)
-	}
-	return ""
-}
-
-func getSpecialRegisterValue(s *Server, name string) string {
-	sqlToUse := fmt.Sprintf("values(%s)", name)
-	conn, err := s.GetConnection()
-
-	var valToUse string
-	if err != nil {
-
-		return ""
-	}
-
-	row := conn.QueryRow(sqlToUse)
-	err = row.Scan(&valToUse)
-	if err == nil {
-		return valToUse
-	}
-	return ""
-
-}
 
 // -----------------------------------------------------------------
 //
@@ -225,43 +188,11 @@ func (p *StoredProcParamter) NeedQuote(value string) bool {
 func (p *StoredProcParamter) HasValidValue(val any) bool {
 
 	if p.IsInt() {
-		return stringutils.IsNumericWithOutDecimal(asString(val))
+		return stringutils.IsNumericWithOutDecimal(stringutils.AsString(val))
 	}
 
 	if p.IsNumeric() {
-		return stringutils.IsNumeric(asString(val))
+		return stringutils.IsNumeric(stringutils.AsString(val))
 	}
 	return true
-}
-
-// -----------------------------------------------------------------
-//
-// -----------------------------------------------------------------
-
-func asString(src interface{}) string {
-
-	switch v := src.(type) {
-	case string:
-		return v
-	case []byte:
-		return string(v)
-	case *[]byte:
-		return string(*v)
-	}
-	rv := reflect.ValueOf(src)
-	//fmt.Println("rv.Kind()", rv.Kind())
-	switch rv.Kind() {
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		return strconv.FormatInt(rv.Int(), 10)
-	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		return strconv.FormatUint(rv.Uint(), 10)
-	case reflect.Float64:
-		return strconv.FormatFloat(rv.Float(), 'g', -1, 64)
-	case reflect.Float32:
-		return strconv.FormatFloat(rv.Float(), 'g', -1, 32)
-	case reflect.Bool:
-		return strconv.FormatBool(rv.Bool())
-
-	}
-	return fmt.Sprintf("%v", src)
 }

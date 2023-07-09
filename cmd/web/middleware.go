@@ -17,6 +17,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/justinas/nosurf" // New import
 	"github.com/onlysumitg/GoQhttp/internal/models"
+	"github.com/onlysumitg/GoQhttp/internal/storedProc"
 	"github.com/onlysumitg/GoQhttp/lic"
 	"github.com/onlysumitg/GoQhttp/utils/concurrent"
 )
@@ -81,7 +82,7 @@ func (app *application) RedirectToHTTPS(next http.Handler) http.Handler {
 // ------------------------------------------------------
 func (app *application) RequireTokenAuthentication(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		response := &models.StoredProcResponse{ReferenceId: middleware.GetReqID(r.Context())}
+		response := &storedProc.StoredProcResponse{ReferenceId: middleware.GetReqID(r.Context())}
 
 		token := r.Header.Get("Authorization")
 		if token == "" {

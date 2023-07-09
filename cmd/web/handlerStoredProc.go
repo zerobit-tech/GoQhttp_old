@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/onlysumitg/GoQhttp/internal/models"
+	"github.com/onlysumitg/GoQhttp/internal/storedProc"
 	"github.com/onlysumitg/GoQhttp/internal/validator"
 	"github.com/onlysumitg/GoQhttp/utils/stringutils"
 )
@@ -87,7 +87,7 @@ func (app *application) SPList(w http.ResponseWriter, r *http.Request) {
 // ------------------------------------------------------
 func (app *application) SPAdd(w http.ResponseWriter, r *http.Request) {
 	data := app.newTemplateData(r)
-	data.Form = models.StoredProc{}
+	data.Form = storedProc.StoredProc{}
 	data.Servers = app.servers.List()
 	app.render(w, r, http.StatusOK, "sp_add.tmpl", data)
 
@@ -111,7 +111,7 @@ func (app *application) SpRefresh(w http.ResponseWriter, r *http.Request) {
 		dServer, err := app.servers.Get(sP.DefaultServer.ID)
 		if err == nil {
 
-			err = sP.PreapreToSave(r.Context(), *dServer)
+			err = dServer.PreapreToSave(r.Context(), sP)
 			if err == nil {
 				app.storedProcs.Save(sP)
 				app.sessionManager.Put(r.Context(), "flash", "Done")
@@ -206,7 +206,7 @@ func (app *application) SPAddPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var sP models.StoredProc
+	var sP storedProc.StoredProc
 	err = app.formDecoder.Decode(&sP, r.PostForm)
 	if err != nil {
 		app.sessionManager.Put(r.Context(), "error", fmt.Sprintf("002 Error processing form %s", err.Error()))
@@ -229,9 +229,9 @@ func (app *application) SPAddPost(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		sP.CheckField(false, "serverid", "Server not found")
 	} else {
-		srcd := &models.ServerRecord{ID: server.ID, Name: server.Name}
+		srcd := &storedProc.ServerRecord{ID: server.ID, Name: server.Name}
 		sP.DefaultServer = srcd
-		sP.AddAllowedServer(server)
+		sP.AddAllowedServer(server.ID, server.Name)
 	}
 
 	// Check SP details from iBMI
@@ -244,7 +244,7 @@ func (app *application) SPAddPost(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		err = sP.PreapreToSave(r.Context(), *server)
+		err = server.PreapreToSave(r.Context(), &sP)
 
 		if err != nil {
 			sP.CheckField(false, "name", err.Error())
@@ -368,7 +368,7 @@ func (app *application) SPCall(w http.ResponseWriter, r *http.Request) {
 		dServer, err := app.servers.Get(sP.DefaultServer.ID)
 		if err == nil {
 
-			_, err = sP.DummyCall(dServer, formToMap(r))
+			_, err = dServer.DummyCall(sP, formToMap(r))
 
 		}
 	} else {
@@ -491,7 +491,7 @@ func (app *application) AssignServer(w http.ResponseWriter, r *http.Request) {
 		app.goBack(w, r, http.StatusSeeOther)
 		return
 	}
-	sP.AddAllowedServer(server)
+	sP.AddAllowedServer(server.ID, server.Name)
 	app.storedProcs.Save(sP)
 	app.invalidateEndPointCache()
 
@@ -533,7 +533,7 @@ func (app *application) RemoveAssignServer(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	sP.DeleteAllowedServer(server)
+	sP.DeleteAllowedServer(server.ID)
 
 	app.storedProcs.Save(sP)
 	app.invalidateEndPointCache()

@@ -16,10 +16,13 @@ import (
 	"github.com/onlysumitg/GoQhttp/internal/database"
 	"github.com/onlysumitg/GoQhttp/internal/iwebsocket"
 	"github.com/onlysumitg/GoQhttp/internal/models"
+	"github.com/onlysumitg/GoQhttp/internal/storedProc"
 	"github.com/onlysumitg/GoQhttp/utils/concurrent"
 
 	mail "github.com/xhit/go-simple-mail/v2"
 	bolt "go.etcd.io/bbolt"
+
+	_ "github.com/onlysumitg/GoQhttp/ibmiServer"
 )
 
 type features struct {
@@ -31,7 +34,7 @@ type features struct {
 
 type application struct {
 	tlsCertificate *tls.Certificate
-	tlsMutex   sync.Mutex
+	tlsMutex       sync.Mutex
 
 	version         string
 	endPointMutex   sync.Mutex
@@ -41,7 +44,7 @@ type application struct {
 	requestLogMutex sync.Mutex
 
 	invalidEndPointCache bool
-	endPointCache        map[string]*models.StoredProc
+	endPointCache        map[string]*storedProc.StoredProc
 
 	errorLog *log.Logger
 	infoLog  *log.Logger

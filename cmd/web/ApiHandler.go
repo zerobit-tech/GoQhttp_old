@@ -10,7 +10,9 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/onlysumitg/GoQhttp/dbserver"
 	"github.com/onlysumitg/GoQhttp/internal/models"
+	"github.com/onlysumitg/GoQhttp/internal/storedProc"
 	"github.com/onlysumitg/GoQhttp/utils/concurrent"
 	"github.com/onlysumitg/GoQhttp/utils/httputils"
 	"github.com/onlysumitg/GoQhttp/utils/jsonutils"
@@ -65,7 +67,7 @@ func (app *application) APIHandlers(router *chi.Mux) {
 // ------------------------------------------------------
 func (app *application) RequireUnAuthEndPoint(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		response := &models.StoredProcResponse{ReferenceId: middleware.GetReqID(r.Context())}
+		response := &storedProc.StoredProcResponse{ReferenceId: middleware.GetReqID(r.Context())}
 
 		endpointName, _ := app.GetPathParameters(r)
 		endPoint, err := app.GetEndPoint(fmt.Sprintf("%s_%s", strings.ToUpper(endpointName), strings.ToUpper(r.Method)))
@@ -123,7 +125,7 @@ func (app *application) InjectRequestInfo(r *http.Request, requesyBodyFlatMap ma
 //
 // ------------------------------------------------------
 
-func (app *application) InjectServerInfo(server *models.Server, requesyBodyFlatMap map[string]xmlutils.ValueDatatype) {
+func (app *application) InjectServerInfo(server *dbserver.Server, requesyBodyFlatMap map[string]xmlutils.ValueDatatype) {
 	requesyBodyFlatMap["QHTTP_SERVER"] = xmlutils.ValueDatatype{Value: server.Name, DataType: "STRING"}
 	requesyBodyFlatMap["QHTTP_SERVER_USER"] = xmlutils.ValueDatatype{Value: server.UserName, DataType: "STRING"}
 
@@ -162,7 +164,7 @@ func (app *application) GetPathParameters(r *http.Request) (string, []httputils.
 //
 // ------------------------------------------------------
 func (app *application) GET(w http.ResponseWriter, r *http.Request) {
-	response := &models.StoredProcResponse{ReferenceId: middleware.GetReqID(r.Context())}
+	response := &storedProc.StoredProcResponse{ReferenceId: middleware.GetReqID(r.Context())}
 
 	endpointName, pathParams := app.GetPathParameters(r)
 	queryString := fmt.Sprint(r.URL)
@@ -198,7 +200,7 @@ func (app *application) GET(w http.ResponseWriter, r *http.Request) {
 // ------------------------------------------------------
 func (app *application) POST(w http.ResponseWriter, r *http.Request) {
 
-	response := &models.StoredProcResponse{ReferenceId: middleware.GetReqID(r.Context())}
+	response := &storedProc.StoredProcResponse{ReferenceId: middleware.GetReqID(r.Context())}
 
 	endpointName, pathParams := app.GetPathParameters(r)
 
@@ -242,7 +244,7 @@ func (app *application) ProcessAPICall(w http.ResponseWriter, r *http.Request, e
 
 	requestId := middleware.GetReqID(r.Context())
 
-	response := &models.StoredProcResponse{ReferenceId: requestId}
+	response := &storedProc.StoredProcResponse{ReferenceId: requestId}
 	//log.Printf("%v: %v\n", "SeversCall001", time.Now())
 	apiCall := &models.ApiCall{
 		ID: requestId,
@@ -325,7 +327,7 @@ func (app *application) ProcessAPICall(w http.ResponseWriter, r *http.Request, e
 	apiCall.LogInfo(fmt.Sprintf("Calling SP %s (specific %s) on server %s", apiCall.CurrentSP.Name, apiCall.CurrentSP.SpecificName, server.Name))
 
 	// call the SP
-	endPoint.APICall(r.Context(), server, apiCall)
+	apiCall.Response, apiCall.SPCallDuration, apiCall.Err = server.APICall(r.Context(), endPoint, apiCall.RequestFlatMap)
 	//log.Printf("%v: %v\n", "SeversCall006", time.Now())
 
 	if apiCall.Err == nil {
@@ -382,10 +384,10 @@ func (app *application) getCurrentUser(r *http.Request) (*models.User, bool) {
 //
 // ------------------------------------------------------
 
-func (app *application) getServerToUse(endPoint *models.StoredProc, user *models.User) (*models.Server, int) {
+func (app *application) getServerToUse(endPoint *storedProc.StoredProc, user *models.User) (*dbserver.Server, int) {
 
-	var userServer *models.Server = nil
-	var endPointServer *models.Server = nil
+	var userServer *dbserver.Server = nil
+	var endPointServer *dbserver.Server = nil
 
 	endPointServer, err1 := app.servers.Get(endPoint.DefaultServer.ID)
 	if err1 != nil {
@@ -401,7 +403,7 @@ func (app *application) getServerToUse(endPoint *models.StoredProc, user *models
 		}
 	}
 
-	if userServer != nil && endPoint.IsAllowedForServer(userServer) {
+	if userServer != nil && endPoint.IsAllowedForServer(userServer.ID) {
 
 		return userServer, 1 // 1= user server
 
@@ -411,7 +413,7 @@ func (app *application) getServerToUse(endPoint *models.StoredProc, user *models
 
 	if endPoint.AllowWithoutAuth {
 
-		if endPointServer != nil && endPoint.IsAllowedForServer(endPointServer) {
+		if endPointServer != nil && endPoint.IsAllowedForServer(endPointServer.ID) {
 
 			return endPointServer, 2 // 2= endpoint server
 

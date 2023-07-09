@@ -12,7 +12,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/onlysumitg/GoQhttp/go_ibm_db"
+	"github.com/onlysumitg/GoQhttp/dbserver"
+	"github.com/onlysumitg/GoQhttp/internal/storedProc"
 	"github.com/onlysumitg/GoQhttp/utils/concurrent"
 	"github.com/onlysumitg/GoQhttp/utils/xmlutils"
 	bolt "go.etcd.io/bbolt"
@@ -38,7 +39,7 @@ type ApiCall struct {
 	RequestFlatMap map[string]xmlutils.ValueDatatype
 	RequestHeader  map[string]string
 
-	Response      *StoredProcResponse
+	Response      *storedProc.StoredProcResponse
 	Err           error
 	StatusCode    int
 	StatusMessage string
@@ -51,9 +52,9 @@ type ApiCall struct {
 
 	HttpRequest *http.Request
 
-	CurrentSP *StoredProc
+	CurrentSP *storedProc.StoredProc
 
-	Server *Server
+	Server *dbserver.Server
 
 	SPCallDuration time.Duration // int64 nanoseconds
 }
@@ -63,7 +64,6 @@ type ApiCall struct {
 // ------------------------------------------------------
 func (a *ApiCall) HasError() bool {
 	if a.Err != nil {
-		var odbcError *go_ibm_db.Error
 
 		if errors.Is(a.Err, driver.ErrBadConn) {
 			a.StatusCode = http.StatusInternalServerError
@@ -73,9 +73,11 @@ func (a *ApiCall) HasError() bool {
 			return true
 		}
 
-		if errors.As(a.Err, &odbcError) {
-			a.StatusCode, a.StatusMessage = OdbcErrMessage(odbcError)
-			go a.LogError(fmt.Sprintf("ODBC Error %s:%s", a.StatusMessage, odbcError.Error())) //goroutine
+		tmpCode, tmpStatus, errMessage, ok := a.Server.ErrorToHttpStatus(a.Err)
+		if ok {
+			a.StatusCode = tmpCode
+			a.StatusMessage = tmpStatus
+			go a.LogError(fmt.Sprintf("Server Error %s:%s", a.StatusMessage, errMessage)) //goroutine
 			return true
 		}
 		a.StatusCode = http.StatusBadRequest
