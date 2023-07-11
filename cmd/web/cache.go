@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/onlysumitg/GoQhttp/dbserver"
+	"github.com/onlysumitg/GoQhttp/internal/dbserver"
 	"github.com/onlysumitg/GoQhttp/internal/storedProc"
 	"github.com/onlysumitg/GoQhttp/utils/concurrent"
 )

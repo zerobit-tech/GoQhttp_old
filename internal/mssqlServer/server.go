@@ -12,40 +12,16 @@ import (
 	"strings"
 	"time"
 
-	"github.com/onlysumitg/GoQhttp/dbserver"
-	"github.com/onlysumitg/GoQhttp/go_ibm_db"
+	"github.com/onlysumitg/GoQhttp/internal/dbserver"
 	"github.com/onlysumitg/GoQhttp/internal/storedProc"
 	"github.com/onlysumitg/GoQhttp/internal/validator"
 	"github.com/onlysumitg/GoQhttp/logger"
 	"github.com/onlysumitg/GoQhttp/utils/httputils"
 	"github.com/onlysumitg/GoQhttp/utils/stringutils"
-	"github.com/onlysumitg/GoQhttp/utils/xmlutils"
 )
 
 type MSSqlServer struct {
 	*dbserver.Server
-}
-
-// -----------------------------------------------------------------
-//
-// -----------------------------------------------------------------
-func (s *MSSqlServer) Load(bs *dbserver.Server) {
-	s.Server = bs
-
-}
-
-// -----------------------------------------------------------------
-//
-// -----------------------------------------------------------------
-func (s *MSSqlServer) Refresh(ctx context.Context, sp *storedProc.StoredProc) error {
-	if s.HasSPUpdated(ctx, sp) {
-		err := s.PreapreToSave(ctx, sp)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
 }
 
 // -----------------------------------------------------------------
@@ -85,103 +61,12 @@ func (s *MSSqlServer) HasSPUpdated(ctx context.Context, sp *storedProc.StoredPro
 // -----------------------------------------------------------------
 //
 // -----------------------------------------------------------------
-func (s *MSSqlServer) Exists(ctx context.Context, sp *storedProc.StoredProc) (bool, error) {
-
-	exists := "N"
-
-	sqlToRun := fmt.Sprintf("select 'Y'  from qsys2.sysprocs where SPECIFIC_NAME='%s'  and SPECIFIC_SCHEMA='%s'    limit 1", strings.ToUpper(sp.SpecificName), strings.ToUpper(sp.SpecificLib))
-
-	//sqlToRun = fmt.Sprintf("select Y  from qsys2.sysprocs where ROUTINE_NAME='%s'  and ROUTINE_SCHEMA='%s'   limit 1", strings.ToUpper(sp.Name), strings.ToUpper(sp.Lib))
-
-	conn, err := s.GetConnection()
-
-	if err != nil {
-		return true, err // to prevent delete
-	}
-	row := conn.QueryRowContext(ctx, sqlToRun)
-
-	err = row.Scan(&exists)
-
-	if err != nil {
-		return true, err
-
-	}
-
-	if exists == "Y" {
-		return true, nil
-	}
-
-	return false, nil
-}
-
-// -----------------------------------------------------------------
-//
-// -----------------------------------------------------------------
-func (s *MSSqlServer) PreapreToSave(ctx context.Context, sp *storedProc.StoredProc) error {
-	sp.Name = strings.ToUpper(strings.TrimSpace(sp.Name))
-	sp.Lib = strings.ToUpper(strings.TrimSpace(sp.Lib))
-	sp.HttpMethod = strings.ToUpper(strings.TrimSpace(sp.HttpMethod))
-	sp.UseNamedParams = true
-
-	ctx1, cancelFunc1 := context.WithTimeout(ctx, 5*time.Second)
-	defer cancelFunc1()
-	err := s.GetResultSetCount(ctx1, sp)
-	if err != nil {
-		return err
-	}
-
-	ctx2, cancelFunc2 := context.WithTimeout(ctx, 5*time.Second)
-	defer cancelFunc2()
-	err = s.GetParameters(ctx2, sp)
-	if err != nil {
-		return err
-	}
-
-	for _, p := range sp.Parameters {
-		if IsUnsupportedDataType(p.Datatype, p.Mode) {
-			return fmt.Errorf("%s %s (datatype %s) not supported", p.Mode, p.Name, p.Datatype)
-		}
-	}
-
-	s.buildCallStatement(sp, sp.UseNamedParams)
-	sp.BuildMockUrl()
-
-	s.BuildPromotionSQL(sp)
-
-	return nil
-}
-
-// -----------------------------------------------------------------
-//
-// -----------------------------------------------------------------
 // -----------------------------------------------------------------
 //
 // -----------------------------------------------------------------
 func (s *MSSqlServer) buildCallStatement(sp *storedProc.StoredProc, useNamedParams bool) (err error) {
 
-	paramString := ""
-
-	for _, parameter := range sp.Parameters {
-		value := ""
-		switch parameter.Mode {
-		case "IN":
-			value = fmt.Sprintf("'{:%s}'", parameter.Name) //fmt.Sprintf("'%s'", parameter.GivenValue)
-		case "OUT":
-			value = "?"
-		case "INOUT":
-			value = "?"
-		}
-
-		if useNamedParams {
-			paramString += fmt.Sprintf("%s=>%s %s", parameter.Name, value, ",")
-		} else {
-			paramString += fmt.Sprintf("%s ,", value)
-		}
-
-	}
-
-	paramString = strings.TrimRight(paramString, ",")
-	sp.CallStatement = fmt.Sprintf("call %s.%s(%s)", sp.SpecificLib, sp.SpecificName, paramString)
+	sp.CallStatement = fmt.Sprintf("%s.%s", sp.SpecificLib, sp.SpecificName)
 	return nil
 
 }
@@ -192,7 +77,7 @@ func (s *MSSqlServer) buildCallStatement(sp *storedProc.StoredProc, useNamedPara
 func (s *MSSqlServer) prepareCallStatement(sp *storedProc.StoredProc, givenParams map[string]any) (*storedProc.PreparedCallStatements, error) {
 
 	spResponseFormat := make(map[string]any)
-	inoutParams := make([]any, 0)
+	inoutParams := make([]any, 0) // any should be sql.NamedArg
 	inoutParamVariables := make(map[string]*any)
 	inOutParamMapToSPParam := make(map[string]*storedProc.StoredProcParamter)
 
@@ -207,26 +92,13 @@ func (s *MSSqlServer) prepareCallStatement(sp *storedProc.StoredProc, givenParam
 			if !found {
 				valueToUse = s.GetDefaultValue(p)
 
-			} else {
-				//p.GivenValue = asString(valueToUse)
-
-			}
-			if !p.HasValidValue(valueToUse) {
-				return nil, fmt.Errorf("%s: invalid value", p.Name)
 			}
 
-			stringToReplace := ""
-			if p.NeedQuote(stringutils.AsString(valueToUse)) {
-				stringToReplace = fmt.Sprintf("{:%s}", p.Name)
-			} else {
-				stringToReplace = fmt.Sprintf("'{:%s}'", p.Name)
-			}
-			stringToReplace = fmt.Sprintf("'{:%s}'", p.Name)
-			inoutParams = append(inoutParams, &valueToUse)
+			param := sql.Named(p.Name, valueToUse)
 
-			finalCallStatement = strings.ReplaceAll(finalCallStatement, stringToReplace, "?")
+			inoutParams = append(inoutParams, param)
 
-		case "INOUT":
+		case "INOUT", "OUT":
 			spResponseFormat[p.GetNameToUse()] = p.Datatype
 
 			valueToUse, found := givenParams[paramNameToUse]
@@ -236,13 +108,10 @@ func (s *MSSqlServer) prepareCallStatement(sp *storedProc.StoredProc, givenParam
 					valueToUse = nil
 				}
 
-			} else {
-				//p.GivenValue = asString(valueToUse)
-
 			}
-			if !p.HasValidValue(valueToUse) {
-				return nil, fmt.Errorf("%s: invalid value", stringutils.AsString(valueToUse))
-			}
+			// if !p.HasValidValue(valueToUse) {
+			// 	return nil, fmt.Errorf("%s: invalid value", stringutils.AsString(valueToUse))
+			// }
 
 			valueToUse, err := p.ConvertToType(valueToUse)
 			if err != nil {
@@ -251,15 +120,10 @@ func (s *MSSqlServer) prepareCallStatement(sp *storedProc.StoredProc, givenParam
 			}
 			inoutParamVariables[p.Name] = &valueToUse
 
-			inoutParams = append(inoutParams, sql.Out{Dest: inoutParamVariables[p.Name], In: true})
+			param := sql.Named(p.Name, sql.Out{Dest: inoutParamVariables[p.Name], In: true})
 
-			inOutParamMapToSPParam[p.Name] = p
+			inoutParams = append(inoutParams, param)
 
-		case "OUT":
-			spResponseFormat[p.GetNameToUse()] = p.Datatype
-			out := p.GetofType()
-			inoutParamVariables[p.Name] = out
-			inoutParams = append(inoutParams, sql.Out{Dest: inoutParamVariables[p.Name]})
 			inOutParamMapToSPParam[p.Name] = p
 
 		}
@@ -272,38 +136,6 @@ func (s *MSSqlServer) prepareCallStatement(sp *storedProc.StoredProc, givenParam
 		InOutParamMapToSPParam: inOutParamMapToSPParam,
 		FinalCallStatement:     finalCallStatement,
 	}, nil
-}
-
-// -----------------------------------------------------------------
-//
-// -----------------------------------------------------------------
-func (s *MSSqlServer) APICall(ctx context.Context, callId string, sp *storedProc.StoredProc, params map[string]xmlutils.ValueDatatype) (responseFormat *storedProc.StoredProcResponse, callDuration time.Duration, err error) {
-	//log.Printf("%v: %v\n", "SeversCall005.001", time.Now())
-
-	defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
-	t1 := time.Now()
-	defer func() {
-		if r := recover(); r != nil {
-			responseFormat = &storedProc.StoredProcResponse{
-				ReferenceId: "string",
-				Status:      500,
-				Message:     fmt.Sprintf("%s", r),
-				Data:        map[string]any{},
-				//LogData:     []storedProc.LogByType{{Text: fmt.Sprintf("%s", r), Type: "ERROR"}},
-			}
-			callDuration = time.Since(t1)
-			// apiCall.Response = responseFormat
-			err = fmt.Errorf("%s", r)
-		}
-	}()
-
-	givenParams := make(map[string]any)
-	//.LogInfo("Building parameters for SP call")
-	for k, v := range params {
-		givenParams[k] = v.Value
-	}
-	return s.Call(ctx, sp, givenParams)
-
 }
 
 // -----------------------------------------------------------------
@@ -348,7 +180,7 @@ func (s *MSSqlServer) Call(ctx context.Context, sp *storedProc.StoredProc, given
 
 		if found {
 
-			if p.IsString() || reflect.ValueOf(v).Kind() == reflect.String {
+			if parameterIsString(p) || reflect.ValueOf(v).Kind() == reflect.String {
 
 				b, ok := (*v).([]byte)
 				if ok {
@@ -388,7 +220,7 @@ func (s *MSSqlServer) Call(ctx context.Context, sp *storedProc.StoredProc, given
 
 			}
 
-			if p.Mode == "OUT" && keyToUse == "QHTTP_STATUS_CODE" && p.IsInt() {
+			if p.Mode == "OUT" && keyToUse == "QHTTP_STATUS_CODE" && parameterIsInt(p) {
 				intval, ok := 0, false
 
 				switch reflect.ValueOf(*v).Kind() {
@@ -449,36 +281,6 @@ func (s *MSSqlServer) Call(ctx context.Context, sp *storedProc.StoredProc, given
 // -----------------------------------------------------------------
 //
 // -----------------------------------------------------------------
-func (s *MSSqlServer) DummyCall(sp *storedProc.StoredProc, givenParams map[string]any) (*storedProc.StoredProcResponse, error) {
-	preparedCallStatements, err := s.prepareCallStatement(sp, givenParams)
-	if err != nil {
-		return nil, err
-	}
-	err = s.SeversCall(context.Background(), sp, preparedCallStatements, true)
-	if err != nil {
-		return nil, err
-	}
-
-	responseFormat := &storedProc.StoredProcResponse{
-		ReferenceId: "string",
-		Status:      200,
-		Message:     "string",
-		Data:        preparedCallStatements.ResponseFormat,
-	}
-
-	b, err := json.MarshalIndent(responseFormat, "", "\t")
-
-	if err != nil {
-		return nil, err
-
-	}
-	sp.ResponseFormat = string(b)
-	return responseFormat, nil
-}
-
-// -----------------------------------------------------------------
-//
-// -----------------------------------------------------------------
 func (s *MSSqlServer) SeversCall(ctx context.Context, sp *storedProc.StoredProc, preparedCallStatements *storedProc.PreparedCallStatements, dummyCall bool) (ferr error) {
 
 	defer func() {
@@ -494,16 +296,14 @@ func (s *MSSqlServer) SeversCall(ctx context.Context, sp *storedProc.StoredProc,
 		return err
 	}
 
-	resultsets := make(map[string][]map[string]any, 0)
-	ctx = context.WithValue(ctx, go_ibm_db.LOAD_SP_RESULT_SETS, resultsets)
-	ctx = context.WithValue(ctx, go_ibm_db.DUMMY_SP_CALL, dummyCall)
 	//ctx = context.WithValue(ctx, go_ibm_db.ESCAPE_QUOTE, true)  // use strconv.Quote on result set
 
-	_, err = db.ExecContext(ctx, preparedCallStatements.FinalCallStatement, preparedCallStatements.InOutParams...)
+	rows, err := db.QueryContext(ctx, sp.CallStatement, preparedCallStatements.InOutParams...)
 
 	if err != nil {
 		return err
 	}
+	resultsets := RowsToResultsets(rows, dummyCall)
 
 	// assign result sets
 
@@ -520,7 +320,9 @@ func (s *MSSqlServer) SeversCall(ctx context.Context, sp *storedProc.StoredProc,
 // -----------------------------------------------------------------
 //
 // -----------------------------------------------------------------
-func (s *MSSqlServer) GetResultSetCount(ctx context.Context, sp *storedProc.StoredProc) error {
+func (s *MSSqlServer) getSPDetails(ctx context.Context, sp *storedProc.StoredProc) error {
+
+	spCatalog, spSchema := breakCatalogSchema(sp)
 
 	resultSets := 0
 
@@ -528,9 +330,9 @@ func (s *MSSqlServer) GetResultSetCount(ctx context.Context, sp *storedProc.Stor
 
 	sqlToRun := ""
 	if sp.UseSpecificName {
-		sqlToRun = fmt.Sprintf("select trim(SPECIFIC_SCHEMA), trim(SPECIFIC_NAME),trim(ROUTINE_SCHEMA),trim(ROUTINE_NAME), RESULT_SETS, SQL_DATA_ACCESS,ROUTINE_CREATED from qsys2.sysprocs where SPECIFIC_NAME='%s'  and SPECIFIC_SCHEMA='%s' limit 1", strings.ToUpper(sp.Name), strings.ToUpper(sp.Lib))
+		sqlToRun = fmt.Sprintf("select top 1 CONCAT(SPECIFIC_CATALOG,'.',SPECIFIC_SCHEMA), trim(SPECIFIC_NAME), CONCAT(ROUTINE_CATALOG,'.',ROUTINE_SCHEMA),trim(ROUTINE_NAME), 0, SQL_DATA_ACCESS,CREATED from %s.INFORMATION_SCHEMA.ROUTINES where SPECIFIC_CATALOG='%s'  and  SPECIFIC_NAME='%s'  and SPECIFIC_SCHEMA='%s' and ROUTINE_TYPE = N'PROCEDURE' ", spCatalog, spCatalog, strings.ToUpper(sp.Name), spSchema)
 	} else {
-		sqlToRun = fmt.Sprintf("select trim(SPECIFIC_SCHEMA), trim(SPECIFIC_NAME),trim(ROUTINE_SCHEMA),trim(ROUTINE_NAME), RESULT_SETS, SQL_DATA_ACCESS,ROUTINE_CREATED from qsys2.sysprocs where ROUTINE_NAME='%s'  and ROUTINE_SCHEMA='%s' limit 1", strings.ToUpper(sp.Name), strings.ToUpper(sp.Lib))
+		sqlToRun = fmt.Sprintf("select top 1 CONCAT(SPECIFIC_CATALOG,'.',SPECIFIC_SCHEMA), trim(SPECIFIC_NAME), CONCAT(ROUTINE_CATALOG,'.',ROUTINE_SCHEMA),trim(ROUTINE_NAME), 0, SQL_DATA_ACCESS,CREATED from %s.INFORMATION_SCHEMA.ROUTINES where ROUTINE_CATALOG='%s'  and  ROUTINE_NAME='%s'  and ROUTINE_SCHEMA='%s'  and ROUTINE_TYPE = N'PROCEDURE'  ", spCatalog, spCatalog, strings.ToUpper(sp.Name), spSchema)
 
 	}
 
@@ -545,7 +347,7 @@ func (s *MSSqlServer) GetResultSetCount(ctx context.Context, sp *storedProc.Stor
 
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return errors.New("Not found")
+			return errors.New("not found")
 		}
 		return err
 
@@ -558,11 +360,21 @@ func (s *MSSqlServer) GetResultSetCount(ctx context.Context, sp *storedProc.Stor
 // -----------------------------------------------------------------
 //
 // -----------------------------------------------------------------
-func (s *MSSqlServer) GetParameters(ctx context.Context, sp *storedProc.StoredProc) error {
+func (s *MSSqlServer) getParameters(ctx context.Context, sp *storedProc.StoredProc) error {
+
+	spCatalog, _ := breakCatalogSchema(sp)
 
 	originalParams := sp.Parameters
 
-	sqlToUse := fmt.Sprintf("SELECT ORDINAL_POSITION, upper(trim(PARAMETER_MODE)) , upper(trim(PARAMETER_NAME)),DATA_TYPE, ifnull(NUMERIC_SCALE,0), ifnull(NUMERIC_PRECISION,0), ifnull(CHARACTER_MAXIMUM_LENGTH,0),  default FROM qsys2.sysparms WHERE SPECIFIC_NAME='%s' and   SPECIFIC_SCHEMA ='%s' ORDER BY ORDINAL_POSITION", strings.ToUpper(sp.SpecificName), strings.ToUpper(sp.SpecificLib))
+	columnes := "SELECT parameter_id,  cast(is_output as char(1)), upper(trim(p.name)),TYPE_NAME(p.user_type_id) AS parameter_type  , isnull(scale,0), isnull([precision],0), isnull(max_length,0),  default_value "
+
+	tables := fmt.Sprintf("FROM %s.sys.objects AS o INNER JOIN %s.sys.parameters AS p ON o.object_id = p.object_id", spCatalog, spCatalog)
+
+	where := fmt.Sprintf(" WHERE o.object_id = OBJECT_ID('%s.%s') ", sp.SpecificLib, sp.SpecificName)
+
+	orderby := "ORDER BY  p.parameter_id"
+
+	sqlToUse := fmt.Sprintf("%s %s %s %s;", columnes, tables, where, orderby)
 
 	sp.Parameters = make([]*storedProc.StoredProcParamter, 0)
 	conn, err := s.GetConnection()
@@ -601,6 +413,12 @@ func (s *MSSqlServer) GetParameters(ctx context.Context, sp *storedProc.StoredPr
 			//log.Println("GetSPParameter ", err.Error())
 		}
 
+		if spParamter.Mode == "0" {
+			spParamter.Mode = "IN"
+		} else {
+			spParamter.Mode = "INOUT"
+		}
+
 		if strings.TrimSpace(spParamter.Datatype) == "" {
 			spParamter.Datatype = "CHARACTER"
 		}
@@ -609,6 +427,9 @@ func (s *MSSqlServer) GetParameters(ctx context.Context, sp *storedProc.StoredPr
 			sp.UseNamedParams = false
 			spParamter.Name = strconv.Itoa(spParamter.Position)
 
+		}
+		if strings.HasPrefix(strings.TrimSpace(spParamter.Name), "@") {
+			spParamter.Name = strings.TrimPrefix(strings.TrimSpace(spParamter.Name), "@")
 		}
 		sp.Parameters = append(sp.Parameters, spParamter)
 

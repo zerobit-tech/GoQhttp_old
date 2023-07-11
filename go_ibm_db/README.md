@@ -220,10 +220,10 @@ func execquery(st *sql.Stmt) error {
 	if err != nil {
 		return err
 	}
+	defer rows.Close()
 	cols, _ := rows.Columns()
 	fmt.Printf("%s    %s   %s    %s\n", cols[0], cols[1], cols[2], cols[3])
 	fmt.Println("-------------------------------------")
-	defer rows.Close()
 	for rows.Next() {
 		var t, x, m, n string
 		err = rows.Scan(&t, &x, &m, &n)

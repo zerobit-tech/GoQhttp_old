@@ -20,7 +20,7 @@ type ParamAliasRcd struct {
 // -----------------------------------------------------------------
 
 type PromotionRecord struct {
-	Rowid               int
+	Rowid               string
 	Action              string // D: Delete   R:Refresh   I:Insert
 	Endpoint            string
 	Storedproc          string

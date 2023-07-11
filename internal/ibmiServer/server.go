@@ -12,40 +12,17 @@ import (
 	"strings"
 	"time"
 
-	"github.com/onlysumitg/GoQhttp/dbserver"
 	"github.com/onlysumitg/GoQhttp/go_ibm_db"
+	"github.com/onlysumitg/GoQhttp/internal/dbserver"
 	"github.com/onlysumitg/GoQhttp/internal/storedProc"
 	"github.com/onlysumitg/GoQhttp/internal/validator"
 	"github.com/onlysumitg/GoQhttp/logger"
 	"github.com/onlysumitg/GoQhttp/utils/httputils"
 	"github.com/onlysumitg/GoQhttp/utils/stringutils"
-	"github.com/onlysumitg/GoQhttp/utils/xmlutils"
 )
 
 type IBMiServer struct {
 	*dbserver.Server
-}
-
-// -----------------------------------------------------------------
-//
-// -----------------------------------------------------------------
-func (s *IBMiServer) Load(bs *dbserver.Server) {
-	s.Server = bs
-
-}
-
-// -----------------------------------------------------------------
-//
-// -----------------------------------------------------------------
-func (s *IBMiServer) Refresh(ctx context.Context, sp *storedProc.StoredProc) error {
-	if s.HasSPUpdated(ctx, sp) {
-		err := s.PreapreToSave(ctx, sp)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
 }
 
 // -----------------------------------------------------------------
@@ -80,75 +57,6 @@ func (s *IBMiServer) HasSPUpdated(ctx context.Context, sp *storedProc.StoredProc
 	}
 
 	return false
-}
-
-// -----------------------------------------------------------------
-//
-// -----------------------------------------------------------------
-func (s *IBMiServer) Exists(ctx context.Context, sp *storedProc.StoredProc) (bool, error) {
-
-	exists := "N"
-
-	sqlToRun := fmt.Sprintf("select 'Y'  from qsys2.sysprocs where SPECIFIC_NAME='%s'  and SPECIFIC_SCHEMA='%s'    limit 1", strings.ToUpper(sp.SpecificName), strings.ToUpper(sp.SpecificLib))
-
-	//sqlToRun = fmt.Sprintf("select Y  from qsys2.sysprocs where ROUTINE_NAME='%s'  and ROUTINE_SCHEMA='%s'   limit 1", strings.ToUpper(sp.Name), strings.ToUpper(sp.Lib))
-
-	conn, err := s.GetConnection()
-
-	if err != nil {
-		return true, err // to prevent delete
-	}
-	row := conn.QueryRowContext(ctx, sqlToRun)
-
-	err = row.Scan(&exists)
-
-	if err != nil {
-		return true, err
-
-	}
-
-	if exists == "Y" {
-		return true, nil
-	}
-
-	return false, nil
-}
-
-// -----------------------------------------------------------------
-//
-// -----------------------------------------------------------------
-func (s *IBMiServer) PreapreToSave(ctx context.Context, sp *storedProc.StoredProc) error {
-	sp.Name = strings.ToUpper(strings.TrimSpace(sp.Name))
-	sp.Lib = strings.ToUpper(strings.TrimSpace(sp.Lib))
-	sp.HttpMethod = strings.ToUpper(strings.TrimSpace(sp.HttpMethod))
-	sp.UseNamedParams = true
-
-	ctx1, cancelFunc1 := context.WithTimeout(ctx, 5*time.Second)
-	defer cancelFunc1()
-	err := s.GetResultSetCount(ctx1, sp)
-	if err != nil {
-		return err
-	}
-
-	ctx2, cancelFunc2 := context.WithTimeout(ctx, 5*time.Second)
-	defer cancelFunc2()
-	err = s.GetParameters(ctx2, sp)
-	if err != nil {
-		return err
-	}
-
-	for _, p := range sp.Parameters {
-		if IsUnsupportedDataType(p.Datatype, p.Mode) {
-			return fmt.Errorf("%s %s (datatype %s) not supported", p.Mode, p.Name, p.Datatype)
-		}
-	}
-
-	s.buildCallStatement(sp, sp.UseNamedParams)
-	sp.BuildMockUrl()
-
-	s.BuildPromotionSQL(sp)
-
-	return nil
 }
 
 // -----------------------------------------------------------------
@@ -211,12 +119,12 @@ func (s *IBMiServer) prepareCallStatement(sp *storedProc.StoredProc, givenParams
 				//p.GivenValue = asString(valueToUse)
 
 			}
-			if !p.HasValidValue(valueToUse) {
+			if parameterHasValidValue(p, valueToUse) {
 				return nil, fmt.Errorf("%s: invalid value", p.Name)
 			}
 
 			stringToReplace := ""
-			if p.NeedQuote(stringutils.AsString(valueToUse)) {
+			if parameterNeedQuote(p, stringutils.AsString(valueToUse)) {
 				stringToReplace = fmt.Sprintf("{:%s}", p.Name)
 			} else {
 				stringToReplace = fmt.Sprintf("'{:%s}'", p.Name)
@@ -240,7 +148,7 @@ func (s *IBMiServer) prepareCallStatement(sp *storedProc.StoredProc, givenParams
 				//p.GivenValue = asString(valueToUse)
 
 			}
-			if !p.HasValidValue(valueToUse) {
+			if !parameterHasValidValue(p, valueToUse) {
 				return nil, fmt.Errorf("%s: invalid value", stringutils.AsString(valueToUse))
 			}
 
@@ -257,7 +165,7 @@ func (s *IBMiServer) prepareCallStatement(sp *storedProc.StoredProc, givenParams
 
 		case "OUT":
 			spResponseFormat[p.GetNameToUse()] = p.Datatype
-			out := p.GetofType()
+			out := getParameterofType(p)
 			inoutParamVariables[p.Name] = out
 			inoutParams = append(inoutParams, sql.Out{Dest: inoutParamVariables[p.Name]})
 			inOutParamMapToSPParam[p.Name] = p
@@ -272,39 +180,6 @@ func (s *IBMiServer) prepareCallStatement(sp *storedProc.StoredProc, givenParams
 		InOutParamMapToSPParam: inOutParamMapToSPParam,
 		FinalCallStatement:     finalCallStatement,
 	}, nil
-}
-
-// -----------------------------------------------------------------
-//
-// -----------------------------------------------------------------
-func (s *IBMiServer) APICall(ctx context.Context, callID string, sp *storedProc.StoredProc, params map[string]xmlutils.ValueDatatype) (responseFormat *storedProc.StoredProcResponse, callDuration time.Duration, err error) {
-	//log.Printf("%v: %v\n", "SeversCall005.001", time.Now())
-
-	defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
-	t1 := time.Now()
-	defer func() {
-		if r := recover(); r != nil {
-			responseFormat = &storedProc.StoredProcResponse{
-				ReferenceId: "string",
-				Status:      500,
-				Message:     fmt.Sprintf("%s", r),
-				Data:        map[string]any{},
-				//LogData:     []storedProc.LogByType{{Text: fmt.Sprintf("%s", r), Type: "ERROR"}},
-			}
-			responseFormat.LogData = []*logger.LogEvent{logger.GetLogEvent("ERROR", callID, fmt.Sprintf("%s", r), false)}
-			callDuration = time.Since(t1)
-			// apiCall.Response = responseFormat
-			err = fmt.Errorf("%s", r)
-		}
-	}()
-
-	givenParams := make(map[string]any)
-	//.LogInfo("Building parameters for SP call")
-	for k, v := range params {
-		givenParams[k] = v.Value
-	}
-	return s.Call(ctx, callID, sp, givenParams)
-
 }
 
 // -----------------------------------------------------------------
@@ -350,7 +225,7 @@ func (s *IBMiServer) Call(ctx context.Context, callID string, sp *storedProc.Sto
 
 		if found {
 
-			if p.IsString() || reflect.ValueOf(v).Kind() == reflect.String {
+			if parameterIsString(p) || reflect.ValueOf(v).Kind() == reflect.String {
 
 				b, ok := (*v).([]byte)
 				if ok {
@@ -390,7 +265,7 @@ func (s *IBMiServer) Call(ctx context.Context, callID string, sp *storedProc.Sto
 
 			}
 
-			if p.Mode == "OUT" && keyToUse == "QHTTP_STATUS_CODE" && p.IsInt() {
+			if p.Mode == "OUT" && keyToUse == "QHTTP_STATUS_CODE" && parameterIsInt(p) {
 				intval, ok := 0, false
 
 				switch reflect.ValueOf(*v).Kind() {
@@ -446,36 +321,6 @@ func (s *IBMiServer) Call(ctx context.Context, callID string, sp *storedProc.Sto
 	}
 
 	return responseFormat, spCallDuration, nil
-}
-
-// -----------------------------------------------------------------
-//
-// -----------------------------------------------------------------
-func (s *IBMiServer) DummyCall(sp *storedProc.StoredProc, givenParams map[string]any) (*storedProc.StoredProcResponse, error) {
-	preparedCallStatements, err := s.prepareCallStatement(sp, givenParams)
-	if err != nil {
-		return nil, err
-	}
-	err = s.SeversCall(context.Background(), sp, preparedCallStatements, true)
-	if err != nil {
-		return nil, err
-	}
-
-	responseFormat := &storedProc.StoredProcResponse{
-		ReferenceId: "string",
-		Status:      200,
-		Message:     "string",
-		Data:        preparedCallStatements.ResponseFormat,
-	}
-
-	b, err := json.MarshalIndent(responseFormat, "", "\t")
-
-	if err != nil {
-		return nil, err
-
-	}
-	sp.ResponseFormat = string(b)
-	return responseFormat, nil
 }
 
 // -----------------------------------------------------------------

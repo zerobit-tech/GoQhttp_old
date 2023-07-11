@@ -182,13 +182,14 @@ Add new Server
         </div>
 
         <div class="form-group">
-            <label for="configfilelib">Promotion Table lib</label>
+            <label for="configfilelib">Promotion Table schema</label>
 
             <input id="configfilelib" aria-describedby="configfilelibh"  value='{{.Form.ConfigFileLib}}' 
             type="text" class="form-control"  
                   name="configfilelib"></input>
 
-                <small id="configfilelibh" class="form-text text-muted"></small>
+                <small id="configfilelibh" class="form-text text-muted">IBM I: Library or SQL Schema <br> 
+                    MS SQL Server: Catalog name or Catalog.Schema name. Default schema is dbo.</small>
 
         </div>
 
@@ -211,13 +212,16 @@ Add new Server
         </div>
 
         <div class="form-group">
-            <label for="usertokenfilelib">User token Table lib</label>
+            <label for="usertokenfilelib">User token Table schema</label>
 
             <input id="usertokenfilelib" aria-describedby="usertokenfilelibh"  value='{{.Form.UserTokenFileLib}}' 
             type="text" class="form-control"  
                   name="usertokenfilelib"></input>
 
-                <small id="usertokenfilelibh" class="form-text text-muted">Lib for user token tables</small>
+                <small id="usertokenfilelibh" class="form-text text-muted">
+                    IBM I: Library or SQL Schema <br> 
+                    MS SQL Server: Catalog name or Catalog.Schema name. Default schema is dbo.
+                </small>
 
         </div>
 

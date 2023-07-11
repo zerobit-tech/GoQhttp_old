@@ -111,7 +111,7 @@ func (app *application) SpRefresh(w http.ResponseWriter, r *http.Request) {
 		dServer, err := app.servers.Get(sP.DefaultServer.ID)
 		if err == nil {
 
-			err = dServer.PreapreToSave(r.Context(), sP)
+			err = dServer.PrepareToSave(r.Context(), sP)
 			if err == nil {
 				app.storedProcs.Save(sP)
 				app.sessionManager.Put(r.Context(), "flash", "Done")
@@ -244,7 +244,7 @@ func (app *application) SPAddPost(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		err = server.PreapreToSave(r.Context(), &sP)
+		err = server.PrepareToSave(r.Context(), &sP)
 
 		if err != nil {
 			sP.CheckField(false, "name", err.Error())

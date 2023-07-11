@@ -10,17 +10,17 @@ import (
 )
 
 type DbDriver interface {
-	Load(*Server)
+	LoadX(*Server)
 
-	APICall(ctx context.Context, callID string, sp *storedProc.StoredProc, params map[string]xmlutils.ValueDatatype) (responseFormat *storedProc.StoredProcResponse, callDuration time.Duration, err error)
-	ErrorToHttpStatus(inerr error) (int, string, string, bool)
+	APICallX(ctx context.Context, callID string, sp *storedProc.StoredProc, params map[string]xmlutils.ValueDatatype) (responseFormat *storedProc.StoredProcResponse, callDuration time.Duration, err error)
+	ErrorToHttpStatusX(inerr error) (int, string, string, bool)
 
-	GetConnectionString() string
-	GetSQLToPing() string
-	GetPassword() string
-	GetConnectionType() string
-	PingTimeoutDuration() time.Duration
-	GetSecretKey() string
+	GetConnectionStringX() string
+	//GetSQLToPing() string
+	GetPasswordX() string
+	GetConnectionTypeX() string
+	PingTimeoutDurationX() time.Duration
+	GetSecretKeyX() string
 	//MaxOpenConns() int
 	//MaxIdleConns() int
 	//ConnMaxIdleTime() time.Duration
@@ -34,19 +34,19 @@ type DbDriver interface {
 	//GetMux() *sync.Mutex
 
 	// StoredPrcd
-	Refresh(ctx context.Context, sp *storedProc.StoredProc) error
-	PreapreToSave(ctx context.Context, sp *storedProc.StoredProc) error
-	DummyCall(sp *storedProc.StoredProc, givenParams map[string]any) (*storedProc.StoredProcResponse, error)
-	Exists(ctx context.Context, sp *storedProc.StoredProc) (bool, error)
+	RefreshX(ctx context.Context, sp *storedProc.StoredProc) error
+	PrepareToSaveX(ctx context.Context, sp *storedProc.StoredProc) error
+	DummyCallX(sp *storedProc.StoredProc, givenParams map[string]any) (*storedProc.StoredProcResponse, error)
+	ExistsX(ctx context.Context, sp *storedProc.StoredProc) (bool, error)
 
 	// Promotions
-	ListPromotion(withupdate bool) ([]*storedProc.PromotionRecord, error)
-	UpdateStatusForPromotionRecord(p storedProc.PromotionRecord)
-	PromotionRecordToStoredProc(p storedProc.PromotionRecord) *storedProc.StoredProc
+	ListPromotionX(withupdate bool) ([]*storedProc.PromotionRecord, error)
+	UpdateStatusForPromotionRecordX(p storedProc.PromotionRecord)
+	//PromotionRecordToStoredProcX(p storedProc.PromotionRecord) *storedProc.StoredProc
 
 	// User Tokens
-	UpdateStatusUserTokenTable(p storedProc.UserTokenSyncRecord)
-	SyncUserTokenRecords(withupdate bool) ([]*storedProc.UserTokenSyncRecord, error)
+	UpdateStatusUserTokenTableX(p storedProc.UserTokenSyncRecord)
+	SyncUserTokenRecordsX(withupdate bool) ([]*storedProc.UserTokenSyncRecord, error)
 }
 
 // ------------------------------------------------------------

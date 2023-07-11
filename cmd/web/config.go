@@ -23,7 +23,8 @@ import (
 	mail "github.com/xhit/go-simple-mail/v2"
 	bolt "go.etcd.io/bbolt"
 
-	_ "github.com/onlysumitg/GoQhttp/ibmiServer"
+	_ "github.com/onlysumitg/GoQhttp/internal/ibmiServer"
+	_ "github.com/onlysumitg/GoQhttp/internal/mssqlServer"
 )
 
 type features struct {
@@ -173,9 +174,9 @@ func baseAppConfig(params parameters, db *bolt.DB, userdb *bolt.DB, logdb *bolt.
 
 	appFeatures := &features{
 		Dashboard:      true,
-		Promotion:      false,
-		TokenSync:      false,
-		ParameterAlias: false,
+		Promotion:      true,
+		TokenSync:      true,
+		ParameterAlias: true,
 	}
 
 	app.features = appFeatures

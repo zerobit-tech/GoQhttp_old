@@ -99,12 +99,13 @@ Add
         </div>
 
         <div class="form-group">
-          <label for="lib">Stored Procedure Lib</label>
+          <label for="lib">Stored Procedure schema</label>
           <input id="lib" class="form-control {{with .Form.FieldErrors.lib}} is-invalid {{end}}" type="text"
               name="lib" aria-describedby="libhelp" placeholder="lib name" value='{{.Form.Lib}}'
               required></input>
 
-
+              <small id="libh" class="form-text text-muted">IBM I: Library or SQL Schema <br> 
+                MS SQL Server: Catalog name or Catalog.Schema name. Default schema is dbo.</small>
           <!-- Use the `with` action to render the value of .Form.FieldErrors.title if it is not empty. -->
 
           {{with .Form.FieldErrors.lib}}

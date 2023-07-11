@@ -7,7 +7,7 @@ import "github.com/onlysumitg/GoQhttp/internal/validator"
 // -----------------------------------------------------------------
 
 type UserTokenSyncRecord struct {
-	Rowid               int
+	Rowid               string
 	Username            string // D: Delete   R:Refresh   I:Insert
 	Token               string
 	Status              string

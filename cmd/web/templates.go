@@ -14,7 +14,7 @@ import (
 	"time"
 
 	"github.com/justinas/nosurf"
-	"github.com/onlysumitg/GoQhttp/dbserver"
+	"github.com/onlysumitg/GoQhttp/internal/dbserver"
 	"github.com/onlysumitg/GoQhttp/internal/models"
 	"github.com/onlysumitg/GoQhttp/internal/storedProc"
 	"github.com/onlysumitg/GoQhttp/lic"

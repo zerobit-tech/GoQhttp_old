@@ -30,8 +30,6 @@ type Server struct {
 	UserName string `json:"un" db:"un" form:"user_name"`
 	Password string `json:"pwd" db:"pwd" form:"password"`
 
-	
-
 	//WorkLib           string    `json:"wlib" db:"wlib" form:"worklib"`
 	CreatedAt       time.Time `json:"c_at" db:"c_at" form:"-"`
 	UpdatedAt       time.Time `json:"u_at" db:"u_at" form:"-"`
@@ -65,7 +63,7 @@ type Server struct {
 //
 // ------------------------------------------------------------
 func (s *Server) GetConnectionString() string {
-	return s.GetDbDriver().GetConnectionString()
+	return s.GetDbDriver().GetConnectionStringX()
 }
 
 // ------------------------------------------------------------
@@ -73,21 +71,21 @@ func (s *Server) GetConnectionString() string {
 // ------------------------------------------------------------
 
 func (s *Server) GetSQLToPing() string {
-	return s.GetDbDriver().GetSQLToPing()
+	return s.PingQuery
 }
 
 // ------------------------------------------------------------
 //
 // ------------------------------------------------------------
 func (s *Server) GetPassword() string {
-	return s.GetDbDriver().GetPassword()
+	return s.GetDbDriver().GetPasswordX()
 }
 
 // ------------------------------------------------------------
 //
 // ------------------------------------------------------------
 func (s *Server) GetConnectionType() string {
-	return s.GetDbDriver().GetConnectionType()
+	return s.GetDbDriver().GetConnectionTypeX()
 }
 
 // ------------------------------------------------------------
@@ -145,7 +143,7 @@ func (s *Server) ConnMaxLifetime() time.Duration {
 //
 // ------------------------------------------------------------
 func (s *Server) PingTimeoutDuration() time.Duration {
-	return s.GetDbDriver().PingTimeoutDuration()
+	return s.GetDbDriver().PingTimeoutDurationX()
 
 }
 
@@ -186,9 +184,9 @@ func (s *Server) GetConnection() (*sql.DB, error) {
 	return db, err
 }
 
-	// ------------------------------------------------------------
-	//
-	// ------------------------------------------------------------
+// ------------------------------------------------------------
+//
+// ------------------------------------------------------------
 func (s *Server) GetSingleConnection() (*sql.DB, error) {
 	if s.OnHold {
 		return nil, fmt.Errorf("Server is on hold due to %s", s.OnHoldMessage)
@@ -211,7 +209,7 @@ func (s *Server) GetMux() *sync.Mutex {
 //
 // ------------------------------------------------------------
 func (s *Server) GetSecretKey() string {
-	return s.GetDbDriver().GetSecretKey()
+	return s.GetDbDriver().GetSecretKeyX()
 
 	//return "Ang&1*~U^2^#s0^=)^^7#b34"
 }

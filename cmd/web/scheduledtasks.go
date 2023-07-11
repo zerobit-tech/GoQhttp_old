@@ -7,8 +7,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/onlysumitg/GoQhttp/dbserver"
 	"github.com/onlysumitg/GoQhttp/go_ibm_db"
+	"github.com/onlysumitg/GoQhttp/internal/dbserver"
 	"github.com/onlysumitg/GoQhttp/internal/storedProc"
 	"github.com/onlysumitg/GoQhttp/lic"
 	"github.com/onlysumitg/GoQhttp/utils/concurrent"
@@ -126,9 +126,9 @@ func (app *application) ProcessPromotionRecord(s *dbserver.Server, pr *storedPro
 			app.storedProcs.DeleteByName(pr.Endpoint, pr.Httpmethod)
 		case "I", "R": // insert /update endpoint
 			newSP := s.PromotionRecordToStoredProc(*pr)
-			newSP.ID = newSP.Slug()
+			newSP.ID = newSP.Slug() // id is by name_httpmethod --> auto replace old if alreay exits
 
-			err := s.PreapreToSave(context.Background(), newSP)
+			err := s.PrepareToSave(context.Background(), newSP)
 
 			if err == nil {
 				newSP.AddAllowedServer(s.ID, s.Name)
@@ -227,25 +227,31 @@ func (app *application) ProcessSyncUserToken(s *dbserver.Server, tk *storedProc.
 	}()
 
 	//app.ProcessPromotionRecord(s, tk)
-	user, err := app.users.GetByUserName(tk.Username)
+	user, err := app.users.GetByEmail(tk.Username)
 
-	if tk.Status == "P" {
-		if err == nil {
-			if user.ServerId != s.ID {
-				tk.Status = "E"
-				tk.StatusMessage = "User has a different default server"
+	if err == nil {
 
+		if tk.Status == "P" {
+			if err == nil {
+				if user.ServerId != s.ID {
+					tk.Status = "E"
+					tk.StatusMessage = "User has a different default server"
+
+				} else {
+					user.Token = tk.Token
+
+					app.users.Save(user, false)
+					tk.Status = "C"
+					tk.StatusMessage = "Completed"
+				}
 			} else {
-				user.Token = tk.Token
-
-				app.users.Save(user, false)
-				tk.Status = "C"
-				tk.StatusMessage = "Completed"
+				tk.Status = "E"
+				tk.StatusMessage = err.Error()
 			}
-		} else {
-			tk.Status = "E"
-			tk.StatusMessage = err.Error()
 		}
+	} else {
+		tk.Status = "E"
+		tk.StatusMessage = err.Error()
 	}
 	s.UpdateStatusUserTokenTable(*tk)
 }

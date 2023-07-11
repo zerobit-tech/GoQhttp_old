@@ -1,0 +1,1 @@
+create table sumitg1.usertoken (useremail char(100), token char(200), Status char(1), StatusMessage char(200))

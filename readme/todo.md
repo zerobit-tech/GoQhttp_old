@@ -11,7 +11,10 @@
 11: create promotion query  --> Done  --> need to test
 12: add version to sp
 13: Use named DNS
-
+14 system logs :: user login /logout / create /delted
+15 server logs
+16 user logs
+17 endpoint change log
 
 
 Issues:

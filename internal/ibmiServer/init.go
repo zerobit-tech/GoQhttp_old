@@ -1,9 +1,9 @@
-package mssqlserver
+package ibmiServer
 
 import (
 	"fmt"
 
-	"github.com/onlysumitg/GoQhttp/dbserver"
+	"github.com/onlysumitg/GoQhttp/internal/dbserver"
 )
 
 func init() {
@@ -15,8 +15,8 @@ func init() {
 		}
 	}()
 
-	msSqlServer := &MSSqlServer{}
+	ibmIServer := &IBMiServer{}
 	//go's to databse/sql/sql.go 43 line
-	dbserver.Register("MS SQL Server", msSqlServer)
+	dbserver.Register("IBM I", ibmIServer)
 
 }
