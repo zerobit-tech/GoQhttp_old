@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"net/http"
 	"runtime/debug"
 	"strings"
 	"time"
@@ -197,7 +198,16 @@ func (s *MSSqlServer) DummyCallX(sp *storedProc.StoredProc, givenParams map[stri
 // ------------------------------------------------------------
 //
 // ------------------------------------------------------------
-func (s *MSSqlServer) ErrorToHttpStatusX(inerr error) (int, string, string, bool) {
+func (s *MSSqlServer) ErrorToHttpStatusX(inerr error) (httpcode int, returnToCustomer string, logText string, handledErro bool) {
+
+	//return http.StatusBadRequest, odbcError.Error(), odbcError.Error(), true
+	if strings.HasSuffix(inerr.Error(), "MSSQL does not allow NULL value without type for OUTPUT parameters") {
+		return http.StatusBadRequest, "MS0001: NULL values not allowed", inerr.Error(), true
+	}
+
+	if strings.HasPrefix(inerr.Error(), "mssql: login error: Login failed for user") {
+		return http.StatusInternalServerError, "MS0002: Server error", inerr.Error(), true
+	}
 
 	return 0, "", "", false
 

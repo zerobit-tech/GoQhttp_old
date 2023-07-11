@@ -56,7 +56,10 @@ Add new Server
             {{end}}
             {{end}}
         </SELECT>
-
+        {{with .Form.FieldErrors.type}}
+ 
+        <div class='invalid-feedback-error'>{{.}}</div>
+        {{end}}
     </div>
 
 

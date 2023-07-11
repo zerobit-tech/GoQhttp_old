@@ -36,3 +36,4 @@ var (
 //"SQLDriverConnect: {28000} [IBM][System i Access ODBC Driver]Communication link failure. comm rc=8015 - CWBSY1006 - User ID is invalid, Password length = 0, Prompt Mode = Never, System IP Address = 185.113.5.134",
 //SQLDriverConnect: {28000} [IBM][System i Access ODBC Driver]Communication link failure. comm rc=8002 - CWBSY0002 - Password for user SGOYAL on system PUB400.COM is not correct, Password length = 0, Prompt Mode = Never, System IP Address = 185.113.5.134
 //SQLExecute: {07002} [IBM][System i Access ODBC Driver]SQLBindParameter has not been called for parameter 4.
+// SQLPrepare: {HY000} [IBM][System i Access ODBC Driver][DB2 for i5/OS]SQ20484 - Parameter 3 required for routine SPNUM2 in SUMITG1."

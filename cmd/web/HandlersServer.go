@@ -458,11 +458,10 @@ func (app *application) ServerAddPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	server.Name = stringutils.RemoveSpecialChars(stringutils.RemoveMultipleSpaces(server.Name))
-
-	server.CheckField(!app.servers.DuplicateName(&server), "name", "Duplicate Name")
-
 	server.CheckField(validator.NotBlank(server.Name), "name", "This field cannot be blank")
+
+	server.CheckField(validator.NotBlank(server.Type), "type", "This field cannot be blank")
+
 	server.CheckField(validator.NotBlank(server.IP), "ip", "This field cannot be blank")
 	server.CheckField(validator.NotBlank(server.UserName), "user_name", "This field cannot be blank")
 	server.CheckField(validator.NotBlank(server.Password), "password", "This field cannot be blank")
@@ -471,6 +470,10 @@ func (app *application) ServerAddPost(w http.ResponseWriter, r *http.Request) {
 	// Use the Valid() method to see if any of the checks failed. If they did,
 	// then re-render the template passing in the form in the same way as
 	// before.
+	if server.Valid() {
+		server.Name = stringutils.RemoveSpecialChars(stringutils.RemoveMultipleSpaces(server.Name))
+		server.CheckField(!app.servers.DuplicateName(&server), "name", "Duplicate Name")
+	}
 
 	if !server.Valid() {
 		data := app.newTemplateData(r)

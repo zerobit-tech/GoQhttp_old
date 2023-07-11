@@ -213,21 +213,24 @@ func (app *application) SPAddPost(w http.ResponseWriter, r *http.Request) {
 		app.goBack(w, r, http.StatusBadRequest)
 		return
 	}
+	sP.CheckField(validator.NotBlank(sP.EndPointName), "endpointname", "This field cannot be blank")
 
 	sP.CheckField(validator.NotBlank(sP.Name), "name", "This field cannot be blank")
 	sP.CheckField(validator.NotBlank(sP.Lib), "lib", "This field cannot be blank")
 	sP.CheckField(!app.storedProcs.Duplicate(&sP), "endpointname", "Endpoint with name and method already exists")
 	sP.CheckField(validator.NotBlank(sP.DefaultServerId), "serverid", "This field cannot be blank")
+	if sP.Valid() {
+		sP.EndPointName = stringutils.RemoveSpecialChars(stringutils.RemoveMultipleSpaces(sP.EndPointName))
 
-	sP.EndPointName = stringutils.RemoveSpecialChars(stringutils.RemoveMultipleSpaces(sP.EndPointName))
-
-	sP.CheckField(!app.storedProcs.Duplicate(&sP), "endpointname", "Endpoint with name and method already exists")
-
+		sP.CheckField(!app.storedProcs.Duplicate(&sP), "endpointname", "Endpoint with name and method already exists")
+	}
 	// assign default server
 
 	server, err := app.servers.Get(sP.DefaultServerId)
 	if err != nil {
 		sP.CheckField(false, "serverid", "Server not found")
+
+		sP.Validator.AddNonFieldError("Please select a valid server")
 	} else {
 		srcd := &storedProc.ServerRecord{ID: server.ID, Name: server.Name}
 		sP.DefaultServer = srcd

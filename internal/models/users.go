@@ -349,7 +349,26 @@ func (m *UserModel) Get(id string) (*User, error) {
 		}
 	}
 
-	return nil, ErrInvalidCredentials
+	return nil, errors.New("models: Not found")
+
+}
+
+// -----------------------------------------------------------------
+//
+// -----------------------------------------------------------------
+// We'll use the Exists method to check if a user exists with a specific ID.
+func (m *UserModel) IsDuplicate(u *User) bool {
+
+	u2, err := m.GetByEmail(u.Email)
+	if err != nil {
+		return false
+	}
+
+	if u2.ID != u.ID {
+		return true
+	}
+
+	return false
 
 }
 
@@ -365,7 +384,7 @@ func (m *UserModel) GetByEmail(email string) (*User, error) {
 		}
 	}
 
-	return nil, ErrInvalidCredentials
+	return nil, errors.New("models: Not found")
 
 }
 
@@ -381,7 +400,7 @@ func (m *UserModel) GetByUserName(username string) (*User, error) {
 		}
 	}
 
-	return nil, ErrInvalidCredentials
+	return nil, errors.New("models: Not found")
 
 }
 
@@ -397,7 +416,7 @@ func (m *UserModel) GetByToken(token string) (*User, error) {
 		}
 	}
 
-	return nil, ErrInvalidCredentials
+	return nil, errors.New("models: Not found")
 
 }
 

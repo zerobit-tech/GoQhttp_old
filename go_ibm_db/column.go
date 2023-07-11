@@ -76,6 +76,8 @@ func NewColumn(h api.SQLHSTMT, idx int) (Column, error) {
 		name:  api.UTF16ToString(namebuf[:namelen]),
 		SType: sqltype,
 	}
+
+	// sumit assign result set
 	switch sqltype {
 	case api.SQL_BIT:
 		return NewBindableColumn(b, api.SQL_C_BIT, 1), nil
@@ -83,7 +85,7 @@ func NewColumn(h api.SQLHSTMT, idx int) (Column, error) {
 		return NewBindableColumn(b, api.SQL_C_LONG, 4), nil
 	case api.SQL_BIGINT:
 		return NewBindableColumn(b, api.SQL_C_SBIGINT, 8), nil
-	case api.SQL_NUMERIC, api.SQL_FLOAT, api.SQL_REAL, api.SQL_DOUBLE:
+	case api.SQL_NUMERIC, api.SQL_FLOAT, api.SQL_REAL, api.SQL_DOUBLE, api.SQL_DECIMAL:
 		return NewBindableColumn(b, api.SQL_C_DOUBLE, 8), nil
 	case api.SQL_TYPE_TIMESTAMP:
 		var v api.SQL_TIMESTAMP_STRUCT
@@ -94,7 +96,7 @@ func NewColumn(h api.SQLHSTMT, idx int) (Column, error) {
 	case api.SQL_TYPE_TIME:
 		var v api.SQL_TIME_STRUCT
 		return NewBindableColumn(b, api.SQL_C_TYPE_TIME, int(unsafe.Sizeof(v))), nil
-	case api.SQL_CHAR, api.SQL_VARCHAR, api.SQL_DECIMAL:
+	case api.SQL_CHAR, api.SQL_VARCHAR:
 		return NewVariableWidthColumn(b, api.SQL_C_CHAR, size), nil
 	case api.SQL_WCHAR, api.SQL_WVARCHAR:
 		return NewVariableWidthColumn(b, api.SQL_C_WCHAR, size), nil
@@ -159,6 +161,12 @@ func (c *BaseColumn) Value(buf []byte) (driver.Value, error) {
 	if len(buf) > 0 {
 		p = unsafe.Pointer(&buf[0])
 	}
+
+	// bufX := bytes.Trim(buf, "\x00")
+	// if len(bufX) == 0 {
+	// 	return nil, nil
+	// }
+
 	switch c.CType {
 	case api.SQL_C_BIT:
 		return buf[0] != 0, nil

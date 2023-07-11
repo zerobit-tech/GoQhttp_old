@@ -1,3 +1,5 @@
+MS SQL SERVER
+
 https://github.com/microsoft/go-mssqldb
 
 
@@ -18,7 +20,7 @@ sudo docker run -e "ACCEPT_EULA=Y" -e "MSSQL_SA_PASSWORD=SaveP0wer#2" \
    
    
    
-   /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P "SaveP0wer#2"
+  docker exec -it sql1 /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P "SaveP0wer#2"
    
    ----------------
    use TestDB
@@ -28,7 +30,21 @@ sudo docker run -e "ACCEPT_EULA=Y" -e "MSSQL_SA_PASSWORD=SaveP0wer#2" \
    1> SELECT Name from sys.databases;
 
 GO
-   
+
+
+
+
+================ tables =======================
+
+create table testtb1 (id int, c1 char(20), c2 varchar(20), c3 nchar(20), c4 nvarchar(20), d1 date , d2 DATETIME2 , d3 DATETIME, d4 DATETIMEOFFSET, d5  SMALLDATETIME, t1 time , i1 int  ,i2 bigint, i3 smallint, i4 tinyint, c5 text, f1 decimal, f2 numeric, f3 float , f4 real,  f5 money, f7 smallmoney);
+
+
+
+
+
+
+
+
    -------------------
    CREATE PROCEDURE SelectAllCustomers @name nvarchar(30) AS SELECT * FROM Inventory WHERE name= @name
 GO;

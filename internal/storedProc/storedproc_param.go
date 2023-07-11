@@ -2,11 +2,11 @@ package storedProc
 
 import (
 	"database/sql"
-	"fmt"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/onlysumitg/GoQhttp/utils/floatutils"
 	"github.com/onlysumitg/GoQhttp/utils/stringutils"
 )
 
@@ -71,19 +71,49 @@ func (p *StoredProcParamter) ConvertOUTVarToType(v *any) (any, error) {
 	switch p.Datatype {
 
 	case "DECFLOAT":
-		fmt.Println("asString(v)", stringutils.AsString(v))
 
 		x, ok := (*v).([]byte)
 		if ok {
 			return strconv.ParseFloat(string(x), 64)
 		}
+
+	case "NUMERIC", "DECIMAL":
+
+		x, ok := (*v).(float64)
+		if ok {
+
+			if floatutils.AlmostEquals(x, 0, 0.00000000000000001) {
+				return 0, nil
+			}
+			return x, nil
+		}
+
 	case "ROWID":
-		fmt.Println("asString(v)", stringutils.AsString(v))
 
 		x, ok := (*v).([]byte)
 		if ok {
 			return strconv.Atoi(string(x))
 		}
+
+	case "DATE":
+
+		x, ok := (*v).(string)
+		if ok {
+			if x == "-0001-11-30" {
+				return "0001-01-01", nil
+			}
+
+		}
+	case "TIMESTAMP":
+
+		x, ok := (*v).(string)
+		if ok {
+			if x == "-0001-11-30 00:00:00.000000" {
+				return "0001-01-01 00:00:00.000000", nil
+			}
+
+		}
+
 	}
 
 	return v, nil

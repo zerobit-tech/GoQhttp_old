@@ -149,12 +149,12 @@ func (s *IBMiServer) prepareCallStatement(sp *storedProc.StoredProc, givenParams
 
 			}
 			if !parameterHasValidValue(p, valueToUse) {
-				return nil, fmt.Errorf("%s: invalid value", stringutils.AsString(valueToUse))
+				return nil, fmt.Errorf("%s: invalid value", paramNameToUse)
 			}
 
 			valueToUse, err := p.ConvertToType(valueToUse)
 			if err != nil {
-				return nil, fmt.Errorf("%s: invalid value", stringutils.AsString(valueToUse))
+				return nil, fmt.Errorf("%s: invalid value", paramNameToUse)
 
 			}
 			inoutParamVariables[p.Name] = &valueToUse
@@ -375,9 +375,9 @@ func (s *IBMiServer) GetResultSetCount(ctx context.Context, sp *storedProc.Store
 
 	sqlToRun := ""
 	if sp.UseSpecificName {
-		sqlToRun = fmt.Sprintf("select trim(SPECIFIC_SCHEMA), trim(SPECIFIC_NAME),trim(ROUTINE_SCHEMA),trim(ROUTINE_NAME), RESULT_SETS, SQL_DATA_ACCESS,ROUTINE_CREATED from qsys2.sysprocs where SPECIFIC_NAME='%s'  and SPECIFIC_SCHEMA='%s' limit 1", strings.ToUpper(sp.Name), strings.ToUpper(sp.Lib))
+		sqlToRun = fmt.Sprintf("select trim(SPECIFIC_SCHEMA), trim(SPECIFIC_NAME),trim(ROUTINE_SCHEMA),trim(ROUTINE_NAME), ifnull(RESULT_SETS,0), SQL_DATA_ACCESS,ROUTINE_CREATED from qsys2.sysprocs where SPECIFIC_NAME='%s'  and SPECIFIC_SCHEMA='%s' limit 1", strings.ToUpper(sp.Name), strings.ToUpper(sp.Lib))
 	} else {
-		sqlToRun = fmt.Sprintf("select trim(SPECIFIC_SCHEMA), trim(SPECIFIC_NAME),trim(ROUTINE_SCHEMA),trim(ROUTINE_NAME), RESULT_SETS, SQL_DATA_ACCESS,ROUTINE_CREATED from qsys2.sysprocs where ROUTINE_NAME='%s'  and ROUTINE_SCHEMA='%s' limit 1", strings.ToUpper(sp.Name), strings.ToUpper(sp.Lib))
+		sqlToRun = fmt.Sprintf("select trim(SPECIFIC_SCHEMA), trim(SPECIFIC_NAME),trim(ROUTINE_SCHEMA),trim(ROUTINE_NAME), ifnull(RESULT_SETS,0), SQL_DATA_ACCESS,ROUTINE_CREATED from qsys2.sysprocs where ROUTINE_NAME='%s'  and ROUTINE_SCHEMA='%s' limit 1", strings.ToUpper(sp.Name), strings.ToUpper(sp.Lib))
 
 	}
 

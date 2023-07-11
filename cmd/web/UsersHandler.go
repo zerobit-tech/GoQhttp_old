@@ -84,6 +84,9 @@ func (app *application) userAdd(w http.ResponseWriter, r *http.Request) {
 			user.CheckField(validator.NotBlank(user.Password), "password", "This field cannot be blank")
 			user.CheckField(validator.MinChars(user.Password, 8), "password", "This field must be at least 8 characters long")
 		}
+
+		user.CheckField(!app.users.IsDuplicate(user), "email", "Email already in use.")
+
 		if user.Valid() {
 			if user.ID == "" {
 				user.MaxAllowedEndpoints = app.maxAllowedEndPointsPerUser
