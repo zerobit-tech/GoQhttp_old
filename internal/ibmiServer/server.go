@@ -119,7 +119,7 @@ func (s *IBMiServer) prepareCallStatement(sp *storedProc.StoredProc, givenParams
 				//p.GivenValue = asString(valueToUse)
 
 			}
-			if parameterHasValidValue(p, valueToUse) {
+			if !parameterHasValidValue(p, valueToUse) {
 				return nil, fmt.Errorf("%s: invalid value", p.Name)
 			}
 

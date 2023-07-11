@@ -1,4 +1,4 @@
-package mssqlserver
+package mysqlserver
 
 import (
 	"fmt"
@@ -6,12 +6,13 @@ import (
 
 	"github.com/onlysumitg/GoQhttp/go_ibm_db"
 	"github.com/onlysumitg/GoQhttp/internal/storedProc"
+	"github.com/onlysumitg/GoQhttp/utils/stringutils"
 )
 
 // -----------------------------------------------------------------
 //
 // -----------------------------------------------------------------
-func (s *MSSqlServer) GetDefaultValue(p *storedProc.StoredProcParamter) string {
+func (s *IBMiServer) GetDefaultValue(p *storedProc.StoredProcParamter) string {
 	if p.DefaultValue.Valid {
 
 		if go_ibm_db.IsSepecialRegister(p.DefaultValue.String) {
@@ -27,7 +28,7 @@ func (s *MSSqlServer) GetDefaultValue(p *storedProc.StoredProcParamter) string {
 	return ""
 }
 
-func getSpecialRegisterValue(s *MSSqlServer, name string) string {
+func getSpecialRegisterValue(s *IBMiServer, name string) string {
 	sqlToUse := fmt.Sprintf("values(%s)", name)
 	conn, err := s.GetConnection()
 
@@ -44,4 +45,79 @@ func getSpecialRegisterValue(s *MSSqlServer, name string) string {
 	}
 	return ""
 
+}
+
+// -----------------------------------------------------------------
+// parameter
+// -----------------------------------------------------------------
+func getParameterofType(p *storedProc.StoredProcParamter) *any {
+	var x any
+	switch p.Datatype {
+	case "DECFLOAT":
+		var decfloac float64
+		x = &decfloac
+		return &x
+	case "ROWID":
+		var r go_ibm_db.ROWID
+		x = &r
+		return &x
+	}
+
+	return &x
+}
+
+// -----------------------------------------------------------------
+//
+// -----------------------------------------------------------------
+func parameterIsString(p *storedProc.StoredProcParamter) bool {
+	_, found := go_ibm_db.SPParamStringTypes[p.Datatype]
+
+	//_, found2 := go_ibm_db.SPParamDateTypes[p.Datatype]
+
+	return found //|| found2
+}
+
+// -----------------------------------------------------------------
+//
+// -----------------------------------------------------------------
+func parameterIsNumeric(p *storedProc.StoredProcParamter) bool {
+	_, found := go_ibm_db.SPParamNumericTypes[p.Datatype]
+	return found
+}
+
+// -----------------------------------------------------------------
+//
+// -----------------------------------------------------------------
+func parameterIsInt(p *storedProc.StoredProcParamter) bool {
+	_, found := go_ibm_db.SPParamIntegerTypes[p.Datatype]
+	return found
+}
+
+// -----------------------------------------------------------------
+//
+// -----------------------------------------------------------------
+func parameterNeedQuote(p *storedProc.StoredProcParamter, value string) bool {
+	if go_ibm_db.IsSepecialRegister(value) {
+		return false
+	}
+
+	if value == "NULL" {
+		return false
+	}
+	return true
+}
+
+// -----------------------------------------------------------------
+//
+// -----------------------------------------------------------------
+func parameterHasValidValue(p *storedProc.StoredProcParamter, val any) bool {
+
+	if parameterIsInt(p) {
+		return stringutils.IsNumericWithOutDecimal(stringutils.AsString(val))
+	}
+
+	if parameterIsNumeric(p) {
+		return stringutils.IsNumeric(stringutils.AsString(val))
+	}
+	return true
 }

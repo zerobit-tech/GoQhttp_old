@@ -1,4 +1,4 @@
-package mssqlserver
+package mysqlserver
 
 var unsupportedDataType []string = []string{
 	"BINARY",

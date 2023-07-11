@@ -1,4 +1,4 @@
-package mssqlserver
+package mysqlserver
 
 import (
 	"fmt"
@@ -10,7 +10,7 @@ import (
 // ------------------------------------------------------------
 //
 // ------------------------------------------------------------
-func (s *MSSqlServer) BuildPromotionSQL(sp *storedProc.StoredProc) {
+func (s *IBMiServer) BuildPromotionSQL(sp *storedProc.StoredProc) {
 	sp.Promotionsql = ""
 	if strings.TrimSpace(s.ConfigFile) == "" || strings.TrimSpace(s.ConfigFileLib) == "" {
 		return
@@ -29,7 +29,7 @@ func (s *MSSqlServer) BuildPromotionSQL(sp *storedProc.StoredProc) {
 		allowWithoutAuth = "Y"
 	}
 
-	sqlToUse := fmt.Sprintf("insert into %s.%s \n (action,,endpoint,storedproc,storedproclib,httpmethod,usespecificname,usewithoutauth,paramalias)", s.ConfigFileLib, s.ConfigFile)
+	sqlToUse := fmt.Sprintf("insert into %s.%s \n (operation,endpoint,storedproc,storedproclib,httpmethod,usespecificname,usewithoutauth,paramalias)", s.ConfigFileLib, s.ConfigFile)
 	sqlToUse = fmt.Sprintf("%s \n values('%s','%s','%s','%s','%s','%s','%s','%s')", sqlToUse, "I", sp.EndPointName, sp.SpecificName, sp.SpecificLib, sp.HttpMethod, "Y", allowWithoutAuth, paramList)
 	sp.Promotionsql = sqlToUse
 }

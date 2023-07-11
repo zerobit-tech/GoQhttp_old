@@ -1,4 +1,4 @@
-package mssqlserver
+package mysqlserver
 
 import (
 	"fmt"
@@ -11,12 +11,12 @@ func init() {
 	// Recover from panic to avoid stop an application when can't get the db2 cli
 	defer func() {
 		if err := recover(); err != nil {
-			fmt.Printf("%s\nThe MySQL Server driver cannot be registered \n", err)
+			fmt.Println(fmt.Sprintf("%s\nThe MySQL driver cannot be registered", err))
 		}
 	}()
 
-	msSqlServer := &MSSqlServer{}
+	ibmIServer := &IBMiServer{}
 	//go's to databse/sql/sql.go 43 line
-	dbserver.Register("MySQL", msSqlServer)
+	dbserver.Register("MySQL", ibmIServer)
 
 }

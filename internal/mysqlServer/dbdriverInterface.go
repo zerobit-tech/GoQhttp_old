@@ -1,17 +1,21 @@
-package mssqlserver
+package mysqlserver
 
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
+	"net/http"
 	"runtime/debug"
 	"strings"
 	"time"
 
+	"github.com/onlysumitg/GoQhttp/go_ibm_db"
 	"github.com/onlysumitg/GoQhttp/internal/dbserver"
 	"github.com/onlysumitg/GoQhttp/internal/storedProc"
 	"github.com/onlysumitg/GoQhttp/internal/validator"
+	"github.com/onlysumitg/GoQhttp/logger"
 	"github.com/onlysumitg/GoQhttp/utils/stringutils"
 	"github.com/onlysumitg/GoQhttp/utils/xmlutils"
 )
@@ -19,104 +23,59 @@ import (
 // -----------------------------------------------------------------
 //
 // -----------------------------------------------------------------
-func (s *MSSqlServer) LoadX(bs *dbserver.Server) {
+func (s *IBMiServer) LoadX(bs *dbserver.Server) {
 	s.Server = bs
 
 }
 
-// ------------------------------------------------------------
-//
-// ------------------------------------------------------------
-func (s *MSSqlServer) GetConnectionStringX() string {
-
-	pwd := s.GetPassword()
-
-	//connectionString := fmt.Sprintf("DSN=pub400; UID=%s;PWD=%s", s.UserName, s.Password)
-	connectionString := fmt.Sprintf("server=%s;user id=%s;password=%s;port=%d", s.IP, s.UserName, pwd, s.Port)
-	return connectionString
-}
-
-// ------------------------------------------------------------
-//
-// ------------------------------------------------------------
-func (s *MSSqlServer) GetPasswordX() string {
-	pwd, err := stringutils.Decrypt(s.Password, s.GetSecretKey())
-	if err != nil {
-		log.Println("Unable to decrypt password")
-		return ""
-	}
-	return pwd
-}
-
-// ------------------------------------------------------------
-//
-// ------------------------------------------------------------
-func (s *MSSqlServer) GetConnectionTypeX() string {
-	return "sqlserver"
-}
-
-// ------------------------------------------------------------
-//
-// ------------------------------------------------------------
-func (s *MSSqlServer) PingTimeoutDurationX() time.Duration {
-	age := 3
-	if s.PingTimeout > 0 {
-		age = s.PingTimeout
-	}
-
-	return time.Duration(age) * time.Second
-}
-
-// ------------------------------------------------------------
-//
-// ------------------------------------------------------------
-func (s *MSSqlServer) GetConnectionIDX() string {
-	return s.ID
-}
-
-// ------------------------------------------------------------
-//
-// ------------------------------------------------------------
-func (s *MSSqlServer) GetSecretKeyX() string {
-	return "BhL&1*~U^2^#s0^=)^^8#b34" // keep the length
-}
-
 // -----------------------------------------------------------------
 //
 // -----------------------------------------------------------------
-func (s *MSSqlServer) APICallX(ctx context.Context, callId string, sp *storedProc.StoredProc, params map[string]xmlutils.ValueDatatype) (responseFormat *storedProc.StoredProcResponse, callDuration time.Duration, err error) {
-	//log.Printf("%v: %v\n", "SeversCall005.001", time.Now())
-
-	defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
-	t1 := time.Now()
-	defer func() {
-		if r := recover(); r != nil {
-			responseFormat = &storedProc.StoredProcResponse{
-				ReferenceId: "string",
-				Status:      500,
-				Message:     fmt.Sprintf("%s", r),
-				Data:        map[string]any{},
-				//LogData:     []storedProc.LogByType{{Text: fmt.Sprintf("%s", r), Type: "ERROR"}},
-			}
-			callDuration = time.Since(t1)
-			// apiCall.Response = responseFormat
-			err = fmt.Errorf("%s", r)
+func (s *IBMiServer) RefreshX(ctx context.Context, sp *storedProc.StoredProc) error {
+	if s.HasSPUpdated(ctx, sp) {
+		err := s.PrepareToSave(ctx, sp)
+		if err != nil {
+			return err
 		}
-	}()
-
-	givenParams := make(map[string]any)
-	//.LogInfo("Building parameters for SP call")
-	for k, v := range params {
-		givenParams[k] = v.Value
 	}
-	return s.Call(ctx, sp, givenParams)
 
+	return nil
 }
+
+// ------------------------------------------------------------
+//
+// ------------------------------------------------------------
+// func (s *IBMiServer) PromotionRecordToStoredProcX(p storedProc.PromotionRecord) *storedProc.StoredProc {
+// 	sp := &storedProc.StoredProc{
+// 		EndPointName: p.Endpoint,
+// 		HttpMethod:   p.Httpmethod,
+// 		Name:         p.Storedproc,
+// 		Lib:          p.Storedproclib,
+// 	}
+// 	if p.UseSpecificName == "Y" {
+// 		sp.UseSpecificName = true
+// 	}
+
+// 	if p.UseWithoutAuth == "Y" {
+// 		sp.AllowWithoutAuth = true
+// 	}
+// 	srcd := &storedProc.ServerRecord{
+// 		ID:   s.ID,
+// 		Name: s.Name,
+// 	}
+// 	sp.DefaultServer = srcd
+
+// 	return sp
+// }
 
 // -----------------------------------------------------------------
 //
 // -----------------------------------------------------------------
-func (s *MSSqlServer) PrepareToSaveX(ctx context.Context, sp *storedProc.StoredProc) error {
+
+// -----------------------------------------------------------------
+//
+// -----------------------------------------------------------------
+func (s *IBMiServer) PrepareToSaveX(ctx context.Context, sp *storedProc.StoredProc) error {
 	sp.Name = strings.ToUpper(strings.TrimSpace(sp.Name))
 	sp.Lib = strings.ToUpper(strings.TrimSpace(sp.Lib))
 	sp.HttpMethod = strings.ToUpper(strings.TrimSpace(sp.HttpMethod))
@@ -124,14 +83,14 @@ func (s *MSSqlServer) PrepareToSaveX(ctx context.Context, sp *storedProc.StoredP
 
 	ctx1, cancelFunc1 := context.WithTimeout(ctx, 5*time.Second)
 	defer cancelFunc1()
-	err := s.getSPDetails(ctx1, sp)
+	err := s.GetResultSetCount(ctx1, sp)
 	if err != nil {
 		return err
 	}
 
 	ctx2, cancelFunc2 := context.WithTimeout(ctx, 5*time.Second)
 	defer cancelFunc2()
-	err = s.getParameters(ctx2, sp)
+	err = s.GetParameters(ctx2, sp)
 	if err != nil {
 		return err
 	}
@@ -150,24 +109,105 @@ func (s *MSSqlServer) PrepareToSaveX(ctx context.Context, sp *storedProc.StoredP
 	return nil
 }
 
-// -----------------------------------------------------------------
+// ------------------------------------------------------------
 //
-// -----------------------------------------------------------------
-func (s *MSSqlServer) RefreshX(ctx context.Context, sp *storedProc.StoredProc) error {
-	if s.HasSPUpdated(ctx, sp) {
-		err := s.PrepareToSave(ctx, sp)
-		if err != nil {
-			return err
-		}
+// ------------------------------------------------------------
+func (s *IBMiServer) GetConnectionStringX() string {
+	driver := "IBM i Access ODBC Driver"
+	ssl := 0
+	if s.Ssl {
+		ssl = 1
+	}
+	pwd := s.GetPassword()
+	connectionString := fmt.Sprintf("DRIVER=%s;SYSTEM=%s; UID=%s;PWD=%s;DBQ=*USRLIBL;UNICODESQL=1;XDYNAMIC=1;EXTCOLINFO=0;PKG=A/DJANGO,2,0,0,1,512;PROTOCOL=TCPIP;NAM=1;CMT=0;SSL=%d;ALLOWUNSCHAR=1", driver, s.IP, s.UserName, pwd, ssl)
+
+	//connectionString := fmt.Sprintf("DSN=pub400; UID=%s;PWD=%s", s.UserName, s.Password)
+
+	return connectionString
+}
+
+// ------------------------------------------------------------
+//
+// ------------------------------------------------------------
+func (s *IBMiServer) GetPasswordX() string {
+	pwd, err := stringutils.Decrypt(s.Password, s.GetSecretKey())
+	if err != nil {
+		log.Println("Unable to decrypt password")
+		return ""
+	}
+	return pwd
+}
+
+// ------------------------------------------------------------
+//
+// ------------------------------------------------------------
+func (s *IBMiServer) GetConnectionTypeX() string {
+	return "go_ibm_db" //"odbc"
+}
+
+// ------------------------------------------------------------
+//
+// ------------------------------------------------------------
+func (s *IBMiServer) PingTimeoutDurationX() time.Duration {
+	age := 3
+	if s.PingTimeout > 0 {
+		age = s.PingTimeout
 	}
 
-	return nil
+	return time.Duration(age) * time.Second
+}
+
+// ------------------------------------------------------------
+//
+// ------------------------------------------------------------
+func (s *IBMiServer) GetConnectionIDX() string {
+	return s.ID
+}
+
+// ------------------------------------------------------------
+//
+// ------------------------------------------------------------
+func (s *IBMiServer) GetSecretKeyX() string {
+	return "Ang&1*~U^2^#s0^=)^^7#b34"
 }
 
 // -----------------------------------------------------------------
 //
 // -----------------------------------------------------------------
-func (s *MSSqlServer) DummyCallX(sp *storedProc.StoredProc, givenParams map[string]any) (*storedProc.StoredProcResponse, error) {
+func (s *IBMiServer) APICallX(ctx context.Context, callID string, sp *storedProc.StoredProc, params map[string]xmlutils.ValueDatatype) (responseFormat *storedProc.StoredProcResponse, callDuration time.Duration, err error) {
+	//log.Printf("%v: %v\n", "SeversCall005.001", time.Now())
+
+	defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
+	t1 := time.Now()
+	defer func() {
+		if r := recover(); r != nil {
+			responseFormat = &storedProc.StoredProcResponse{
+				ReferenceId: "string",
+				Status:      500,
+				Message:     fmt.Sprintf("%s", r),
+				Data:        map[string]any{},
+				//LogData:     []storedProc.LogByType{{Text: fmt.Sprintf("%s", r), Type: "ERROR"}},
+			}
+			responseFormat.LogData = []*logger.LogEvent{logger.GetLogEvent("ERROR", callID, fmt.Sprintf("%s", r), false)}
+			callDuration = time.Since(t1)
+			// apiCall.Response = responseFormat
+			err = fmt.Errorf("%s", r)
+		}
+	}()
+
+	givenParams := make(map[string]any)
+	//.LogInfo("Building parameters for SP call")
+	for k, v := range params {
+		givenParams[k] = v.Value
+	}
+	return s.Call(ctx, callID, sp, givenParams)
+
+}
+
+// -----------------------------------------------------------------
+//
+// -----------------------------------------------------------------
+func (s *IBMiServer) DummyCallX(sp *storedProc.StoredProc, givenParams map[string]any) (*storedProc.StoredProcResponse, error) {
 	preparedCallStatements, err := s.prepareCallStatement(sp, givenParams)
 	if err != nil {
 		return nil, err
@@ -194,19 +234,10 @@ func (s *MSSqlServer) DummyCallX(sp *storedProc.StoredProc, givenParams map[stri
 	return responseFormat, nil
 }
 
-// ------------------------------------------------------------
-//
-// ------------------------------------------------------------
-func (s *MSSqlServer) ErrorToHttpStatusX(inerr error) (int, string, string, bool) {
-
-	return 0, "", "", false
-
-}
-
 // -----------------------------------------------------------------
 //
 // -----------------------------------------------------------------
-func (s *MSSqlServer) ExistsX(ctx context.Context, sp *storedProc.StoredProc) (bool, error) {
+func (s *IBMiServer) ExistsX(ctx context.Context, sp *storedProc.StoredProc) (bool, error) {
 
 	exists := "N"
 
@@ -238,39 +269,49 @@ func (s *MSSqlServer) ExistsX(ctx context.Context, sp *storedProc.StoredProc) (b
 // ------------------------------------------------------------
 //
 // ------------------------------------------------------------
-func (s *MSSqlServer) UpdateStatusForPromotionRecordX(p storedProc.PromotionRecord) {
-	if p.Rowid == "0" || p.Rowid == "" {
-		return
-	}
+func (s *IBMiServer) ErrorToHttpStatusX(inerr error) (int, string, string, bool) {
+	var odbcError *go_ibm_db.Error
 
-	updateCol := "sys.fn_PhysLocFormatter(%%physloc%%)"
-	catalog, schma := breakStringToCatalogSchema(s.ConfigFileLib)
+	if errors.As(inerr, &odbcError) {
 
-	updateSQL := fmt.Sprintf("update %s.%s.%s set status='%s' , statusmessage = '%s' where  %s = '%s'", catalog, schma, s.ConfigFile, p.Status, p.StatusMessage, updateCol, p.Rowid)
+		if len(odbcError.Diag) > 0 {
+			code := odbcError.Diag[0].NativeError
+			switch code {
+			case -420:
+				return http.StatusBadRequest, "Please check the values.", odbcError.Error(), true
+			case -204:
+				return http.StatusNotFound, "OD0204[42S02]", odbcError.Error(), true
+			case 8001:
+				return http.StatusInternalServerError, "OD8001", odbcError.Error(), true
+			case 10060:
+				return http.StatusInternalServerError, "OD10060", odbcError.Error(), true
+			case 30038:
+				return http.StatusInternalServerError, "OD30038", odbcError.Error(), true
+			case 30189:
+				return http.StatusInternalServerError, "OD30189", odbcError.Error(), true // {HYT00} [IBM][System i Access ODBC Driver]Connection login timed out.
+			case 10065:
+				return http.StatusInternalServerError, "OD10065", odbcError.Error(), true // "[IBM][System i Access ODBC Driver]Communication link failure. comm rc=10065 - CWBCO1003 - Sockets error, function  returned 10065 "
+			case 8002:
+				return http.StatusInternalServerError, "OD8002", odbcError.Error(), true // SQLDriverConnect: {28000} [IBM][System i Access ODBC Driver]Communication link failure. comm rc=8002 - CWBSY0002 - Password for user SUMITG33 on system PUB400.COM is not correct, Password length = 10, Prompt Mode = Never, System IP Address = 185.113.5.134
+			}
 
-	conn, err := s.GetSingleConnection()
-	if err != nil {
-		log.Println("Error updating promotion file....", err.Error())
+		}
+
+		return http.StatusBadRequest, odbcError.Error(), odbcError.Error(), true
 	}
-	defer conn.Close()
-	_, err = conn.Exec(updateSQL)
-	if err != nil {
-		log.Println("Error updateing promotion file.... ", err.Error())
-	}
+	return 0, "", "", false
+
 }
 
 // ------------------------------------------------------------
 //
 // ------------------------------------------------------------
-func (s *MSSqlServer) ListPromotionX(withupdate bool) ([]*storedProc.PromotionRecord, error) {
+func (s *IBMiServer) ListPromotionX(withupdate bool) ([]*storedProc.PromotionRecord, error) {
 
 	promotionRecords := make([]*storedProc.PromotionRecord, 0)
 	if strings.TrimSpace(s.ConfigFile) != "" && strings.TrimSpace(s.ConfigFileLib) != "" {
 
-		catalog, schma := breakStringToCatalogSchema(s.ConfigFileLib)
-
-		columns := "select sys.fn_PhysLocFormatter(%%physloc%%), upper(trim(isnull(operation,''))) , upper(trim(isnull(endpoint,''))), trim(isnull(storedproc,'')), trim(isnull(storedproclib,'')), upper(trim(isnull(httpmethod,''))), upper(trim(isnull(usespecificname,''))), upper(trim(isnull(usewithoutauth,''))) , upper(trim(isnull(paramalias,''))) "
-		sqlToUse := fmt.Sprintf("%s from %s.%s.%s  where isnull(status,'')=''", columns, catalog, schma, s.ConfigFile)
+		sqlToUse := fmt.Sprintf("select rrn(a), upper(trim(ifnull(operation,''))) , upper(trim(ifnull(endpoint,''))), trim(ifnull(storedproc,'')), trim(ifnull(storedproclib,'')), upper(trim(ifnull(httpmethod,''))), upper(trim(ifnull(usespecificname,''))), upper(trim(ifnull(usewithoutauth,''))) , upper(trim(ifnull(paramalias,''))) from %s.%s a where ifnull(status,'')=''", s.ConfigFileLib, s.ConfigFile)
 
 		conn, err := s.GetSingleConnection()
 		if err != nil {
@@ -346,39 +387,12 @@ func (s *MSSqlServer) ListPromotionX(withupdate bool) ([]*storedProc.PromotionRe
 // ------------------------------------------------------------
 //
 // ------------------------------------------------------------
-func (s *MSSqlServer) UpdateStatusUserTokenTableX(p storedProc.UserTokenSyncRecord) {
-	if p.Rowid == "0" || p.Rowid == "" {
-		return
-	}
-
-	updateCol := "sys.fn_PhysLocFormatter(%%physloc%%)"
-	catalog, schma := breakStringToCatalogSchema(s.UserTokenFileLib)
-
-	updateSQL := fmt.Sprintf("update %s.%s.%s set status='%s' , statusmessage = '%s' where  %s = '%s'", catalog, schma, s.UserTokenFile, p.Status, p.StatusMessage, updateCol, p.Rowid)
-
-	conn, err := s.GetSingleConnection()
-	if err != nil {
-		log.Println("Error updating User token file....", err.Error())
-	}
-	defer conn.Close()
-	_, err = conn.Exec(updateSQL)
-	if err != nil {
-		log.Println("Error updateing User token file.... ", err.Error())
-	}
-}
-
-// ------------------------------------------------------------
-//
-// ------------------------------------------------------------
-func (s *MSSqlServer) SyncUserTokenRecordsX(withupdate bool) ([]*storedProc.UserTokenSyncRecord, error) {
+func (s *IBMiServer) SyncUserTokenRecordsX(withupdate bool) ([]*storedProc.UserTokenSyncRecord, error) {
 
 	userTokens := make([]*storedProc.UserTokenSyncRecord, 0)
 	if strings.TrimSpace(s.UserTokenFile) != "" && strings.TrimSpace(s.UserTokenFileLib) != "" {
 
-		catalog, schma := breakStringToCatalogSchema(s.UserTokenFileLib)
-
-		columns := "select sys.fn_PhysLocFormatter(%%physloc%%), upper(trim(isnull(useremail,''))) , upper(trim(isnull(token,''))) "
-		sqlToUse := fmt.Sprintf("%s from %s.%s.%s  where isnull(status,'')=''", columns, catalog, schma, s.UserTokenFile)
+		sqlToUse := fmt.Sprintf("select rrn(a), upper(trim(ifnull(useremail,''))) , trim(ifnull(token,'')) from %s.%s a where ifnull(status,'')=''", s.UserTokenFileLib, s.UserTokenFile)
 
 		conn, err := s.GetSingleConnection()
 		if err != nil {
@@ -433,4 +447,44 @@ func (s *MSSqlServer) SyncUserTokenRecordsX(withupdate bool) ([]*storedProc.User
 	// }
 
 	return userTokens, nil
+}
+
+// ------------------------------------------------------------
+//
+// ------------------------------------------------------------
+func (s *IBMiServer) UpdateStatusForPromotionRecordX(p storedProc.PromotionRecord) {
+	if p.Rowid == "0" || p.Rowid == "" {
+		return
+	}
+
+	updateSQL := fmt.Sprintf("update %s.%s a set status='%s' , statusmessage = '%s' where rrn(a) = %s", s.ConfigFileLib, s.ConfigFile, p.Status, p.StatusMessage, p.Rowid)
+	conn, err := s.GetSingleConnection()
+	if err != nil {
+		log.Println("Error updating promotion file....", err.Error())
+	}
+	defer conn.Close()
+	_, err = conn.Exec(updateSQL)
+	if err != nil {
+		log.Println("Error updateing promotion file.... ", err.Error())
+	}
+}
+
+// ------------------------------------------------------------
+//
+// ------------------------------------------------------------
+func (s *IBMiServer) UpdateStatusUserTokenTableX(p storedProc.UserTokenSyncRecord) {
+	if p.Rowid == "0" || p.Rowid == "" {
+		return
+	}
+
+	updateSQL := fmt.Sprintf("update %s.%s a set status='%s' , statusmessage = '%s' where rrn(a) = %s", s.UserTokenFileLib, s.UserTokenFile, p.Status, p.StatusMessage, p.Rowid)
+	conn, err := s.GetSingleConnection()
+	if err != nil {
+		log.Println("Error updating User token file....", err.Error())
+	}
+	defer conn.Close()
+	_, err = conn.Exec(updateSQL)
+	if err != nil {
+		log.Println("Error updateing User token file.... ", err.Error())
+	}
 }
