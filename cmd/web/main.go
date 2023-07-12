@@ -104,11 +104,6 @@ func main() {
 
 	go concurrent.RecoverAndRestart(10, "spCallLogModel:AddLogid", app.spCallLogModel.AddLogid) //goroutine
 
-	go concurrent.RecoverAndRestart(10, "spCallLogModel:AddLogid", app.spCallLogModel.AddLogid)
-
-
-	go models.SaveLogs(app.LogDB)
-	
 	addr, hostUrl := params.getHttpAddress()
 
 	// this is short cut to create http.Server and  server.ListenAndServe()
