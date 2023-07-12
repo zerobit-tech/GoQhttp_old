@@ -68,7 +68,7 @@ func (p *StoredProcParamter) ConvertOUTVarToType(v *any) (any, error) {
 		return v, nil
 	}
 
-	switch p.Datatype {
+	switch strings.ToUpper(p.Datatype) {
 
 	case "DECFLOAT":
 

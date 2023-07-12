@@ -25,6 +25,7 @@ import (
 
 	_ "github.com/onlysumitg/GoQhttp/internal/ibmiServer"
 	_ "github.com/onlysumitg/GoQhttp/internal/mssqlServer"
+	//_ "github.com/onlysumitg/GoQhttp/internal/mysqlServer"
 )
 
 type features struct {

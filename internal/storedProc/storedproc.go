@@ -65,7 +65,7 @@ type StoredProc struct {
 
 type PreparedCallStatements struct {
 	ResponseFormat         map[string]any
-	InOutParams            []any
+	InOutParams            []any  // to send values to SP call
 	InOutParamVariables    map[string]*any
 	InOutParamMapToSPParam map[string]*StoredProcParamter
 	FinalCallStatement     string

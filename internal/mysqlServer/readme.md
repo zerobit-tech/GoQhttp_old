@@ -123,7 +123,7 @@ SPECIFIC_NAME  | ROUTINE_CATALOG | ROUTINE_SCHEMA | ROUTINE_NAME   | ROUTINE_TYP
 
 
 
-
+ 
 catalog vs schema
 
 Schemas are supported and interpreted as MySQL database names, specifying catalog triggers an error. Both catalogs and schemas are supported but it is an error if both are specified at the same time. If only catalog or only schema is specified, it is interpreted as a MySQL database name.

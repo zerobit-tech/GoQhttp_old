@@ -303,6 +303,7 @@ func (s *MSSqlServer) SeversCall(ctx context.Context, sp *storedProc.StoredProc,
 	if err != nil {
 		return err
 	}
+	defer rows.Close()
 	resultsets := RowsToResultsets(rows, dummyCall)
 
 	// assign result sets
@@ -312,7 +313,7 @@ func (s *MSSqlServer) SeversCall(ctx context.Context, sp *storedProc.StoredProc,
 
 	}
 	//	preparedCallStatements.ResponseFormat["data"] = resultsets
-
+	
 	return nil
 
 }

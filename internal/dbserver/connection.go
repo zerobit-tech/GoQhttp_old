@@ -10,6 +10,7 @@ import (
 	"sync"
 	"time"
 
+	//_ "github.com/go-sql-driver/mysql"
 	_ "github.com/microsoft/go-mssqldb"
 	"github.com/onlysumitg/GoQhttp/go_ibm_db"
 

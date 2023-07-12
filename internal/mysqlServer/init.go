@@ -15,8 +15,8 @@ func init() {
 		}
 	}()
 
-	ibmIServer := &IBMiServer{}
+	mysqlServer := &MySqlServer{}
 	//go's to databse/sql/sql.go 43 line
-	dbserver.Register("MySQL", ibmIServer)
+	dbserver.Register("MySQL", mysqlServer)
 
 }

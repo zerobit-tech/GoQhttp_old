@@ -13,7 +13,7 @@ import (
 // ------------------------------------------------------------
 //
 // ------------------------------------------------------------
-func (s *IBMiServer) ListAutoPromotion() ([]*storedProc.PromotionRecord, error) {
+func (s *MySqlServer) ListAutoPromotion() ([]*storedProc.PromotionRecord, error) {
 	promotionRecords := make([]*storedProc.PromotionRecord, 0)
 	if strings.TrimSpace(s.AutoPromotePrefix) != "" && strings.TrimSpace(s.ConfigFileLib) != "" {
 		prefixToCheck := strings.ToUpper(strings.TrimSpace(s.AutoPromotePrefix)) + "%"

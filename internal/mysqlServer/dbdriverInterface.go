@@ -23,7 +23,7 @@ import (
 // -----------------------------------------------------------------
 //
 // -----------------------------------------------------------------
-func (s *IBMiServer) LoadX(bs *dbserver.Server) {
+func (s *MySqlServer) LoadX(bs *dbserver.Server) {
 	s.Server = bs
 
 }
@@ -31,7 +31,7 @@ func (s *IBMiServer) LoadX(bs *dbserver.Server) {
 // -----------------------------------------------------------------
 //
 // -----------------------------------------------------------------
-func (s *IBMiServer) RefreshX(ctx context.Context, sp *storedProc.StoredProc) error {
+func (s *MySqlServer) RefreshX(ctx context.Context, sp *storedProc.StoredProc) error {
 	if s.HasSPUpdated(ctx, sp) {
 		err := s.PrepareToSave(ctx, sp)
 		if err != nil {
@@ -45,7 +45,7 @@ func (s *IBMiServer) RefreshX(ctx context.Context, sp *storedProc.StoredProc) er
 // ------------------------------------------------------------
 //
 // ------------------------------------------------------------
-// func (s *IBMiServer) PromotionRecordToStoredProcX(p storedProc.PromotionRecord) *storedProc.StoredProc {
+// func (s *MySqlServer) PromotionRecordToStoredProcX(p storedProc.PromotionRecord) *storedProc.StoredProc {
 // 	sp := &storedProc.StoredProc{
 // 		EndPointName: p.Endpoint,
 // 		HttpMethod:   p.Httpmethod,
@@ -75,7 +75,7 @@ func (s *IBMiServer) RefreshX(ctx context.Context, sp *storedProc.StoredProc) er
 // -----------------------------------------------------------------
 //
 // -----------------------------------------------------------------
-func (s *IBMiServer) PrepareToSaveX(ctx context.Context, sp *storedProc.StoredProc) error {
+func (s *MySqlServer) PrepareToSaveX(ctx context.Context, sp *storedProc.StoredProc) error {
 	sp.Name = strings.ToUpper(strings.TrimSpace(sp.Name))
 	sp.Lib = strings.ToUpper(strings.TrimSpace(sp.Lib))
 	sp.HttpMethod = strings.ToUpper(strings.TrimSpace(sp.HttpMethod))
@@ -83,7 +83,7 @@ func (s *IBMiServer) PrepareToSaveX(ctx context.Context, sp *storedProc.StoredPr
 
 	ctx1, cancelFunc1 := context.WithTimeout(ctx, 5*time.Second)
 	defer cancelFunc1()
-	err := s.GetResultSetCount(ctx1, sp)
+	err := s.getSPDetails(ctx1, sp)
 	if err != nil {
 		return err
 	}
@@ -112,15 +112,10 @@ func (s *IBMiServer) PrepareToSaveX(ctx context.Context, sp *storedProc.StoredPr
 // ------------------------------------------------------------
 //
 // ------------------------------------------------------------
-func (s *IBMiServer) GetConnectionStringX() string {
-	driver := "IBM i Access ODBC Driver"
-	ssl := 0
-	if s.Ssl {
-		ssl = 1
-	}
-	pwd := s.GetPassword()
-	connectionString := fmt.Sprintf("DRIVER=%s;SYSTEM=%s; UID=%s;PWD=%s;DBQ=*USRLIBL;UNICODESQL=1;XDYNAMIC=1;EXTCOLINFO=0;PKG=A/DJANGO,2,0,0,1,512;PROTOCOL=TCPIP;NAM=1;CMT=0;SSL=%d;ALLOWUNSCHAR=1", driver, s.IP, s.UserName, pwd, ssl)
+func (s *MySqlServer) GetConnectionStringX() string {
 
+	pwd := s.GetPassword()
+	connectionString := fmt.Sprintf("%s:%s@tcp(%s:%d)/?multiStatements=true&autocommit=true", s.UserName, pwd, s.IP, s.Port)
 	//connectionString := fmt.Sprintf("DSN=pub400; UID=%s;PWD=%s", s.UserName, s.Password)
 
 	return connectionString
@@ -129,7 +124,7 @@ func (s *IBMiServer) GetConnectionStringX() string {
 // ------------------------------------------------------------
 //
 // ------------------------------------------------------------
-func (s *IBMiServer) GetPasswordX() string {
+func (s *MySqlServer) GetPasswordX() string {
 	pwd, err := stringutils.Decrypt(s.Password, s.GetSecretKey())
 	if err != nil {
 		log.Println("Unable to decrypt password")
@@ -141,14 +136,14 @@ func (s *IBMiServer) GetPasswordX() string {
 // ------------------------------------------------------------
 //
 // ------------------------------------------------------------
-func (s *IBMiServer) GetConnectionTypeX() string {
-	return "go_ibm_db" //"odbc"
+func (s *MySqlServer) GetConnectionTypeX() string {
+	return "mysql" //"odbc"
 }
 
 // ------------------------------------------------------------
 //
 // ------------------------------------------------------------
-func (s *IBMiServer) PingTimeoutDurationX() time.Duration {
+func (s *MySqlServer) PingTimeoutDurationX() time.Duration {
 	age := 3
 	if s.PingTimeout > 0 {
 		age = s.PingTimeout
@@ -160,21 +155,21 @@ func (s *IBMiServer) PingTimeoutDurationX() time.Duration {
 // ------------------------------------------------------------
 //
 // ------------------------------------------------------------
-func (s *IBMiServer) GetConnectionIDX() string {
+func (s *MySqlServer) GetConnectionIDX() string {
 	return s.ID
 }
 
 // ------------------------------------------------------------
 //
 // ------------------------------------------------------------
-func (s *IBMiServer) GetSecretKeyX() string {
-	return "Ang&1*~U^2^#s0^=)^^7#b34"
+func (s *MySqlServer) GetSecretKeyX() string {
+	return "Aql&1*~P^2^#y0^=)^^7#x34"
 }
 
 // -----------------------------------------------------------------
 //
 // -----------------------------------------------------------------
-func (s *IBMiServer) APICallX(ctx context.Context, callID string, sp *storedProc.StoredProc, params map[string]xmlutils.ValueDatatype) (responseFormat *storedProc.StoredProcResponse, callDuration time.Duration, err error) {
+func (s *MySqlServer) APICallX(ctx context.Context, callID string, sp *storedProc.StoredProc, params map[string]xmlutils.ValueDatatype) (responseFormat *storedProc.StoredProcResponse, callDuration time.Duration, err error) {
 	//log.Printf("%v: %v\n", "SeversCall005.001", time.Now())
 
 	defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
@@ -207,7 +202,7 @@ func (s *IBMiServer) APICallX(ctx context.Context, callID string, sp *storedProc
 // -----------------------------------------------------------------
 //
 // -----------------------------------------------------------------
-func (s *IBMiServer) DummyCallX(sp *storedProc.StoredProc, givenParams map[string]any) (*storedProc.StoredProcResponse, error) {
+func (s *MySqlServer) DummyCallX(sp *storedProc.StoredProc, givenParams map[string]any) (*storedProc.StoredProcResponse, error) {
 	preparedCallStatements, err := s.prepareCallStatement(sp, givenParams)
 	if err != nil {
 		return nil, err
@@ -237,7 +232,7 @@ func (s *IBMiServer) DummyCallX(sp *storedProc.StoredProc, givenParams map[strin
 // -----------------------------------------------------------------
 //
 // -----------------------------------------------------------------
-func (s *IBMiServer) ExistsX(ctx context.Context, sp *storedProc.StoredProc) (bool, error) {
+func (s *MySqlServer) ExistsX(ctx context.Context, sp *storedProc.StoredProc) (bool, error) {
 
 	exists := "N"
 
@@ -269,7 +264,7 @@ func (s *IBMiServer) ExistsX(ctx context.Context, sp *storedProc.StoredProc) (bo
 // ------------------------------------------------------------
 //
 // ------------------------------------------------------------
-func (s *IBMiServer) ErrorToHttpStatusX(inerr error) (int, string, string, bool) {
+func (s *MySqlServer) ErrorToHttpStatusX(inerr error) (int, string, string, bool) {
 	var odbcError *go_ibm_db.Error
 
 	if errors.As(inerr, &odbcError) {
@@ -306,7 +301,7 @@ func (s *IBMiServer) ErrorToHttpStatusX(inerr error) (int, string, string, bool)
 // ------------------------------------------------------------
 //
 // ------------------------------------------------------------
-func (s *IBMiServer) ListPromotionX(withupdate bool) ([]*storedProc.PromotionRecord, error) {
+func (s *MySqlServer) ListPromotionX(withupdate bool) ([]*storedProc.PromotionRecord, error) {
 
 	promotionRecords := make([]*storedProc.PromotionRecord, 0)
 	if strings.TrimSpace(s.ConfigFile) != "" && strings.TrimSpace(s.ConfigFileLib) != "" {
@@ -387,7 +382,7 @@ func (s *IBMiServer) ListPromotionX(withupdate bool) ([]*storedProc.PromotionRec
 // ------------------------------------------------------------
 //
 // ------------------------------------------------------------
-func (s *IBMiServer) SyncUserTokenRecordsX(withupdate bool) ([]*storedProc.UserTokenSyncRecord, error) {
+func (s *MySqlServer) SyncUserTokenRecordsX(withupdate bool) ([]*storedProc.UserTokenSyncRecord, error) {
 
 	userTokens := make([]*storedProc.UserTokenSyncRecord, 0)
 	if strings.TrimSpace(s.UserTokenFile) != "" && strings.TrimSpace(s.UserTokenFileLib) != "" {
@@ -452,7 +447,7 @@ func (s *IBMiServer) SyncUserTokenRecordsX(withupdate bool) ([]*storedProc.UserT
 // ------------------------------------------------------------
 //
 // ------------------------------------------------------------
-func (s *IBMiServer) UpdateStatusForPromotionRecordX(p storedProc.PromotionRecord) {
+func (s *MySqlServer) UpdateStatusForPromotionRecordX(p storedProc.PromotionRecord) {
 	if p.Rowid == "0" || p.Rowid == "" {
 		return
 	}
@@ -472,7 +467,7 @@ func (s *IBMiServer) UpdateStatusForPromotionRecordX(p storedProc.PromotionRecor
 // ------------------------------------------------------------
 //
 // ------------------------------------------------------------
-func (s *IBMiServer) UpdateStatusUserTokenTableX(p storedProc.UserTokenSyncRecord) {
+func (s *MySqlServer) UpdateStatusUserTokenTableX(p storedProc.UserTokenSyncRecord) {
 	if p.Rowid == "0" || p.Rowid == "" {
 		return
 	}
