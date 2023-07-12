@@ -28,7 +28,7 @@ type IBMiServer struct {
 // -----------------------------------------------------------------
 //
 // -----------------------------------------------------------------
-func (s *IBMiServer) HasSPUpdated(ctx context.Context, sp *storedProc.StoredProc) bool {
+func (s *IBMiServer) hasSPUpdated(ctx context.Context, sp *storedProc.StoredProc) bool {
 
 	hasModified := "N"
 
@@ -113,7 +113,7 @@ func (s *IBMiServer) prepareCallStatement(sp *storedProc.StoredProc, givenParams
 		case "IN":
 			valueToUse, found := givenParams[paramNameToUse]
 			if !found {
-				valueToUse = s.GetDefaultValue(p)
+				valueToUse = s.getDefaultValue(p)
 
 			} else {
 				//p.GivenValue = asString(valueToUse)
@@ -139,7 +139,7 @@ func (s *IBMiServer) prepareCallStatement(sp *storedProc.StoredProc, givenParams
 
 			valueToUse, found := givenParams[paramNameToUse]
 			if !found {
-				valueToUse = s.GetDefaultValue(p)
+				valueToUse = s.getDefaultValue(p)
 				if valueToUse == "NULL" {
 					valueToUse = nil
 				}
@@ -185,7 +185,7 @@ func (s *IBMiServer) prepareCallStatement(sp *storedProc.StoredProc, givenParams
 // -----------------------------------------------------------------
 //
 // -----------------------------------------------------------------
-func (s *IBMiServer) Call(ctx context.Context, callID string, sp *storedProc.StoredProc, givenParams map[string]any) (*storedProc.StoredProcResponse, time.Duration, error) {
+func (s *IBMiServer) call(ctx context.Context, callID string, sp *storedProc.StoredProc, givenParams map[string]any) (*storedProc.StoredProcResponse, time.Duration, error) {
 	//log.Printf("%v: %v\n", "SeversCall005.002", time.Now())
 	defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
 
@@ -367,7 +367,7 @@ func (s *IBMiServer) SeversCall(ctx context.Context, sp *storedProc.StoredProc, 
 // -----------------------------------------------------------------
 //
 // -----------------------------------------------------------------
-func (s *IBMiServer) GetResultSetCount(ctx context.Context, sp *storedProc.StoredProc) error {
+func (s *IBMiServer) getResultSetCount(ctx context.Context, sp *storedProc.StoredProc) error {
 
 	resultSets := 0
 
@@ -405,7 +405,7 @@ func (s *IBMiServer) GetResultSetCount(ctx context.Context, sp *storedProc.Store
 // -----------------------------------------------------------------
 //
 // -----------------------------------------------------------------
-func (s *IBMiServer) GetParameters(ctx context.Context, sp *storedProc.StoredProc) error {
+func (s *IBMiServer) getParameters(ctx context.Context, sp *storedProc.StoredProc) error {
 
 	originalParams := sp.Parameters
 

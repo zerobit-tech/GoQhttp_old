@@ -110,7 +110,7 @@ func (s *MSSqlServer) APICallX(ctx context.Context, callId string, sp *storedPro
 	for k, v := range params {
 		givenParams[k] = v.Value
 	}
-	return s.Call(ctx, sp, givenParams)
+	return s.call(ctx, sp, givenParams)
 
 }
 
@@ -138,7 +138,7 @@ func (s *MSSqlServer) PrepareToSaveX(ctx context.Context, sp *storedProc.StoredP
 	}
 
 	for _, p := range sp.Parameters {
-		if IsUnsupportedDataType(p.Datatype, p.Mode) {
+		if isUnsupportedDataType(p.Datatype, p.Mode) {
 			return fmt.Errorf("%s %s (datatype %s) not supported", p.Mode, p.Name, p.Datatype)
 		}
 	}
@@ -146,7 +146,7 @@ func (s *MSSqlServer) PrepareToSaveX(ctx context.Context, sp *storedProc.StoredP
 	s.buildCallStatement(sp, sp.UseNamedParams)
 	sp.BuildMockUrl()
 
-	s.BuildPromotionSQL(sp)
+	s.buildPromotionSQL(sp)
 
 	return nil
 }
@@ -155,7 +155,7 @@ func (s *MSSqlServer) PrepareToSaveX(ctx context.Context, sp *storedProc.StoredP
 //
 // -----------------------------------------------------------------
 func (s *MSSqlServer) RefreshX(ctx context.Context, sp *storedProc.StoredProc) error {
-	if s.HasSPUpdated(ctx, sp) {
+	if s.hasSPUpdated(ctx, sp) {
 		err := s.PrepareToSave(ctx, sp)
 		if err != nil {
 			return err
@@ -173,7 +173,7 @@ func (s *MSSqlServer) DummyCallX(sp *storedProc.StoredProc, givenParams map[stri
 	if err != nil {
 		return nil, err
 	}
-	err = s.SeversCall(context.Background(), sp, preparedCallStatements, true)
+	err = s.seversCall(context.Background(), sp, preparedCallStatements, true)
 	if err != nil {
 		return nil, err
 	}
@@ -346,7 +346,7 @@ func (s *MSSqlServer) ListPromotionX(withupdate bool) ([]*storedProc.PromotionRe
 	// 	}
 	// }
 
-	autoP, err := s.ListAutoPromotion()
+	autoP, err := s.listAutoPromotion()
 	if err == nil && len(autoP) > 0 {
 		promotionRecords = append(promotionRecords, autoP...)
 	}

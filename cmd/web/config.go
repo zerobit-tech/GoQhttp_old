@@ -13,7 +13,8 @@ import (
 	"github.com/alexedwards/scs/v2"
 	"github.com/go-playground/form"
 	"github.com/onlysumitg/GoQhttp/env"
-	"github.com/onlysumitg/GoQhttp/internal/database"
+
+	"github.com/onlysumitg/GoQhttp/internal/dbserver"
 	"github.com/onlysumitg/GoQhttp/internal/iwebsocket"
 	"github.com/onlysumitg/GoQhttp/internal/models"
 	"github.com/onlysumitg/GoQhttp/internal/storedProc"
@@ -203,7 +204,7 @@ func (app *application) CleanupAndShutDown() {
 	// close(app.GraphChan)  // closed in TimeTook middleware
 
 	log.Println("Closing database connections...")
-	database.CloseConnections()
+	dbserver.CloseConnections()
 
 	log.Println("Shutting down Server...")
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)

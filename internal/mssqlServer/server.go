@@ -27,7 +27,7 @@ type MSSqlServer struct {
 // -----------------------------------------------------------------
 //
 // -----------------------------------------------------------------
-func (s *MSSqlServer) HasSPUpdated(ctx context.Context, sp *storedProc.StoredProc) bool {
+func (s *MSSqlServer) hasSPUpdated(ctx context.Context, sp *storedProc.StoredProc) bool {
 
 	hasModified := "N"
 
@@ -141,7 +141,7 @@ func (s *MSSqlServer) prepareCallStatement(sp *storedProc.StoredProc, givenParam
 // -----------------------------------------------------------------
 //
 // -----------------------------------------------------------------
-func (s *MSSqlServer) Call(ctx context.Context, sp *storedProc.StoredProc, givenParams map[string]any) (*storedProc.StoredProcResponse, time.Duration, error) {
+func (s *MSSqlServer) call(ctx context.Context, sp *storedProc.StoredProc, givenParams map[string]any) (*storedProc.StoredProcResponse, time.Duration, error) {
 	//log.Printf("%v: %v\n", "SeversCall005.002", time.Now())
 	defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
 
@@ -157,7 +157,7 @@ func (s *MSSqlServer) Call(ctx context.Context, sp *storedProc.StoredProc, given
 
 	t1 := time.Now()
 	//logEntries = append(logEntries, storedProc.LogByType{Text: "Starting DB CALL", Type: "I"})
-	err = s.SeversCall(ctx, sp, preparedCallStatements, false)
+	err = s.seversCall(ctx, sp, preparedCallStatements, false)
 
 	spCallDuration := time.Since(t1)
 
@@ -281,7 +281,7 @@ func (s *MSSqlServer) Call(ctx context.Context, sp *storedProc.StoredProc, given
 // -----------------------------------------------------------------
 //
 // -----------------------------------------------------------------
-func (s *MSSqlServer) SeversCall(ctx context.Context, sp *storedProc.StoredProc, preparedCallStatements *storedProc.PreparedCallStatements, dummyCall bool) (ferr error) {
+func (s *MSSqlServer) seversCall(ctx context.Context, sp *storedProc.StoredProc, preparedCallStatements *storedProc.PreparedCallStatements, dummyCall bool) (ferr error) {
 
 	defer func() {
 		if r := recover(); r != nil {
@@ -304,7 +304,7 @@ func (s *MSSqlServer) SeversCall(ctx context.Context, sp *storedProc.StoredProc,
 		return err
 	}
 	defer rows.Close()
-	resultsets := RowsToResultsets(rows, dummyCall)
+	resultsets := rowsToResultsets(rows, dummyCall)
 
 	// assign result sets
 
@@ -313,7 +313,7 @@ func (s *MSSqlServer) SeversCall(ctx context.Context, sp *storedProc.StoredProc,
 
 	}
 	//	preparedCallStatements.ResponseFormat["data"] = resultsets
-	
+
 	return nil
 
 }

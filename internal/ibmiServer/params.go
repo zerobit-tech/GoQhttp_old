@@ -12,7 +12,7 @@ import (
 // -----------------------------------------------------------------
 //
 // -----------------------------------------------------------------
-func (s *IBMiServer) GetDefaultValue(p *storedProc.StoredProcParamter) string {
+func (s *IBMiServer) getDefaultValue(p *storedProc.StoredProcParamter) string {
 	if p.DefaultValue.Valid {
 
 		if go_ibm_db.IsSepecialRegister(p.DefaultValue.String) {

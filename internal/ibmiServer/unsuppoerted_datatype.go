@@ -14,7 +14,7 @@ var unsupportedOUTDataType []string = []string{
 	"ROWID",
 }
 
-func IsUnsupportedDataType(name string, usage string) bool {
+func isUnsupportedDataType(name string, usage string) bool {
 	for _, t := range unsupportedDataType {
 		if t == name {
 			return true

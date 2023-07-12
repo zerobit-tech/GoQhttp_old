@@ -32,7 +32,7 @@ func (s *IBMiServer) LoadX(bs *dbserver.Server) {
 //
 // -----------------------------------------------------------------
 func (s *IBMiServer) RefreshX(ctx context.Context, sp *storedProc.StoredProc) error {
-	if s.HasSPUpdated(ctx, sp) {
+	if s.hasSPUpdated(ctx, sp) {
 		err := s.PrepareToSave(ctx, sp)
 		if err != nil {
 			return err
@@ -83,20 +83,20 @@ func (s *IBMiServer) PrepareToSaveX(ctx context.Context, sp *storedProc.StoredPr
 
 	ctx1, cancelFunc1 := context.WithTimeout(ctx, 5*time.Second)
 	defer cancelFunc1()
-	err := s.GetResultSetCount(ctx1, sp)
+	err := s.getResultSetCount(ctx1, sp)
 	if err != nil {
 		return err
 	}
 
 	ctx2, cancelFunc2 := context.WithTimeout(ctx, 5*time.Second)
 	defer cancelFunc2()
-	err = s.GetParameters(ctx2, sp)
+	err = s.getParameters(ctx2, sp)
 	if err != nil {
 		return err
 	}
 
 	for _, p := range sp.Parameters {
-		if IsUnsupportedDataType(p.Datatype, p.Mode) {
+		if isUnsupportedDataType(p.Datatype, p.Mode) {
 			return fmt.Errorf("%s %s (datatype %s) not supported", p.Mode, p.Name, p.Datatype)
 		}
 	}
@@ -104,7 +104,7 @@ func (s *IBMiServer) PrepareToSaveX(ctx context.Context, sp *storedProc.StoredPr
 	s.buildCallStatement(sp, sp.UseNamedParams)
 	sp.BuildMockUrl()
 
-	s.BuildPromotionSQL(sp)
+	s.buildPromotionSQL(sp)
 
 	return nil
 }
@@ -200,7 +200,7 @@ func (s *IBMiServer) APICallX(ctx context.Context, callID string, sp *storedProc
 	for k, v := range params {
 		givenParams[k] = v.Value
 	}
-	return s.Call(ctx, callID, sp, givenParams)
+	return s.call(ctx, callID, sp, givenParams)
 
 }
 
@@ -377,7 +377,7 @@ func (s *IBMiServer) ListPromotionX(withupdate bool) ([]*storedProc.PromotionRec
 	// 	}
 	// }
 
-	autoP, err := s.ListAutoPromotion()
+	autoP, err := s.listAutoPromotion()
 	if err == nil && len(autoP) > 0 {
 		promotionRecords = append(promotionRecords, autoP...)
 	}

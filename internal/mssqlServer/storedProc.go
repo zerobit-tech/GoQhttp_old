@@ -29,7 +29,7 @@ func breakStringToCatalogSchema(lib string) (string, string) {
 
 }
 
-func RowsToResultsets(rows *sql.Rows, dummyCall bool) map[string][]map[string]any {
+func rowsToResultsets(rows *sql.Rows, dummyCall bool) map[string][]map[string]any {
 	resultsets := make(map[string][]map[string]any, 0)
 
 	counter := 1
