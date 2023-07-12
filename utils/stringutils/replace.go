@@ -12,3 +12,8 @@ func RemoveMultipleSpaces(str string) string {
 
 	return re.ReplaceAllString(str, substitution)
 }
+
+func RemoveSpecialChars(str string) string {
+
+	return regexp.MustCompile(`[^a-zA-Z0-9_]+`).ReplaceAllString(str, "_")
+}

@@ -8,11 +8,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"runtime/debug"
 	"strings"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/onlysumitg/GoQhttp/internal/validator"
+	"github.com/onlysumitg/GoQhttp/utils/concurrent"
 	bolt "go.etcd.io/bbolt"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -347,7 +349,26 @@ func (m *UserModel) Get(id string) (*User, error) {
 		}
 	}
 
-	return nil, ErrInvalidCredentials
+	return nil, errors.New("models: Not found")
+
+}
+
+// -----------------------------------------------------------------
+//
+// -----------------------------------------------------------------
+// We'll use the Exists method to check if a user exists with a specific ID.
+func (m *UserModel) IsDuplicate(u *User) bool {
+
+	u2, err := m.GetByEmail(u.Email)
+	if err != nil {
+		return false
+	}
+
+	if u2.ID != u.ID {
+		return true
+	}
+
+	return false
 
 }
 
@@ -363,10 +384,9 @@ func (m *UserModel) GetByEmail(email string) (*User, error) {
 		}
 	}
 
-	return nil, ErrInvalidCredentials
+	return nil, errors.New("models: Not found")
 
 }
-
 
 // -----------------------------------------------------------------
 //
@@ -380,7 +400,7 @@ func (m *UserModel) GetByUserName(username string) (*User, error) {
 		}
 	}
 
-	return nil, ErrInvalidCredentials
+	return nil, errors.New("models: Not found")
 
 }
 
@@ -396,7 +416,7 @@ func (m *UserModel) GetByToken(token string) (*User, error) {
 		}
 	}
 
-	return nil, ErrInvalidCredentials
+	return nil, errors.New("models: Not found")
 
 }
 
@@ -549,6 +569,8 @@ func (m *UserModel) Verify(u *User, verificationId string, table []byte) bool {
 // -----------------------------------------------------------------
 // We'll use the Insert method to add a new record to the "users" table.
 func (m *UserModel) DeleteVerificationRecord(u *User, table []byte) error {
+	concurrent.Recoverer("DeleteVerificationRecord")
+	defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
 
 	err := m.DB.Update(func(tx *bolt.Tx) error {
 		bucket, err := tx.CreateBucketIfNotExists(table)

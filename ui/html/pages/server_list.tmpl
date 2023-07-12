@@ -23,11 +23,11 @@ Servers
       <thead class="thead-dark">
         <tr>
             <th>Name</th>
- 
+            <th>Type</th>
             <th>IP</th>
            
             <th>Port</th>
-            <th>SSL</th>
+            <!-- <th>SSL</th> -->
             
             
             <th>User</th>
@@ -45,12 +45,12 @@ Servers
         {{range .Servers}}
         <tr>
             <td> {{.Name}}</td>
-           
+            <td>{{.Type}}</td>
             
             <td>{{.IP}}</td>
              
             <td>{{.Port}}</td>
-            <td>{{yesNo .Ssl}}</td>
+            <!-- <td>{{yesNo .Ssl}}</td> -->
            
            
             <td>{{.UserName}}</td>
@@ -66,12 +66,25 @@ Servers
                      href='/servers/update/{{.ID}}'  >   <svg class="c-icon mfe-2">
                       <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-pencil"></use>
                   </svg></a> 
-                     <a class="btn btn-ghost-danger" 
+                     
+                  <a class="btn btn-ghost-info" 
+                  data-toggle="tooltip" data-placement="bottom" title="Postman collection" 
+                  href='/postman/s/{{.ID}}'  >   
+                   <svg class="c-icon mfe-2">
+                   <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-arrow-bottom"></use>
+               </svg></a>
+                  
+                  <a class="btn btn-ghost-danger" 
                      data-toggle="tooltip" data-placement="bottom" title="Delete" 
                      href='/servers/delete/{{.ID}}'  >   
                       <svg class="c-icon mfe-2">
                       <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-trash"></use>
                   </svg></a>
+
+
+
+            
+
                      {{ end }}
             </td>
 

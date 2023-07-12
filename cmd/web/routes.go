@@ -44,32 +44,29 @@ func addHttpRateLimiter(app *application, router *chi.Mux) {
 	//router.Use(httprate.LimitByIP(100, 1*time.Minute))
 
 	requestsPerHourByIP, err := strconv.Atoi(env.GetEnvVariable("REQUESTS_PER_HOUR_BY_IP", "0"))
-	if err != nil || requestsPerHourByIP <= 0 {
-		return
+	if err == nil && requestsPerHourByIP > 0 {
+		router.Use(httprate.Limit(
+			requestsPerHourByIP,                     // requests
+			1*time.Hour,                             // per duration
+			httprate.WithKeyFuncs(httprate.KeyByIP), // httprate.KeyByEndpoint),
+			httprate.WithLimitHandler(func(w http.ResponseWriter, r *http.Request) {
+				http.Error(w, "Too Many Requests", http.StatusTooManyRequests)
+			}),
+		))
 	}
-
-	router.Use(httprate.Limit(
-		requestsPerHourByIP,                     // requests
-		1*time.Hour,                             // per duration
-		httprate.WithKeyFuncs(httprate.KeyByIP), // httprate.KeyByEndpoint),
-		httprate.WithLimitHandler(func(w http.ResponseWriter, r *http.Request) {
-			http.Error(w, "Too Many Requests", http.StatusTooManyRequests)
-		}),
-	))
 
 	requestsPerHourByUser, err := strconv.Atoi(env.GetEnvVariable("REQUESTS_PER_HOUR_BY_USER", "0"))
-	if err != nil || requestsPerHourByUser <= 0 {
-		return
+	if err == nil && requestsPerHourByUser > 0 {
+		router.Use(httprate.Limit(
+			requestsPerHourByUser, // requests
+			1*time.Hour,           // per duration
+			// an oversimplified example of rate limiting by a custom header
+			httprate.WithKeyFuncs(func(r *http.Request) (string, error) {
+				return r.Header.Get("Authorization"), nil
+			}),
+		))
 	}
 
-	router.Use(httprate.Limit(
-		requestsPerHourByUser, // requests
-		1*time.Hour,           // per duration
-		// an oversimplified example of rate limiting by a custom header
-		httprate.WithKeyFuncs(func(r *http.Request) (string, error) {
-			return r.Header.Get("Authorization"), nil
-		}),
-	))
 }
 
 // -----------------------------------------------------------------
@@ -79,10 +76,10 @@ func addMiddleWares(app *application, router *chi.Mux) {
 
 	//fmt.Println(">app.redirectToHttps>>>>>>", app.redirectToHttps)
 	// session middleware
-	if app.redirectToHttps {
-		router.Use(app.RedirectToHTTPS)
-	}
-	router.Use(app.sessionManager.LoadAndSave)
+	// if app.redirectToHttps {
+	// 	router.Use(app.RedirectToHTTPS)
+	// }
+	//router.Use(app.sessionManager.LoadAndSave)
 
 	// A good base middleware stack : inbuilt in chi
 	router.Use(RequestID) //(middleware.RequestID)
@@ -94,7 +91,7 @@ func addMiddleWares(app *application, router *chi.Mux) {
 	//router.Use(middleware.Recoverer)
 	router.Use(middleware.SetHeader("X-Frame-Options", "DENY"))
 
-	router.Use(middleware.Heartbeat("/ping"))
+	//router.Use(middleware.Heartbeat("/ping"))
 
 	// CSRF
 	// router.Use(noSurf)
@@ -151,28 +148,27 @@ func (app *application) routes() *chi.Mux {
 
 	addMiddleWares(app, router)
 
-	//addHttpRateLimiter(app, router)
+	addHttpRateLimiter(app, router)
 
 	addStaticFiles(router)
 
 	router.Get("/", app.langingPage)
-	router.Get("/help", app.helpPage)
-	router.Get("/testmode", app.testModePage)
 
 	app.APIHandlers(router)
 	app.APILogHandlers(router)
 	app.ServerHandlers(router)
 	app.StoredProcHandlers(router)
-	//app.GraphHandlers(router)
+	app.GraphHandlers(router)
 
 	app.LicHandlers(router)
 
 	// web socket
-	//app.WsHandlers(router)
+	app.WsHandlers(router)
 
 	app.UserHandlers(router)
 	app.UsersHandlers(router)
 	// app.RbacHandlers(router)
 
+	app.PostmantHandlers(router)
 	return router // standard.Then(router)
 }

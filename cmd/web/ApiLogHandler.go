@@ -15,6 +15,8 @@ func (app *application) APILogHandlers(router *chi.Mux) {
 
 	router.Route("/apilogs", func(r chi.Router) {
 		// CSRF
+		r.Use(app.sessionManager.LoadAndSave)
+
 		r.Use(app.RequireAuthentication)
 		r.Use(noSurf)
 		r.Use(CheckLicMiddleware)

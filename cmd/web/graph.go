@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -13,37 +14,46 @@ import (
 // ------------------------------------------------------
 //
 // ------------------------------------------------------
+type GraphStats struct {
+	TotalRequests int `json:"totalrequests"`
+
+	Http100Count   int `json:"http100count"`
+	Http100Percent int `json:"http100percent"`
+
+	Http200Count   int `json:"http200count"`
+	Http200Percent int `json:"http200percent"`
+
+	Http300Count   int `json:"http300count"`
+	Http300Percent int `json:"http300percent"`
+
+	Http400Count   int `json:"http400count"`
+	Http400Percent int `json:"http400percent"`
+
+	Http500Count   int `json:"http500count"`
+	Http500Percent int `json:"http500percent"`
+
+	AvgResTime int64 `json:"avgrestime"`
+	MaxResTime int64 `json:"maxrestime"`
+	AvgDBTime  int64 `json:"avgdbtime"`
+	MaxDBTime  int64 `json:"maxdbtime"`
+}
+
+// ------------------------------------------------------
+//
+// ------------------------------------------------------
 type GraphStruc struct {
 	Requestid string
 	LogUrl    string
 
-	Spid          string
-	SpName        string
-	SpUrl         string
-	Httpcode      int
-	HttpcodeGroup int
-	Responsetime  int64
-	Calltime      string
-}
+	Spid           string
+	SpName         string
+	SpUrl          string
+	Httpcode       int
+	HttpcodeGroup  int
+	Responsetime   int64 // miliseconds
+	SPResponsetime int64 // miliseconds
 
-// ------------------------------------------------------
-//
-// ------------------------------------------------------
-type GraphXY struct {
-	X string `json:"x"`
-	Y int64  `json:"y"`
-}
-
-// ------------------------------------------------------
-//
-// ------------------------------------------------------
-type GraphDataset struct {
-	Label           string     `json:"label"`
-	Data            []*GraphXY `json:"data"`
-	BackgroundColor string     `json:"backgroundColor"`
-	BorderColor     string     `json:"borderColor"`
-	BorderWidth     int        `json:"borderWidth"`
-	PointRadius     int        `json:"pointRadius"`
+	Calltime string
 }
 
 // ------------------------------------------------------
@@ -52,6 +62,7 @@ type GraphDataset struct {
 
 type PlotlyMarker struct {
 	Color string `json:"color"`
+	Size  int    `json:"size"`
 }
 
 type GraphDatasetPlotly struct {
@@ -60,6 +71,8 @@ type GraphDatasetPlotly struct {
 	Ploytype string       `json:"type"`
 	Name     string       `json:"name"`
 	Marker   PlotlyMarker `json:"marker"`
+	Mode     string       `json:"mode"` // = 'lines+markers'
+	Text     []string     `json:"text"`
 }
 
 // ------------------------------------------------------
@@ -67,9 +80,14 @@ type GraphDatasetPlotly struct {
 // ------------------------------------------------------
 func getGraphDataSetPlotly(graphStruc []*GraphStruc, httpcodeGroup int) *GraphDatasetPlotly {
 
-	gDataSet := &GraphDatasetPlotly{Ploytype: "scatter", Name: strconv.Itoa(httpcodeGroup)}
+	gDataSet := &GraphDatasetPlotly{Ploytype: "scatter",
+		Mode: "markers",
+		Name: strconv.Itoa(httpcodeGroup)}
+
 	gDataSet.X = make([]string, 0, 20)
 	gDataSet.Y = make([]int64, 0, 20)
+
+	gDataSet.Text = make([]string, 0, 20)
 
 	for _, g := range graphStruc {
 		if g == nil {
@@ -78,17 +96,22 @@ func getGraphDataSetPlotly(graphStruc []*GraphStruc, httpcodeGroup int) *GraphDa
 		gDataSet.X = append(gDataSet.X, g.Calltime)
 		gDataSet.Y = append(gDataSet.Y, g.Responsetime)
 
+		gDataSet.Text = append(gDataSet.Text, fmt.Sprintf("%s[%s]", g.SpName, g.Requestid))
+		gDataSet.Marker.Size = 12
+
 		switch g.HttpcodeGroup {
 		case 100:
-			gDataSet.Marker.Color = "#43A5BE"
+			gDataSet.Marker.Color = "rgba(67, 165, 190,.7)"
 		case 200:
-			gDataSet.Marker.Color = "#4FB06D"
+			gDataSet.Marker.Color = "rgba(79, 176, 109,.7)"
 		case 300:
-			gDataSet.Marker.Color = "#D49137"
+			gDataSet.Marker.Color = "rgba(212, 145, 55,.7)"
 		case 400:
-			gDataSet.Marker.Color = "#BF2C34"
+			gDataSet.Marker.Color = "rgba(191, 44, 52,.8)"
+			gDataSet.Marker.Size = 16
 		case 500:
-			gDataSet.Marker.Color = "#F07875"
+			gDataSet.Marker.Color = "rgba(240, 120, 117,.8)"
+			gDataSet.Marker.Size = 16
 		}
 	}
 
@@ -98,14 +121,14 @@ func getGraphDataSetPlotly(graphStruc []*GraphStruc, httpcodeGroup int) *GraphDa
 // ------------------------------------------------------
 //
 // ------------------------------------------------------
-func GetGraphDataPlotyl() []*GraphDatasetPlotly {
+func (app *application) GetGraphDataPlotyl() []*GraphDatasetPlotly {
 
 	dataSet := make([]*GraphDatasetPlotly, 0)
-	dataSet = append(dataSet, getGraphDataSetPlotly(GraphData100, 100))
-	dataSet = append(dataSet, getGraphDataSetPlotly(GraphData200, 200))
-	dataSet = append(dataSet, getGraphDataSetPlotly(GraphData300, 300))
-	dataSet = append(dataSet, getGraphDataSetPlotly(GraphData400, 400))
-	dataSet = append(dataSet, getGraphDataSetPlotly(GraphData500, 500))
+	dataSet = append(dataSet, getGraphDataSetPlotly(app.GraphData100, 100))
+	dataSet = append(dataSet, getGraphDataSetPlotly(app.GraphData200, 200))
+	dataSet = append(dataSet, getGraphDataSetPlotly(app.GraphData300, 300))
+	dataSet = append(dataSet, getGraphDataSetPlotly(app.GraphData400, 400))
+	dataSet = append(dataSet, getGraphDataSetPlotly(app.GraphData500, 500))
 
 	return dataSet
 
@@ -114,48 +137,6 @@ func GetGraphDataPlotyl() []*GraphDatasetPlotly {
 // ------------------------------------------------------
 //
 // ------------------------------------------------------
-func getGraphDataSet(graphStruc []*GraphStruc, httpcodeGroup int) *GraphDataset {
-
-	gDataSet := &GraphDataset{BorderWidth: 2, PointRadius: 5}
-	gDataSet.Label = strconv.Itoa(httpcodeGroup) ///g.Calltime.Local().Format(TimestampFormat)
-
-	for _, g := range graphStruc {
-		if g == nil {
-			continue
-		}
-		gDataSet.Data = append(gDataSet.Data, &GraphXY{X: g.Calltime, Y: g.Responsetime})
-
-		switch g.HttpcodeGroup {
-		case 100:
-			gDataSet.BorderColor = "blue"
-		case 200:
-			gDataSet.BorderColor = "green"
-		case 300:
-			gDataSet.BorderColor = "yellow"
-		case 400:
-			gDataSet.BorderColor = "red"
-		case 500:
-			gDataSet.BorderColor = "purple"
-		}
-		gDataSet.BackgroundColor = gDataSet.BorderColor
-	}
-
-	return gDataSet
-}
-
-// ------------------------------------------------------
-//
-// ------------------------------------------------------
-var GraphData100 []*GraphStruc = make([]*GraphStruc, 0, 200)
-var GraphData200 []*GraphStruc = make([]*GraphStruc, 0, 500)
-var GraphData300 []*GraphStruc = make([]*GraphStruc, 0, 200)
-var GraphData400 []*GraphStruc = make([]*GraphStruc, 0, 200)
-var GraphData500 []*GraphStruc = make([]*GraphStruc, 0, 500)
-
-// ------------------------------------------------------
-//
-// ------------------------------------------------------
-var GraphChan chan *GraphStruc = make(chan *GraphStruc, 5000)
 
 // ------------------------------------------------------
 //
@@ -167,76 +148,140 @@ func (app *application) CaptureGraphData() {
 		maxEntries = 1000
 	}
 
+	//counter := 0
+
 	for {
-		graphStruc := <-GraphChan
+
+		// adding little delay to complete JS render
+		//time.Sleep(500 * time.Millisecond)
+
+		graphStruc, ok := <-app.GraphChan
+		if !ok {
+			continue
+		}
+
+		app.GraphStats.TotalRequests += 1
+
+		//counter += 1
+
+		app.graphMutex.Lock()
 
 		httpCode := strconv.Itoa(graphStruc.Httpcode)
 
 		if strings.HasPrefix(httpCode, "1") {
 			graphStruc.HttpcodeGroup = 100
-			GraphData100 = append([]*GraphStruc{graphStruc}, GraphData100...)
-			if len(GraphData100) > maxEntries {
-				GraphData100 = GraphData100[0:maxEntries]
+			app.GraphData100 = append([]*GraphStruc{graphStruc}, app.GraphData100...)
+			if len(app.GraphData100) > maxEntries {
+				app.GraphData100 = app.GraphData100[0:maxEntries]
 			}
+			app.GraphStats.Http100Count += 1
 
 		}
 		if strings.HasPrefix(httpCode, "2") {
 			graphStruc.HttpcodeGroup = 200
-			GraphData200 = append([]*GraphStruc{graphStruc}, GraphData200...)
-			if len(GraphData200) > maxEntries {
-				GraphData200 = GraphData200[0:maxEntries]
+			app.GraphData200 = append([]*GraphStruc{graphStruc}, app.GraphData200...)
+			if len(app.GraphData200) > maxEntries {
+				app.GraphData200 = app.GraphData200[0:maxEntries]
 			}
+			app.GraphStats.Http200Count += 1
+
 		}
 
 		if strings.HasPrefix(httpCode, "3") {
 			graphStruc.HttpcodeGroup = 300
-			GraphData300 = append([]*GraphStruc{graphStruc}, GraphData300...)
-			if len(GraphData300) > maxEntries {
-				GraphData300 = GraphData300[0:maxEntries]
+			app.GraphData300 = append([]*GraphStruc{graphStruc}, app.GraphData300...)
+			if len(app.GraphData300) > maxEntries {
+				app.GraphData300 = app.GraphData300[0:maxEntries]
 			}
+			app.GraphStats.Http300Count += 1
+
 		}
 
 		if strings.HasPrefix(httpCode, "4") {
 			graphStruc.HttpcodeGroup = 400
-			GraphData400 = append([]*GraphStruc{graphStruc}, GraphData400...)
-			if len(GraphData400) > maxEntries {
-				GraphData400 = GraphData400[0:maxEntries]
+			app.GraphData400 = append([]*GraphStruc{graphStruc}, app.GraphData400...)
+			if len(app.GraphData400) > maxEntries {
+				app.GraphData400 = app.GraphData400[0:maxEntries]
 			}
+
+			app.GraphStats.Http400Count += 1
+
 		}
 
 		if strings.HasPrefix(httpCode, "5") {
 			graphStruc.HttpcodeGroup = 500
-			GraphData500 = append([]*GraphStruc{graphStruc}, GraphData500...)
-			if len(GraphData500) > maxEntries {
-				GraphData500 = GraphData500[0:maxEntries]
+			app.GraphData500 = append([]*GraphStruc{graphStruc}, app.GraphData500...)
+			if len(app.GraphData500) > maxEntries {
+				app.GraphData500 = app.GraphData500[0:maxEntries]
 			}
+			app.GraphStats.Http500Count += 1
+
 		}
 
-		var response iwebsocket.WsServerPayload
+		if app.GraphStats.Http100Count > 0 {
+			app.GraphStats.Http100Percent = (app.GraphStats.Http100Count * 100 / app.GraphStats.TotalRequests)
+		}
+
+		if app.GraphStats.Http200Count > 0 {
+			app.GraphStats.Http200Percent = (app.GraphStats.Http200Count * 100 / app.GraphStats.TotalRequests)
+		}
+
+		if app.GraphStats.Http300Count > 0 {
+			app.GraphStats.Http300Percent = (app.GraphStats.Http300Count * 100 / app.GraphStats.TotalRequests)
+		}
+
+		if app.GraphStats.Http400Count > 0 {
+			app.GraphStats.Http400Percent = (app.GraphStats.Http400Count * 100 / app.GraphStats.TotalRequests)
+		}
+
+		if app.GraphStats.Http500Count > 0 {
+			app.GraphStats.Http500Percent = (app.GraphStats.Http500Count * 100 / app.GraphStats.TotalRequests)
+		}
+
+		if app.GraphStats.MaxResTime < graphStruc.Responsetime {
+			app.GraphStats.MaxResTime = graphStruc.Responsetime
+		}
+
+		if app.GraphStats.MaxDBTime < graphStruc.SPResponsetime {
+			app.GraphStats.MaxDBTime = graphStruc.SPResponsetime
+		}
+
+		app.GraphStats.AvgResTime = ((app.GraphStats.AvgResTime * int64(app.GraphStats.TotalRequests-1)) + graphStruc.Responsetime) / int64(app.GraphStats.TotalRequests)
+
+		app.GraphStats.AvgDBTime = ((app.GraphStats.AvgDBTime * int64(app.GraphStats.TotalRequests-1)) + graphStruc.SPResponsetime) / int64(app.GraphStats.TotalRequests)
+
+		response := &iwebsocket.WsServerPayload{}
 		response.Action = "graphdata"
 		response.Message = ""
-		response.Data = GetGraphDataPlotyl() // GetGraphData()
-		go func() {
-			defer func() {
-				if r := recover(); r != nil {
-				}
-			}()
-			iwebsocket.BroadcastToAll(response)
-		}()
+		response.Data = app.GetGraphDataPlotyl() // GetGraphData()
 
-		var response2 iwebsocket.WsServerPayload
+		app.ToWSChan <- response
+		// go func() {
+		// 	defer concurrent.Recoverer("graphdata")
+		// 	iwebsocket.BroadcastToAll(response)
+		// }()
+
+		response2 := &iwebsocket.WsServerPayload{}
 
 		response2.Action = "graphtablercd"
 		response2.Message = ""
 		response2.Data = graphStruc
-		go func() {
-			defer func() {
-				if r := recover(); r != nil {
-				}
-			}()
-			iwebsocket.BroadcastToAll(response2)
-		}()
+		app.ToWSChan <- response2
+
+		response3 := &iwebsocket.WsServerPayload{}
+
+		response3.Action = "graphstats"
+		response3.Message = ""
+		response3.Data = app.GraphStats
+		app.ToWSChan <- response3
+		// go func() {
+		// 	defer concurrent.Recoverer("graphtablercd")
+		// 	time.Sleep(500 * time.Millisecond)
+
+		// 	iwebsocket.BroadcastToAll(response2)
+		// }()
 		//time.Sleep(2 * time.Second)
+		app.graphMutex.Unlock()
 
 	}
 }
@@ -245,9 +290,13 @@ func (app *application) CaptureGraphData() {
 //
 // ------------------------------------------------------
 func (app *application) GraphHandlers(router *chi.Mux) {
-	router.Route("/graph", func(r chi.Router) {
+	router.Route("/dashboard", func(r chi.Router) {
 		//r.With(paginate).Get("/", listArticles)
+		r.Use(app.sessionManager.LoadAndSave)
+
 		r.Use(app.RequireAuthentication)
+		r.Use(CheckLicMiddleware)
+
 		r.Get("/", app.GraphData)
 	})
 }
@@ -255,18 +304,18 @@ func (app *application) GraphHandlers(router *chi.Mux) {
 // ------------------------------------------------------
 //
 // ------------------------------------------------------
-func GetGraphDataXX() []*GraphDataset {
+// func GetGraphDataXX() []*GraphDataset {
 
-	dataSet := make([]*GraphDataset, 0)
-	dataSet = append(dataSet, getGraphDataSet(GraphData100, 100))
-	dataSet = append(dataSet, getGraphDataSet(GraphData200, 200))
-	dataSet = append(dataSet, getGraphDataSet(GraphData300, 300))
-	dataSet = append(dataSet, getGraphDataSet(GraphData400, 400))
-	dataSet = append(dataSet, getGraphDataSet(GraphData500, 500))
+// 	dataSet := make([]*GraphDataset, 0)
+// 	dataSet = append(dataSet, getGraphDataSet(GraphData100, 100))
+// 	dataSet = append(dataSet, getGraphDataSet(GraphData200, 200))
+// 	dataSet = append(dataSet, getGraphDataSet(GraphData300, 300))
+// 	dataSet = append(dataSet, getGraphDataSet(GraphData400, 400))
+// 	dataSet = append(dataSet, getGraphDataSet(GraphData500, 500))
 
-	return dataSet
+// 	return dataSet
 
-}
+// }
 
 // ------------------------------------------------------
 //
@@ -292,11 +341,11 @@ func (app *application) GraphData(w http.ResponseWriter, r *http.Request) {
 	data := app.newTemplateData(r)
 
 	data.GraphData = map[int][]*GraphStruc{
-		100: GraphData100,
-		200: GraphData200,
-		300: GraphData300,
-		400: GraphData400,
-		500: GraphData500,
+		100: app.GraphData100,
+		200: app.GraphData200,
+		300: app.GraphData300,
+		400: app.GraphData400,
+		500: app.GraphData500,
 	}
 	//b, _ := json.Marshal(getGraphDataSet(GraphData500))
 	// fmt.Println("getGraphDataSet ", getGraphDataSet(GraphData500), ":: ", string(b))

@@ -3,11 +3,13 @@ package main
 import (
 	"fmt"
 	"log"
+	"runtime/debug"
 	"strings"
 	"time"
 
 	"github.com/jprobinson/eazye"
-	"github.com/onlysumitg/GoQhttp/internal/models"
+	"github.com/onlysumitg/GoQhttp/utils/concurrent"
+
 	mail "github.com/xhit/go-simple-mail/v2"
 )
 
@@ -22,13 +24,20 @@ import (
 // 		Template: "email_verify_email.tmpl",
 // 	}
 
-// 	app.SendEmail(e)
-// }
+//		app.SendEmail(e)
+//	}
+type EmailRequest struct {
+	To       []string
+	Subject  string
+	Body     string
+	Template string
+	Data     any
+}
 
 // ------------------------------------------------------
 //
 // ------------------------------------------------------
-func (app *application) SendEmail(r *models.EmailRequest) {
+func (app *application) SendEmail(r *EmailRequest) {
 
 	if r == nil {
 		return
@@ -42,7 +51,7 @@ func (app *application) SendEmail(r *models.EmailRequest) {
 
 	// Create email
 	email := mail.NewMSG()
-	email.SetFrom("support@zerobit.tech")
+	email.SetFrom("qhttp@zerobit.tech")
 	email.AddTo(r.To...)
 	//email.AddCc("another_you@example.com")
 	email.SetSubject(r.Subject)
@@ -61,7 +70,9 @@ func (app *application) SendEmail(r *models.EmailRequest) {
 // ------------------------------------------------------
 //
 // ------------------------------------------------------
-func   ReadEmails(waitC chan<- int) {
+func ReadEmails(waitC chan<- int) {
+	defer concurrent.Recoverer("GetByEmail")
+	defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
 
 	defer func() {
 		waitC <- 1
@@ -74,7 +85,7 @@ func   ReadEmails(waitC chan<- int) {
 			Host:               "smtp.zerobit.tech",
 			TLS:                true,
 			InsecureSkipVerify: true,
-			User:               "support@zerobit.tech",
+			User:               "qhttp@zerobit.tech",
 			Pwd:                "Zer0#2023",
 			Folder:             "inbox",
 			ReadOnly:           false,
@@ -90,7 +101,6 @@ func   ReadEmails(waitC chan<- int) {
 
 			if strings.EqualFold(strings.ToUpper(strings.TrimSpace(email.Subject)), "QHTTP LIC") {
 
-				
 				params := &parameters{
 					client:     email.From.Name,
 					email:      email.From.Address,

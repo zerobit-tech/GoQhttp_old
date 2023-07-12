@@ -111,6 +111,7 @@ func (s *Stmt) exec(ctx context.Context, args []driver.Value) (driver.Result, er
 			//log.Printf("%v: %v\n", "SeversCall 2.410", time.Now())
 			s.os.usedByRows = true // now both Stmt and Rows refer to it
 			resultsets := &Rows{os: s.os}
+			defer resultsets.Close()
 			for {
 				sumRowCount++
 

@@ -5,31 +5,27 @@ import (
 	"database/sql/driver"
 	"errors"
 	"fmt"
-	"log"
 	"net/http"
-	"os"
 	"runtime/debug"
 	"sync"
+	"time"
 
-	"github.com/onlysumitg/GoQhttp/go_ibm_db"
+	"github.com/onlysumitg/GoQhttp/internal/dbserver"
+	"github.com/onlysumitg/GoQhttp/internal/storedProc"
+	"github.com/onlysumitg/GoQhttp/logger"
 	"github.com/onlysumitg/GoQhttp/utils/concurrent"
 	"github.com/onlysumitg/GoQhttp/utils/xmlutils"
 	bolt "go.etcd.io/bbolt"
 )
 
-var infoLog *log.Logger = log.New(os.Stderr, "INFO \t", log.Ldate|log.Ltime)
-var errorLog *log.Logger = log.New(os.Stderr, "ERROR\t", log.Ldate|log.Ltime)
-var RequestLog *log.Logger = log.New(os.Stderr, "Request\t", log.Ldate|log.Ltime)
-var ResponseLog *log.Logger = log.New(os.Stderr, "Response\t", log.Ldate|log.Ltime)
+// type LogStruct struct {
+// 	I        int
+// 	Id       string
+// 	Message  string
+// 	TestMode bool
+// }
 
-type LogStruct struct {
-	I        int
-	Id       string
-	Message  string
-	TestMode bool
-}
-
-var LogChan chan LogStruct = make(chan LogStruct, 5000)
+// var LogChan chan LogStruct = make(chan LogStruct, 5000)
 
 type ApiCall struct {
 	ID string
@@ -37,12 +33,12 @@ type ApiCall struct {
 	RequestFlatMap map[string]xmlutils.ValueDatatype
 	RequestHeader  map[string]string
 
-	Response      *StoredProcResponse
+	Response      *storedProc.StoredProcResponse
 	Err           error
 	StatusCode    int
 	StatusMessage string
 
-	Log []string
+	Log []*logger.LogEvent
 
 	logMutex sync.Mutex
 
@@ -50,9 +46,11 @@ type ApiCall struct {
 
 	HttpRequest *http.Request
 
-	CurrentSP *StoredProc
+	CurrentSP *storedProc.StoredProc
 
-	Server *Server
+	Server *dbserver.Server
+
+	SPCallDuration time.Duration // int64 nanoseconds
 }
 
 // ------------------------------------------------------
@@ -60,24 +58,26 @@ type ApiCall struct {
 // ------------------------------------------------------
 func (a *ApiCall) HasError() bool {
 	if a.Err != nil {
-		var odbcError *go_ibm_db.Error
 
 		if errors.Is(a.Err, driver.ErrBadConn) {
 			a.StatusCode = http.StatusInternalServerError
 			a.StatusMessage = a.Err.Error()
-			go a.LogError(fmt.Sprintf("Connection Error: %s", a.Server.Name))
+			go a.Logger("ERROR", fmt.Sprintf("Connection Error: %s", a.Server.Name), false) //goroutine
 
 			return true
 		}
 
-		if errors.As(a.Err, &odbcError) {
-			a.StatusCode, a.StatusMessage = OdbcErrMessage(odbcError)
-			go a.LogError(fmt.Sprintf("ODBC Error %s:%s", a.StatusMessage, odbcError.Error()))
+		tmpCode, tmpStatus, errMessage, ok := a.Server.ErrorToHttpStatus(a.Err)
+		if ok {
+			a.StatusCode = tmpCode
+			a.StatusMessage = tmpStatus
+			go a.Logger("ERROR", fmt.Sprintf("Server Error %s:%s", a.StatusMessage, errMessage), false) //goroutine
+
 			return true
 		}
 		a.StatusCode = http.StatusBadRequest
 		a.StatusMessage = a.Err.Error()
-		go a.LogError(fmt.Sprintf("Error %s", a.Err.Error()))
+		go a.Logger("ERROR", fmt.Sprintf("Error %s", a.Err.Error()), false) //goroutine
 
 		return true
 	}
@@ -288,32 +288,17 @@ func getLogTableName() []byte {
 // ------------------------------------------------------
 //
 // ------------------------------------------------------
-func (apiCall *ApiCall) LogInfo(logEntry string) {
+func (apiCall *ApiCall) Logger(logType string, logEntry string, scrubeData bool) {
+	defer concurrent.Recoverer("LogError")
+	defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
 
 	defer apiCall.logMutex.Unlock()
-	apiCall.logMutex.Lock()
-
-	buf := bytes.NewBufferString("")
-
-	infoLog.SetOutput(buf)
-	infoLog.Println(logEntry)
-
-	apiCall.Log = append(apiCall.Log, buf.String())
-
-}
-
-// ------------------------------------------------------
-//
-// ------------------------------------------------------
-func (apiCall *ApiCall) LogError(logEntry string) {
-	defer apiCall.logMutex.Unlock()
-
-	buf := bytes.NewBufferString("")
 
 	apiCall.logMutex.Lock()
-	errorLog.SetOutput(buf)
-	errorLog.Println(logEntry)
-	apiCall.Log = append(apiCall.Log, buf.String())
+
+	logE := logger.GetLogEvent(logType, apiCall.ID, logEntry, scrubeData)
+
+	apiCall.Log = append(apiCall.Log, logE)
 
 }
 
@@ -329,73 +314,58 @@ func (apiCall *ApiCall) LogError(logEntry string) {
 
 // //		buf := bytes.NewBufferString(s)
 // //	}
+// // //
+// // ------------------------------------------------------
 // //
-// ------------------------------------------------------
-//
-// ------------------------------------------------------
+// // ------------------------------------------------------
 func (m *ApiCall) SaveLogs(testMode bool) {
-	for _, l := range m.Response.LogData {
-		if l.Type == "E" {
-			m.LogError(l.Text)
-		} else {
-			m.LogInfo(l.Text)
-		}
-	}
-
-	// m.LogDB.Update(func(tx *bolt.Tx) error {
-	// 	bucket, err := tx.CreateBucketIfNotExists(getLogTableName())
-	// 	if err != nil {
-	// 		return err
-	// 	}
-
-	// 	for i, s := range m.Log {
-	// 		scrubed := s
-	// 		if !testMode {
-	// 			scrubed = RemoveNonLogData(s)
-	// 		}
-
-	// 		key := fmt.Sprintf("%s_%d", m.ID, i)
-	// 		bucket.Put([]byte(key), []byte(fmt.Sprintf("%05d. %s", i+1, scrubed)))
-
-	// 	}
-	// 	return nil
-	// })
-
-	for i, s := range m.Log {
-		//SaveLogs(m.LogDB, i, m.ID, s, testMode)
-		logE := LogStruct{I: i, Id: m.ID, Message: s, TestMode: testMode}
-		LogChan <- logE
-	}
-
-}
-
-// ------------------------------------------------------
-//
-// ------------------------------------------------------
-func SaveLogs(db *bolt.DB) {
-
 	defer concurrent.Recoverer("SaveLogs")
 	defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
+	defer m.logMutex.Unlock()
 
-	for {
-		logS := <-LogChan
-		scrubed := logS.Message
-		if !logS.TestMode && logS.I <= 1000 {
-			scrubed = RemoveNonLogData(logS.Message)
-		}
+	m.logMutex.Lock()
+	//m.Log = append(m.Log, m.Response.LogData...)
 
-		db.Update(func(tx *bolt.Tx) error {
-			bucket, err := tx.CreateBucketIfNotExists(getLogTableName())
-			if err != nil {
-				return err
-			}
-			key := fmt.Sprintf("%s_%d", logS.Id, logS.I)
-			bucket.Put([]byte(key), []byte(fmt.Sprintf("%05d. %s", logS.I+1, scrubed)))
-			return nil
-		})
+	for _, s := range m.Log {
+		//SaveLogs(m.LogDB, i, m.ID, s, testMode)
+		//logE := LogStruct{I: i, Id: m.ID, Message: s, TestMode: testMode}
+		logger.LoggerChan <- s
 	}
 
+	for _, s := range m.Response.LogData {
+		//SaveLogs(m.LogDB, i, m.ID, s, testMode)
+		//logE := LogStruct{I: i, Id: m.ID, Message: s, TestMode: testMode}
+
+		logger.LoggerChan <- s
+	}
 }
+
+// // ------------------------------------------------------
+// //
+// // ------------------------------------------------------
+// func SaveLogs(db *bolt.DB) {
+// 	defer concurrent.Recoverer("SaveLogs")
+// 	defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
+
+// 	for {
+// 		logS := <-LogChan
+// 		scrubed := logS.Message
+// 		if !logS.TestMode && logS.I <= 1000 {
+// 			scrubed = logger.RemoveNonLogData(logS.Message)
+// 		}
+
+// 		db.Update(func(tx *bolt.Tx) error {
+// 			bucket, err := tx.CreateBucketIfNotExists(getLogTableName())
+// 			if err != nil {
+// 				return err
+// 			}
+// 			key := fmt.Sprintf("%s_%d", logS.Id, logS.I)
+// 			bucket.Put([]byte(key), []byte(fmt.Sprintf("%05d. %s", logS.I+1, scrubed)))
+// 			return nil
+// 		})
+// 	}
+
+// }
 
 // ------------------------------------------------------
 //

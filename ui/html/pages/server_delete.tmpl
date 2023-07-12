@@ -41,17 +41,151 @@ Server Delete
                  
                 </tbody>
             </table>
+
+            {{ if .AllowServerDelete }}
             <form method="post" action="/servers/delete">
                 <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
                   <input type="hidden" name="serverid" value="{{.Server.ID}}">
             <button type="submit" class="btn btn-danger">Confirm</button>
         
-        </form>
+            </form>
+            {{else}}
+                <p>Can not delete. Server is in use.</p>
+            {{end}}
         </div>
     </div>   
     </div> 
 
 </div> 
  
+
+
+<div class="row p-2">
+    <div class="col">
+      <div class="card ">
+        <div class="card-header">
+          <p class="h5">Endpoints 
+            
+  
+          </p>
+         
+        </div>
+  
+   
+        <div class="card-body">
+  <table id="splist"    class="table   table-borderless table-responsive-sm table-striped    ">
+    <thead class="thead-dark">
+      <tr>
+        <th>EndPoint name</th>
+        <th>Method</th>
+        <th>Name</th>
+        <th>Lib</th>
+        <th>Options</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{if .StoredProcs}}
+      {{range .StoredProcs}}
+      <tr>
+        <td>{{.EndPointName}}</td>
+        <td>{{.HttpMethod}}</td>
+        <td>{{.Name}}</td>
+
+        <td>{{.Lib}}</td>
+         <td nowrap>
+          <a class="btn btn-ghost-info" href='/sp/{{.ID}}'>
+          
+            View</a>
+  
+          <a class="btn btn-ghost-info" 
+          data-toggle="tooltip" data-placement="bottom" title="Edit" 
+          href='/sp/update/{{.ID}}'>
+            <svg class="c-icon mfe-2">
+              <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-pencil"></use>
+          </svg></a>
+          <a class="btn btn-ghost-danger" 
+          data-toggle="tooltip" data-placement="bottom" title="Delete" 
+          href='/sp/delete/{{.ID}}'>
+            <svg class="c-icon mfe-2">
+              <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-trash"></use>
+          </svg></a>
+  
+        </td>
+  
+      </tr>
+      {{end}}
+  
+      {{else}}
+       {{end}}
+    </tbody>
+  </table>
+   
+  </div>
+  </div>
+  </div>
+  </div>
+<div class="row p-2">
+    <div class="col">
+      <div class="card ">
+        <div class="card-header">
+          <p class="h5">Users  </p>
+        </div>
+        <div class="card-body">
+          <table id="rbackrolelist"
+            class="table   table-borderless table-responsive-sm table-striped    ">
+            <thead class="thead-dark">
+  
+            <tr>
+                <th>Email</th>
+                <th>Name</th>
+                <th>Created</th>
+                <th>Super User</th>
+                <th>Staff</th>
+
+                <th>Verified</th>
+ 
+                <th>Options </th>
+
+            </tr>
+        </thead>
+        <tbody>
+            {{if .Users}}
+
+            {{range .Users}}
+            <tr>
+                <td>{{.Email}}   </td>
+
+                <td>{{.Name}} </td>
+                <td>{{.Created }} </td>
+                <td>{{.IsSuperUser | yesNo}} </td>
+                <td>{{.IsStaff | yesNo}} </td>
+
+                <td>{{.HasVerified | yesNo}} </td>
+                 
+
+                <td>
+
+                    <a class="btn btn-ghost-info  " href='/users/edit/{{.ID}}'>   
+                        <svg class="c-icon">
+                        <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-pencil"></use>
+                    </svg>
+                  </a>
+                    <a class="btn btn-danger" href='/users/delete/{{.ID}}'>Delete</a>
+                     
+
+
+                </td>
+
+            </tr>
+            {{end}}
+            {{end}}
+        </tbody>
+    </table>
+
+</div>
+</div>
+</div>
+</div>
+
 
 {{end}}

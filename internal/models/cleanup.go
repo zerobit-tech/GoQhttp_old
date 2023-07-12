@@ -8,13 +8,13 @@ import (
 //
 // -----------------------------------------------------------------
 func DailyDataCleanup_TESTMODE(db *bolt.DB) {
-	//go DeleteALLEndpoint(db)
+	//go DeleteALLEndpoint(db) //goroutine
 }
 
 // -----------------------------------------------------------------
 //
 // -----------------------------------------------------------------
 func DailyDataCleanup(db *bolt.DB) {
- 
+	//TODO
+
 }
- 

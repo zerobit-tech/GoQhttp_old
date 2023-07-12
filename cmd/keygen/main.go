@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/hyperboloide/lk"
-	"github.com/onlysumitg/GoQhttp/internal/models"
 	"github.com/onlysumitg/GoQhttp/lic"
 	"github.com/onlysumitg/GoQhttp/utils/stringutils"
 )
@@ -79,7 +78,7 @@ func processLicRequest(params *parameters) error {
 
 	emailBody := fmt.Sprintf("Please create a new qhttp.lic file in lic folder and copy the following string in that file. <br><br> %s", string(b))
 
-	email := &models.EmailRequest{
+	email := &EmailRequest{
 		To:       []string{params.email},
 		Subject:  "QHTTP Lic Key",
 		Body:     emailBody,
@@ -97,7 +96,7 @@ func processLicRequest(params *parameters) error {
 
 func generateNewLic(licData *lic.MyLicence) string {
 	privateKeyFile := fmt.Sprintf("lic/%s.prvt", "master")
-	licKeyFile := fmt.Sprintf("lic/%s_%s.lic", time.Now().UTC().Format("2006-01-02 15:04:05.000000"), strings.ToUpper(licData.Client))
+	licKeyFile := fmt.Sprintf("lic/%s_%s.lic", time.Now().UTC().Format("20060102_150405000000"), strings.ToUpper(licData.Client))
 
 	if !fileExists(privateKeyFile) {
 		err := generateNewPrivateKey(privateKeyFile)
@@ -140,6 +139,9 @@ func fileExists(filename string) bool {
 	info, err := os.Stat(filename)
 	if os.IsNotExist(err) {
 		return false
+	}
+	if err != nil {
+		fmt.Println("fileExists err:", err.Error())
 	}
 	return !info.IsDir()
 }

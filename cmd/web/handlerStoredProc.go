@@ -7,8 +7,9 @@ import (
 	"strings"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/onlysumitg/GoQhttp/internal/models"
+	"github.com/onlysumitg/GoQhttp/internal/storedProc"
 	"github.com/onlysumitg/GoQhttp/internal/validator"
+	"github.com/onlysumitg/GoQhttp/utils/stringutils"
 )
 
 // ------------------------------------------------------
@@ -16,6 +17,8 @@ import (
 // ------------------------------------------------------
 func (app *application) StoredProcHandlers(router *chi.Mux) {
 	router.Route("/sp", func(r chi.Router) {
+		r.Use(app.sessionManager.LoadAndSave)
+
 		r.Use(app.RequireAuthentication)
 		r.Use(CheckLicMiddleware)
 
@@ -34,10 +37,11 @@ func (app *application) StoredProcHandlers(router *chi.Mux) {
 		r.Get("/delete/{spId}", app.SPDelete)
 		r.Post("/delete", app.SPDeleteConfirm)
 
-		r.Get("/run/{spId}", app.SPRun)
-		r.Get("/run", app.SPRun)
+		// r.Get("/run/{spId}", app.SPRun)
+		// r.Get("/run", app.SPRun)
 
-		r.Post("/build", app.SPBuild)
+		// r.Post("/build", app.SPBuild)
+
 		r.Get("/refresh/{spId}", app.SpRefresh)
 
 		r.Post("/assignserver", app.AssignServer)
@@ -77,122 +81,13 @@ func (app *application) SPList(w http.ResponseWriter, r *http.Request) {
 }
 
 // ------------------------------------------------------
-//
-// ------------------------------------------------------
-func (app *application) SPRun(w http.ResponseWriter, r *http.Request) {
-	// data := app.newTemplateData(r)
-
-	// savesQueries := app.savedQueries.List()
-	// data.SavesQueries = savesQueries
-	// data.SavesQueriesByCategory = make(map[string][]*models.StoredProc)
-
-	// //spId := chi.URLParam(r, "spId")
-
-	// for _, savesQuery := range savesQueries {
-	// 	savesQuery.PopulateFields()
-
-	// 	queryList, found := data.SavesQueriesByCategory[savesQuery.Category]
-	// 	if !found {
-	// 		queryList = make([]*models.SP, 0)
-	// 	}
-	// 	queryList = append(queryList, savesQuery)
-	// 	data.SavesQueriesByCategory[savesQuery.Category] = queryList
-
-	// }
-
-	// nextUrl := r.URL.Query().Get("next") //filters=["color", "price", "brand"]
-	// data.Next = nextUrl
-	// app.render(w, r, http.StatusOK, "sp_run.tmpl", data)
-
-}
-
-// ------------------------------------------------------
-func (app *application) SPBuild(w http.ResponseWriter, r *http.Request) {
-
-	// formMap := map[string]string{}
-	// err := json.NewDecoder(r.Body).Decode(&formMap)
-	// if err != nil {
-	// 	app.errorResponse(w, r, http.StatusBadRequest, err.Error())
-	// 	return
-	// }
-	// log.Println("><<>>>>>>", formMap)
-	// savedQueeryId, found := formMap["sPid"]
-	// if savedQueeryId == "" || !found {
-	// 	app.serverError(w, r, errors.New("sPid is required"))
-	// 	return
-	// }
-	// sP, err := app.savedQueries.Get(savedQueeryId)
-	// log.Println("sP>>>", sP, err)
-	// if err != nil {
-	// 	app.serverError(w, r, err)
-	// 	return
-	// }
-
-	// sqlToRun, fieldError := sP.ReplaceFields(formMap)
-	// if len(fieldError) > 0 {
-	// 	// if has error field -> return blank sql to run
-	// 	sqlToRun = ""
-
-	// }
-
-	// sPBuild := models.SPBuild{SqlToRun: sqlToRun, FieldErrors: fieldError}
-
-	// app.writeJSON(w, http.StatusOK, sPBuild, nil)
-
-	// // need to return a json
-
-}
-
-// ------------------------------------------------------
-func (app *application) SPRunAsJson(w http.ResponseWriter, r *http.Request) {
-
-	// currentServerID := app.sessionManager.GetString(r.Context(), "currentserver")
-	// currentServer, err := app.servers.Get(currentServerID)
-	// if err != nil {
-	// 	app.errorResponse(w, r, http.StatusBadRequest, err.Error())
-	// 	return
-	// }
-
-	// if err := r.ParseForm(); err != nil {
-	// 	// handle error
-	// }
-	// savedQueeryId := r.PostForm.Get("sPid")
-	// if savedQueeryId != "" {
-	// 	app.serverError500(w, r, errors.New("sPid is required"))
-	// 	return
-	// }
-	// sP, err := app.savedQueries.Get(savedQueeryId)
-	// if err != nil {
-	// 	app.serverError(w, r, err)
-	// 	return
-	// }
-
-	// fieldMap := make(map[string]string)
-	// for key, values := range r.PostForm {
-	// 	fieldMap[key] = values[0]
-	// }
-
-	// sqlToRun, fieldError := sP.ReplaceFields(fieldMap)
-	// if len(fieldError) == 0 {
-	// 	// No error
-	// 	// run the sql
-	// }
-
-	// sessionID := app.sessionManager.Token(r.Context())
-
-	// currentTabId, lastTabid := getTabIds(r)
-
-	// queryResults := models.ProcessSQLStatements(sqlToRun, currentServer, sessionID, currentTabId, lastTabid)
-	// app.writeJSON(w, http.StatusOK, queryResults, nil)
-
-}
 
 // ------------------------------------------------------
 //
 // ------------------------------------------------------
 func (app *application) SPAdd(w http.ResponseWriter, r *http.Request) {
 	data := app.newTemplateData(r)
-	data.Form = models.StoredProc{}
+	data.Form = storedProc.StoredProc{}
 	data.Servers = app.servers.List()
 	app.render(w, r, http.StatusOK, "sp_add.tmpl", data)
 
@@ -216,7 +111,7 @@ func (app *application) SpRefresh(w http.ResponseWriter, r *http.Request) {
 		dServer, err := app.servers.Get(sP.DefaultServer.ID)
 		if err == nil {
 
-			err = sP.PreapreToSave(r.Context(), *dServer)
+			err = dServer.PrepareToSave(r.Context(), sP)
 			if err == nil {
 				app.storedProcs.Save(sP)
 				app.sessionManager.Put(r.Context(), "flash", "Done")
@@ -278,6 +173,13 @@ func (app *application) SpLogs(w http.ResponseWriter, r *http.Request) {
 // Server details
 // ------------------------------------------------------
 func (app *application) SpParamAlias(w http.ResponseWriter, r *http.Request) {
+
+	if !app.features.ParameterAlias {
+		//app.sessionManager.Put(r.Context(), "error", fmt.Sprintf("Error: %s", err.Error()))
+		app.goBack(w, r, http.StatusNotFound)
+		return
+	}
+
 	data := app.newTemplateData(r)
 
 	spId := chi.URLParam(r, "spId")
@@ -304,29 +206,35 @@ func (app *application) SPAddPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var sP models.StoredProc
+	var sP storedProc.StoredProc
 	err = app.formDecoder.Decode(&sP, r.PostForm)
 	if err != nil {
 		app.sessionManager.Put(r.Context(), "error", fmt.Sprintf("002 Error processing form %s", err.Error()))
 		app.goBack(w, r, http.StatusBadRequest)
 		return
 	}
+	sP.CheckField(validator.NotBlank(sP.EndPointName), "endpointname", "This field cannot be blank")
 
 	sP.CheckField(validator.NotBlank(sP.Name), "name", "This field cannot be blank")
 	sP.CheckField(validator.NotBlank(sP.Lib), "lib", "This field cannot be blank")
 	sP.CheckField(!app.storedProcs.Duplicate(&sP), "endpointname", "Endpoint with name and method already exists")
 	sP.CheckField(validator.NotBlank(sP.DefaultServerId), "serverid", "This field cannot be blank")
-	sP.CheckField(!app.storedProcs.Duplicate(&sP), "endpointname", "Endpoint with name and method already exists")
+	if sP.Valid() {
+		sP.EndPointName = stringutils.RemoveSpecialChars(stringutils.RemoveMultipleSpaces(sP.EndPointName))
 
+		sP.CheckField(!app.storedProcs.Duplicate(&sP), "endpointname", "Endpoint with name and method already exists")
+	}
 	// assign default server
 
 	server, err := app.servers.Get(sP.DefaultServerId)
 	if err != nil {
 		sP.CheckField(false, "serverid", "Server not found")
+
+		sP.Validator.AddNonFieldError("Please select a valid server")
 	} else {
-		srcd := &models.ServerRecord{ID: server.ID, Name: server.Name}
+		srcd := &storedProc.ServerRecord{ID: server.ID, Name: server.Name}
 		sP.DefaultServer = srcd
-		sP.AddAllowedServer(server)
+		sP.AddAllowedServer(server.ID, server.Name)
 	}
 
 	// Check SP details from iBMI
@@ -339,7 +247,7 @@ func (app *application) SPAddPost(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		err = sP.PreapreToSave(r.Context(), *server)
+		err = server.PrepareToSave(r.Context(), &sP)
 
 		if err != nil {
 			sP.CheckField(false, "name", err.Error())
@@ -414,7 +322,7 @@ func (app *application) SPDeleteConfirm(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	go app.deleteSPData(spId)
+	go app.deleteSPData(spId) //goroutine
 	app.sessionManager.Put(r.Context(), "flash", "Endpoint deleted sucessfully")
 
 	http.Redirect(w, r, "/sp", http.StatusSeeOther)
@@ -463,11 +371,11 @@ func (app *application) SPCall(w http.ResponseWriter, r *http.Request) {
 		dServer, err := app.servers.Get(sP.DefaultServer.ID)
 		if err == nil {
 
-			_, err = sP.DummyCall(dServer, formToMap(r))
+			_, err = dServer.DummyCall(sP, formToMap(r))
 
 		}
 	} else {
-		err = errors.New("Default server is not defined.")
+		err = errors.New("default server is not defined")
 	}
 
 	if err != nil {
@@ -485,6 +393,11 @@ func (app *application) SPCall(w http.ResponseWriter, r *http.Request) {
 //
 // ------------------------------------------------------
 func (app *application) SPsaveparamalias(w http.ResponseWriter, r *http.Request) {
+	if !app.features.ParameterAlias {
+		//app.sessionManager.Put(r.Context(), "error", fmt.Sprintf("Error: %s", err.Error()))
+		app.goBack(w, r, http.StatusNotFound)
+		return
+	}
 
 	spId := r.FormValue("id")
 
@@ -581,7 +494,7 @@ func (app *application) AssignServer(w http.ResponseWriter, r *http.Request) {
 		app.goBack(w, r, http.StatusSeeOther)
 		return
 	}
-	sP.AddAllowedServer(server)
+	sP.AddAllowedServer(server.ID, server.Name)
 	app.storedProcs.Save(sP)
 	app.invalidateEndPointCache()
 
@@ -623,7 +536,7 @@ func (app *application) RemoveAssignServer(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	sP.DeleteAllowedServer(server)
+	sP.DeleteAllowedServer(server.ID)
 
 	app.storedProcs.Save(sP)
 	app.invalidateEndPointCache()

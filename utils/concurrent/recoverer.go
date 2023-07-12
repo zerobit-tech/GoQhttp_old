@@ -12,7 +12,7 @@ func Recoverer(id string) {
 	}
 }
 
-func RecoverAndRestart(maxPanics int, id string, f func()) {
+func RecoverAndRestart(maxPanics int, id string, f func()) { 
 
 	defer func() {
 		if err := recover(); err != nil {

@@ -1,1 +1,0 @@
-web: ./bin/goqhttp  --testmode --redirecttohttps --domain="goqhttp.herokuapp.com"

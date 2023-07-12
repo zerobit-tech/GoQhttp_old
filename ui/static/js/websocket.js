@@ -3,7 +3,7 @@ var socket = null;
 
 // tell Ws that client is leaving
 window.onbeforeunload = function () {
-                 return
+                  
                 console.log("Leaving"); 
                 let jsonData = {};////WsClientPayload
                 jsonData["action"] = "left"; 
@@ -13,7 +13,9 @@ window.onbeforeunload = function () {
 
 
 $(document).ready(function () {
-         return
+
+        var graphUpdateCalls = 0
+          
         
         //socket = new WebSocket("ws://127.0.0.1:4000/ws/notification");
         socket = new ReconnectingWebSocket(websocketurl, null, {debug: true, reconectInterval: 3000});
@@ -24,7 +26,13 @@ $(document).ready(function () {
 
             jsonData["action"] = "getgraphdata"; 
             socket.send(JSON.stringify(jsonData)); // send left action to websocket
+        
+            jsonData["action"] = "getgraphstats"; 
+            socket.send(JSON.stringify(jsonData)); // send left action to websocket
+        
+        
         }
+
 
     // to send data to websocket
     //socket.send(JSON.stringify(jsonData));
@@ -43,7 +51,7 @@ $(document).ready(function () {
                 }
         socket.onmessage = msg => {
             //console.log("msg.data")
-            //console.log(msg)
+            //console.log(msg.data)
             var data = {}; // WsNotification
             try {
                 data = JSON.parse(msg.data);
@@ -74,14 +82,25 @@ $(document).ready(function () {
                 case "graphdata":
                     
                         var dashboardgraph = document.getElementById("dashboardgraph")
-                        if (typeof dashboardgraph !== null) {
-                            console.log("updating graph")
-                            //dashboardgraph.data.datasets=data.data
-                           Plotly.newPlot('dashboardgraph', data.data);
+                        if (typeof dashboardgraph !== null && typeof autorefdashboard !== 'undefined'){
+                            //console.log("autorefdashboard",autorefdashboard)
+                            if (autorefdashboard) {
+                                console.log("updating graph")
+                                //dashboardgraph.data.datasets=data.data
+                               Plotly.newPlot('dashboardgraph', data.data);
+                               graphUpdateCalls = graphUpdateCalls + 1
+                            }
+                           
+                        }
+
+                        if (graphUpdateCalls > 500){
+                            location.reload()
                         }
                         break;
 
                 case "graphtablercd":
+
+
                        
                 if (typeof dashboardlisttable !== 'undefined') {
                        
@@ -94,9 +113,56 @@ $(document).ready(function () {
                                 spUrl,
                                 data.data.Httpcode,
                             data.data.Responsetime,
+                            data.data.SPResponsetime,
                             data.data.Calltime]).draw(false);
                         }
                     break;
+
+
+
+
+                case "graphstats":
+
+                var dashboardgraph = document.getElementById("dashboardgraph")
+                if (typeof autorefdashboard === 'undefined' || !autorefdashboard){
+                    return
+                }
+                   //  console.log(data.data)
+                    if (typeof graphfooter_vue !== null && typeof graphfooter_vue !== 'undefined'){
+                        // alert(graphfooter_vue.http100Count)
+                         graphfooter_vue.http100Count = data.data.http100count
+                         graphfooter_vue.http100Percent=data.data.http100percent
+
+                         graphfooter_vue.http200Count = data.data.http200count
+                         graphfooter_vue.http200Percent=data.data.http200percent
+
+                         graphfooter_vue.http300Count = data.data.http300count
+                         graphfooter_vue.http300Percent=data.data.http300percent
+
+                         graphfooter_vue.http400Count = data.data.http400count
+                         graphfooter_vue.http400Percent=data.data.http400percent
+
+                         graphfooter_vue.http500Count = data.data.http500count
+                         graphfooter_vue.http500Percent=data.data.http500percent
+                         graphUpdateCalls = graphUpdateCalls + 1
+
+                     }
+
+                     if (typeof graphtableheader !== null && typeof graphtableheader !== 'undefined'){
+                        graphtableheader.avgRspTime =data.data.avgrestime
+                        graphtableheader.maxRspTime = data.data.maxrestime
+
+                        graphtableheader.avgDBTime = data.data.avgdbtime
+                        graphtableheader.maxDBTime =data.data.maxdbtime
+
+                     }
+                     if (graphUpdateCalls > 500){
+                        location.reload()
+                    }
+
+
+                break;
+
 
              }
 

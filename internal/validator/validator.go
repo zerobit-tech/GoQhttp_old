@@ -57,6 +57,8 @@ func (v *Validator) AddFieldError(key, message string) {
 	if _, exists := v.FieldErrors[key]; !exists {
 		v.FieldErrors[key] = message
 	}
+
+	//v.AddNonFieldError(fmt.Sprintf("%s %s", key, message))
 }
 
 // ------------------------------------------------------

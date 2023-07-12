@@ -7,29 +7,33 @@ require (
 	github.com/alexedwards/scs/v2 v2.5.0
 	github.com/go-chi/chi/v5 v5.0.8
 	github.com/go-chi/cors v1.2.1
+	github.com/go-chi/httprate v0.7.4
 	github.com/go-co-op/gocron v1.28.2
 	github.com/go-playground/form v3.1.4+incompatible
 	github.com/go-playground/form/v4 v4.2.0
 	github.com/google/uuid v1.3.0
 	github.com/gorilla/websocket v1.5.0
+	github.com/gosimple/slug v1.13.1
+	github.com/hyperboloide/lk v0.0.0-20230325114855-ce3fecd34798
 	github.com/joho/godotenv v1.5.1
+	github.com/jprobinson/eazye v0.0.0-20200316195029-00167c745a93
 	github.com/justinas/nosurf v1.1.1
-	github.com/mikespook/gorbac v2.3.0+incompatible
+	github.com/microsoft/go-mssqldb v1.3.0
+	github.com/rbretecher/go-postman-collection v0.9.0
 	github.com/sirupsen/logrus v1.9.0
 	github.com/xhit/go-simple-mail/v2 v2.13.0
 	go.etcd.io/bbolt v1.3.7
-	golang.org/x/crypto v0.7.0
+	golang.org/x/crypto v0.9.0
 	golang.org/x/sys v0.8.0
 )
 
 require (
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
-	github.com/go-chi/httprate v0.7.4 // indirect
+	github.com/go-sql-driver/mysql v1.7.1 // indirect
 	github.com/go-test/deep v1.1.0 // indirect
-	github.com/gosimple/slug v1.13.1 // indirect
+	github.com/golang-sql/civil v0.0.0-20220223132316-b832511892a9 // indirect
+	github.com/golang-sql/sqlexp v0.1.0 // indirect
 	github.com/gosimple/unidecode v1.0.1 // indirect
-	github.com/hyperboloide/lk v0.0.0-20230325114855-ce3fecd34798 // indirect
-	github.com/jprobinson/eazye v0.0.0-20200316195029-00167c745a93 // indirect
 	github.com/mxk/go-imap v0.0.0-20150429134902-531c36c3f12d // indirect
 	github.com/paulrosania/go-charset v0.0.0-20190326053356-55c9d7a5834c // indirect
 	github.com/robfig/cron/v3 v3.0.1 // indirect
@@ -37,7 +41,6 @@ require (
 	github.com/toorop/go-dkim v0.0.0-20201103131630-e1cd1a0a5208 // indirect
 	go.uber.org/atomic v1.9.0 // indirect
 	golang.org/x/net v0.10.0 // indirect
-	golang.org/x/sync v0.1.0 // indirect
 	golang.org/x/text v0.9.0 // indirect
 	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
 )

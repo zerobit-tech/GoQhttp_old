@@ -6,14 +6,18 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"runtime/debug"
 
 	"github.com/onlysumitg/GoQhttp/internal/validator"
+	"github.com/onlysumitg/GoQhttp/utils/concurrent"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/onlysumitg/GoQhttp/internal/models"
 )
 
 func (app *application) CreateSuperUser(email, password string) {
+	// defer concurrent.Recoverer("GetByEmail")
+	// defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
 
 	user, err := app.users.GetByEmail(email)
 
@@ -46,6 +50,8 @@ func (app *application) CreateSuperUser(email, password string) {
 // ------------------------------------------------------
 func (app *application) UserHandlers(router *chi.Mux) {
 	router.Route("/user", func(r chi.Router) {
+		r.Use(app.sessionManager.LoadAndSave)
+
 		//r.With(paginate).Get("/", listArticles)
 		//	r.Get("/", app.EndPointList)
 		g1 := r.Group(nil)
@@ -315,7 +321,12 @@ func (app *application) userSignupPost(w http.ResponseWriter, r *http.Request) {
 		app.serverError500(w, r, err)
 		return
 	}
+
+	//goroutine
 	go func() {
+		defer concurrent.Recoverer("BuildverificationEmail")
+		defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
+
 		emailRequest := app.users.BuildVerificationEmail(user, app.hostURL)
 		app.SendEmail(emailRequest)
 	}()
@@ -441,7 +452,7 @@ func (app *application) userVerification(w http.ResponseWriter, r *http.Request)
 	if app.users.Verify(user, verificationid, app.users.GetVerificationTableName()) {
 		user.HasVerified = true
 		app.users.Save(user, false)
-
+		//goroutine
 		go app.users.DeleteVerificationRecord(user, app.users.GetVerificationTableName())
 
 		app.sessionManager.Put(r.Context(), "flash", "You've been verified successfully!")
@@ -498,7 +509,7 @@ func (app *application) passwordReset(w http.ResponseWriter, r *http.Request) {
 				user.Password = form.Password
 				app.users.Save(user, true)
 				app.sessionManager.Put(r.Context(), "flash", "Password updated")
-
+				//goroutine
 				go app.users.DeleteVerificationRecord(user, app.users.GetPasswordResetTableName())
 
 				http.Redirect(w, r, app.appLangingPage(), http.StatusSeeOther)
@@ -548,7 +559,9 @@ func (app *application) userLoginTrouble(w http.ResponseWriter, r *http.Request)
 		if form.Valid() {
 			switch form.Option {
 			case "reverify":
-				go func() {
+				go func() { //goroutine
+					defer concurrent.Recoverer("userLoginTrouble 1")
+					defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
 
 					user, err := app.users.GetByEmail(form.Email)
 					if err == nil {
@@ -558,7 +571,9 @@ func (app *application) userLoginTrouble(w http.ResponseWriter, r *http.Request)
 				}()
 
 			default:
-				go func() {
+				go func() { //goroutine
+					defer concurrent.Recoverer("userLoginTrouble 2")
+					defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
 
 					user, err := app.users.GetByEmail(form.Email)
 					if err == nil {

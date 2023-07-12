@@ -5,8 +5,11 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/onlysumitg/GoQhttp/internal/dbserver"
 	"github.com/onlysumitg/GoQhttp/internal/models"
+	"github.com/onlysumitg/GoQhttp/internal/storedProc"
 	"github.com/onlysumitg/GoQhttp/internal/validator"
+	"github.com/onlysumitg/GoQhttp/utils/stringutils"
 )
 
 // ------------------------------------------------------
@@ -69,6 +72,8 @@ func (app *application) CurrentServerMiddlewareXX(next http.Handler) http.Handle
 func (app *application) ServerHandlers(router *chi.Mux) {
 	router.Route("/servers", func(r chi.Router) {
 		//r.With(paginate).Get("/", listArticles)
+		r.Use(app.sessionManager.LoadAndSave)
+
 		r.Use(app.RequireAuthentication)
 		r.Use(CheckLicMiddleware)
 
@@ -105,6 +110,13 @@ func (app *application) ServerHandlers(router *chi.Mux) {
 //
 // ------------------------------------------------------
 func (app *application) PromotionTableHelp(w http.ResponseWriter, r *http.Request) {
+
+	if !app.features.Promotion {
+		//app.sessionManager.Put(r.Context(), "error", fmt.Sprintf("Error: %s", err.Error()))
+		app.goBack(w, r, http.StatusNotFound)
+		return
+	}
+
 	data := app.newTemplateData(r)
 
 	app.render(w, r, http.StatusOK, "server_help_promotion_table.tmpl", data)
@@ -115,6 +127,12 @@ func (app *application) PromotionTableHelp(w http.ResponseWriter, r *http.Reques
 //
 // ------------------------------------------------------
 func (app *application) UserTokenTableHelp(w http.ResponseWriter, r *http.Request) {
+
+	if !app.features.TokenSync {
+		app.goBack(w, r, http.StatusNotFound)
+		return
+	}
+
 	data := app.newTemplateData(r)
 
 	app.render(w, r, http.StatusOK, "server_help_user_token_sync_table.tmpl", data)
@@ -181,7 +199,7 @@ func (app *application) ServerView(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	data.Server = server
-	data.StoredProcs = make([]*models.StoredProc, 0, 10)
+	data.StoredProcs = make([]*storedProc.StoredProc, 0, 10)
 	for _, s := range app.storedProcs.List() {
 		if s == nil || s.DefaultServer == nil {
 			continue
@@ -232,6 +250,41 @@ func (app *application) ServerDelete(w http.ResponseWriter, r *http.Request) {
 	data := app.newTemplateData(r)
 	data.Server = server
 
+	data.StoredProcs = make([]*storedProc.StoredProc, 0, 10)
+	for _, s := range app.storedProcs.List() {
+		if s == nil || s.DefaultServer == nil {
+			continue
+		}
+		allowed := false
+		if s.DefaultServer.ID == serverID {
+			allowed = true
+		} else {
+
+			for _, als := range s.AllowedOnServers {
+				if als.ID == serverID {
+					allowed = true
+				}
+
+			}
+		}
+		if allowed {
+			data.StoredProcs = append(data.StoredProcs, s)
+		}
+	}
+
+	data.Users = make([]*models.User, 0, 10)
+
+	for _, u := range app.users.List() {
+		if u.ServerId == serverID {
+			data.Users = append(data.Users, u)
+		}
+	}
+
+	data.AllowServerDelete = true
+	if len(data.Users) > 0 || len(data.StoredProcs) > 0 {
+		data.AllowServerDelete = false
+	}
+
 	app.render(w, r, http.StatusOK, "server_delete.tmpl", data)
 
 }
@@ -269,6 +322,12 @@ func (app *application) ServerDeleteConfirm(w http.ResponseWriter, r *http.Reque
 // ------------------------------------------------------
 func (app *application) RunPromotion(w http.ResponseWriter, r *http.Request) {
 
+	if !app.features.Promotion {
+		//app.sessionManager.Put(r.Context(), "error", fmt.Sprintf("Error: %s", err.Error()))
+		app.goBack(w, r, http.StatusNotFound)
+		return
+	}
+
 	serverID := chi.URLParam(r, "serverid")
 
 	server, err := app.servers.Get(serverID)
@@ -279,7 +338,7 @@ func (app *application) RunPromotion(w http.ResponseWriter, r *http.Request) {
 		app.goBack(w, r, http.StatusSeeOther)
 		return
 	}
-	go app.ProcessPromotion(server)
+	go app.ProcessPromotion(server) //goroutine
 	app.sessionManager.Put(r.Context(), "flash", "Queued. Please wait.")
 
 	app.goBack(w, r, http.StatusSeeOther)
@@ -312,6 +371,11 @@ func (app *application) ClearCache(w http.ResponseWriter, r *http.Request) {
 // run promotions
 // ------------------------------------------------------
 func (app *application) ListPromotion(w http.ResponseWriter, r *http.Request) {
+	if !app.features.Promotion {
+		//app.sessionManager.Put(r.Context(), "error", fmt.Sprintf("Error: %s", err.Error()))
+		app.goBack(w, r, http.StatusNotFound)
+		return
+	}
 
 	data := app.newTemplateData(r)
 	serverID := chi.URLParam(r, "serverid")
@@ -347,11 +411,11 @@ func (app *application) ServerAdd(w http.ResponseWriter, r *http.Request) {
 	data := app.newTemplateData(r)
 
 	// set form initial values
-	data.Form = models.Server{
+	data.Form = dbserver.Server{
 		ConnectionsOpen:   20,
-		ConnectionsIdle:   10,
-		ConnectionMaxAge:  20,
-		ConnectionIdleAge: 20,
+		ConnectionsIdle:   20,
+		ConnectionMaxAge:  600,
+		ConnectionIdleAge: 3600,
 	}
 	app.render(w, r, http.StatusOK, "server_add.tmpl", data)
 
@@ -368,7 +432,7 @@ func (app *application) ServerAddPost(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
 		app.sessionManager.Put(r.Context(), "error", fmt.Sprintf("001 Error processing form %s", err.Error()))
-		app.goBack(w, r, http.StatusBadRequest)
+		app.goBack(w, r, http.StatusSeeOther)
 		return
 	}
 
@@ -382,7 +446,7 @@ func (app *application) ServerAddPost(w http.ResponseWriter, r *http.Request) {
 
 	// In contrast, the r.Form map is populated for all requests (irrespective of their HTTP method),
 
-	var server models.Server
+	var server dbserver.Server
 	// Call the Decode() method of the form decoder, passing in the current
 	// request and *a pointer* to our snippetCreateForm struct. This will
 	// essentially fill our struct with the relevant values from the HTML form.
@@ -390,12 +454,14 @@ func (app *application) ServerAddPost(w http.ResponseWriter, r *http.Request) {
 	err = app.formDecoder.Decode(&server, r.PostForm)
 	if err != nil {
 		app.sessionManager.Put(r.Context(), "error", fmt.Sprintf("002 Error processing form %s", err.Error()))
-		app.goBack(w, r, http.StatusBadRequest)
+		app.goBack(w, r, http.StatusSeeOther)
 		return
 	}
-	server.CheckField(!app.servers.DuplicateName(&server), "name", "Duplicate Name")
 
 	server.CheckField(validator.NotBlank(server.Name), "name", "This field cannot be blank")
+
+	server.CheckField(validator.NotBlank(server.Type), "type", "This field cannot be blank")
+
 	server.CheckField(validator.NotBlank(server.IP), "ip", "This field cannot be blank")
 	server.CheckField(validator.NotBlank(server.UserName), "user_name", "This field cannot be blank")
 	server.CheckField(validator.NotBlank(server.Password), "password", "This field cannot be blank")
@@ -404,6 +470,10 @@ func (app *application) ServerAddPost(w http.ResponseWriter, r *http.Request) {
 	// Use the Valid() method to see if any of the checks failed. If they did,
 	// then re-render the template passing in the form in the same way as
 	// before.
+	if server.Valid() {
+		server.Name = stringutils.RemoveSpecialChars(stringutils.RemoveMultipleSpaces(server.Name))
+		server.CheckField(!app.servers.DuplicateName(&server), "name", "Duplicate Name")
+	}
 
 	if !server.Valid() {
 		data := app.newTemplateData(r)
@@ -419,6 +489,20 @@ func (app *application) ServerAddPost(w http.ResponseWriter, r *http.Request) {
 		app.serverError500(w, r, err)
 		return
 	}
+
+	//db, err := server.GetSingleConnection()
+	// defer db.Close()
+	// if err != nil {
+	// 	server.Password = server.GetPassword()
+	// 	app.servers.Delete(server.ID)
+	// 	data := app.newTemplateData(r)
+	// 	data.Form = server
+	// 	app.sessionManager.Put(r.Context(), "error", fmt.Sprintf("Can not verify server connection %s", err.Error()))
+	// 	app.render(w, r, http.StatusUnprocessableEntity, "server_add.tmpl", data)
+
+	// 	return
+	// }
+
 	app.sessionManager.Put(r.Context(), "flash", fmt.Sprintf("Server %s added sucessfully", server.Name))
 
 	http.Redirect(w, r, fmt.Sprintf("/servers/%s", id), http.StatusSeeOther)
@@ -472,7 +556,7 @@ func (app *application) ServerUpdatePost(w http.ResponseWriter, r *http.Request)
 
 	// In contrast, the r.Form map is populated for all requests (irrespective of their HTTP method),
 
-	var server models.Server
+	var server dbserver.Server
 	// Call the Decode() method of the form decoder, passing in the current
 	// request and *a pointer* to our snippetCreateForm struct. This will
 	// essentially fill our struct with the relevant values from the HTML form.
@@ -486,6 +570,9 @@ func (app *application) ServerUpdatePost(w http.ResponseWriter, r *http.Request)
 		app.goBack(w, r, http.StatusBadRequest)
 		return
 	}
+
+	server.Name = stringutils.RemoveSpecialChars(stringutils.RemoveMultipleSpaces(server.Name))
+
 	server.CheckField(!app.servers.DuplicateName(&server), "name", "Duplicate Name")
 
 	server.CheckField(validator.NotBlank(server.Name), "name", "This field cannot be blank")
@@ -521,6 +608,10 @@ func (app *application) ServerUpdatePost(w http.ResponseWriter, r *http.Request)
 // run promotions
 // ------------------------------------------------------
 func (app *application) SyncUserTokens(w http.ResponseWriter, r *http.Request) {
+	if !app.features.TokenSync {
+		app.goBack(w, r, http.StatusNotFound)
+		return
+	}
 
 	defer app.requestMutex.Unlock()
 	// inProgress := app.requestMutex.TryLock()

@@ -1,13 +1,14 @@
 package main
 
 import (
-	"bytes"
 	"context"
 	"fmt"
 	"log"
 	"net/http"
 	"net/http/httptest"
 	"net/http/httputil"
+	"runtime/debug"
+	"strings"
 	"sync/atomic"
 	"time"
 
@@ -15,7 +16,10 @@ import (
 	"github.com/google/uuid"
 	"github.com/justinas/nosurf" // New import
 	"github.com/onlysumitg/GoQhttp/internal/models"
+	"github.com/onlysumitg/GoQhttp/internal/storedProc"
 	"github.com/onlysumitg/GoQhttp/lic"
+	"github.com/onlysumitg/GoQhttp/logger"
+	"github.com/onlysumitg/GoQhttp/utils/concurrent"
 )
 
 type ContextKey string
@@ -78,12 +82,20 @@ func (app *application) RedirectToHTTPS(next http.Handler) http.Handler {
 // ------------------------------------------------------
 func (app *application) RequireTokenAuthentication(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		response := &models.StoredProcResponse{ReferenceId: middleware.GetReqID(r.Context())}
+		response := &storedProc.StoredProcResponse{ReferenceId: middleware.GetReqID(r.Context())}
 
 		token := r.Header.Get("Authorization")
 		if token == "" {
 			token = r.Header.Get("Authentication")
 
+		}
+
+		if strings.HasPrefix(token, "bearer ") {
+			token = strings.Trim(token, "bearer ")
+		}
+
+		if strings.HasPrefix(token, "Bearer ") {
+			token = strings.Trim(token, "Bearer ")
 		}
 
 		if token == "" {
@@ -128,22 +140,16 @@ func (app *application) LogHandler(next http.Handler) http.Handler {
 		} else {
 			requestBody = "Error :" + err.Error()
 		}
+
+		//goroutine
 		go func() {
-			defer func() {
-				if r := recover(); r != nil {
-					log.Println("Recovered in LogHandler SaveLogs request", r)
-				}
-			}()
 
-			buf := bytes.NewBufferString("")
-
-			models.RequestLog.SetOutput(buf)
-			models.RequestLog.Println("\n\n" + requestBody)
-
+			defer concurrent.Recoverer("Recovered in LogHandler SaveLogs request")
+			defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
 			//models.SaveLogs(app.LogDB, 998, requestId, buf.String(), app.testMode)
 
-			logE := models.LogStruct{I: 998, Id: requestId, Message: buf.String(), TestMode: app.testMode}
-			models.LogChan <- logE
+			logE := logger.GetLogEvent("REQUEST",   requestId, ("\n\n" + requestBody), !app.debugMode)
+			logger.LoggerChan <- logE
 
 		}()
 
@@ -153,34 +159,29 @@ func (app *application) LogHandler(next http.Handler) http.Handler {
 
 		// After processing ==> log response
 		responseBody := ""
+		graphStruc := GetGraphStruct(r.Context())
+		graphStruc.Httpcode = rec.Code
+
 		y, err := httputil.DumpResponse(rec.Result(), true)
 		if err == nil {
 
 			responseBody = string(y)
+			//goroutine
 			go func() {
-				defer func() {
-					if r := recover(); r != nil {
-						log.Println("Recovered in LogHandler SaveLogs response", r)
-					}
-				}()
 
-				buf := bytes.NewBufferString("")
+				defer concurrent.Recoverer("Recovered in LogHandler SaveLogs request2")
+				defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
 
-				models.ResponseLog.SetOutput(buf)
-				models.ResponseLog.Println("\n\n" + responseBody)
-
-				//models.SaveLogs(app.LogDB, 999, requestId, buf.String(), app.testMode)
-
-				logE := models.LogStruct{I: 999, Id: requestId, Message: buf.String(), TestMode: app.testMode}
-				models.LogChan <- logE
+				logEResp := logger.GetLogEvent("RESPONSE", requestId, ("\n\n" + responseBody), !app.debugMode)
+				logger.LoggerChan <- logEResp
 
 				//models.SaveLogs(app.LogDB, 1000, requestId, fmt.Sprintf("HTTPCODE:%d", rec.Code), app.testMode)
-				logE = models.LogStruct{I: 1000, Id: requestId, Message: fmt.Sprintf("HTTPCODE:%d", rec.Code), TestMode: app.testMode}
-				graphStruc := GetGraphStruct(r.Context())
-				graphStruc.Httpcode = rec.Code
-
-				models.LogChan <- logE
+				logEH := logger.GetLogEvent("INFO",  requestId, fmt.Sprintf("HTTPCODE:%d", rec.Code), false)
+				logger.LoggerChan <- logEH
 			}()
+		} else {
+			fmt.Println(">>>>>>>>>>> ERROR rec.Code rec.Code>>>>>>>>>>>>>.....", err.Error())
+
 		}
 
 		// this copies the recorded response to the response writer
@@ -191,7 +192,11 @@ func (app *application) LogHandler(next http.Handler) http.Handler {
 		rec.Body.WriteTo(w)
 
 		if rec.Code >= 400 {
+			//goroutine
 			go func() {
+				defer concurrent.Recoverer("EmailForErrResponse")
+				defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
+
 				email := &models.EmailRequest{
 					Subject:  fmt.Sprintf("%d %s", rec.Code, requestId),
 					Body:     fmt.Sprintf("<h3>Request</h3><br><pre>%s</pre><br><br><br><br><h3>Response</h3><br><pre>%s</pre>", requestBody, responseBody),
@@ -251,17 +256,27 @@ func (app *application) TimeTook(next http.Handler) http.Handler {
 			graphStruc.Responsetime = durationPasses.Milliseconds()
 			graphStruc.Calltime = time.Now().Local().Format(TimestampFormat)
 
-			fmt.Println("graphStruc", graphStruc, *graphStruc)
+			logEH := logger.GetLogEvent("INFO",  requestId, fmt.Sprintf("ResponseTime:%s", durationPasses), false)
 
-			logE := models.LogStruct{I: 1001, Id: requestId, Message: fmt.Sprintf("ResponseTime:%s", durationPasses), TestMode: app.testMode}
+			//goroutine
 			go func() {
-				defer func() {
-					if r := recover(); r != nil {
-						log.Println("Recovered in TimeTook", r)
+
+				defer concurrent.Recoverer("Recovered in TimeTook")
+				defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
+
+				logger.LoggerChan <- logEH
+
+				select {
+				case <-app.shutDownContext.Done():
+					if !app.hasClosedGraphChan {
+						//fmt.Println("closing GraphChan>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<    <<<<<<<<<<<<<<")
+						close(app.GraphChan)
 					}
-				}()
-				models.LogChan <- logE
-				//GraphChan <- graphStruc
+					app.hasClosedGraphChan = true
+
+				default:
+					app.GraphChan <- graphStruc
+				}
 
 			}()
 		}()
@@ -319,11 +334,13 @@ func CheckLicMiddleware(next http.Handler) http.Handler {
 				Name: licFile,
 			}
 
-			expiryDate, _, expiryDays, err := lic.GetLicFileExpiryDuration(licFile)
+			licData, err := lic.GetLicFileExpiryDuration(licFile)
 
 			if err == nil {
-				licFileData.ExpiryDays = expiryDays
-				licFileData.ValidTill = expiryDate
+				licFileData.ExpiryDays = licData.ExpiryDays
+				licFileData.ValidTill = licData.End
+				licFileData.AssignedTo = licData.Client
+				licFileData.AssignedToEmail = licData.ClientEmail
 			}
 			ctx = context.WithValue(ctx, LIC_INFO, licFileData)
 
@@ -354,11 +371,13 @@ func CheckLicMiddlewareNoRedirect(next http.Handler) http.Handler {
 				Name: licFile,
 			}
 
-			expiryDate, _, expiryDays, err := lic.GetLicFileExpiryDuration(licFile)
+			licData, err := lic.GetLicFileExpiryDuration(licFile)
 
 			if err == nil {
-				licFileData.ExpiryDays = expiryDays
-				licFileData.ValidTill = expiryDate
+				licFileData.ExpiryDays = licData.ExpiryDays
+				licFileData.ValidTill = licData.End
+				licFileData.AssignedTo = licData.Client
+				licFileData.AssignedToEmail = licData.ClientEmail
 			}
 			ctx = context.WithValue(ctx, LIC_INFO, licFileData)
 

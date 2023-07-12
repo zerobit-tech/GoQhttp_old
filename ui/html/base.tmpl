@@ -31,7 +31,7 @@
   <div style="opacity: 95%" class="c-sidebar c-sidebar-dark c-sidebar-fixed c-sidebar-lg-show" id="sidebar">
     <div class="c-sidebar-brand d-md-down-none">
       <div class="c-sidebar-brand-full">
-        <a href="/sp"><h5 style="color:white">#QHttp</h5> </a>
+        <a href="/"><h5 style="color:white">#QHttp</h5> </a>
       </div>
 
       <div class="c-sidebar-brand-minimized">
@@ -43,7 +43,7 @@
 
       {{if .TestMode}}
       <li class="c-sidebar-nav-item">
-        <a class="c-sidebar-nav-link" href="/testmode" ><h5  data-toggle="tooltip" data-placement="bottom" title="Click to view test mode limitations" style="color:#e55353">TEST MODE</h5> </a>
+        <a class="c-sidebar-nav-link" href="" ><h5  data-toggle="tooltip" data-placement="bottom" title="Click to view test mode limitations" style="color:#e55353">DEBUG MODE</h5> </a>
 
      </li>
       {{end}}
@@ -72,7 +72,7 @@
 <!--  sp options -->
       {{if .StoredProc}}
       {{if .StoredProc.ID}}
-          {{template "spoptions" .StoredProc}}
+          {{template "spoptions" .}}
          
           {{end}}
 
@@ -96,6 +96,12 @@
       {{if .CurrentUser.IsSuperUser}}
 
       <li class="c-sidebar-nav-divider"></li>
+            <li class="c-sidebar-nav-item"><a class="c-sidebar-nav-link" href="/dashboard">
+        <svg class="c-icon mfe-2">
+          <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-monitor"></use>
+      </svg>Dashboard</a>
+      </li>
+
       <li class="c-sidebar-nav-item"><a class="c-sidebar-nav-link" href="/servers">
         <svg class="c-icon mfe-2">
           <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-list"></use>
@@ -118,12 +124,12 @@
       </svg>Users</a>
       </li>
 
-      <li class="c-sidebar-nav-divider"></li>
+      <!-- <li class="c-sidebar-nav-divider"></li>
       <li class="c-sidebar-nav-item"><a class="c-sidebar-nav-link" href="/apilogs/clear">
         <svg class="c-icon mfe-2">
           <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-trash"></use>
       </svg>Clear all Logs</a>
-      </li>
+      </li> -->
       {{end}}
 
       <li class="c-sidebar-nav-divider"></li>
@@ -134,8 +140,10 @@
       </li>
 
 
-      
+      <li class="c-sidebar-nav-divider"></li>
+      <li class="c-sidebar-nav-divider"></li>
 
+      <li class="c-sidebar-nav-item"><a class="c-sidebar-nav-link" > version {{.Version}} </a> </li>
 
 
 
@@ -184,7 +192,7 @@
                     <ul class="c-header-nav mfs-auto">
                       <li class="c-header-nav-item mr-3">
                           {{if .CurrentLicInfo}}
-                          <a href="/license">Lic Valid till: {{.CurrentLicInfo.ValidTill | humanDate}} ({{.CurrentLicInfo.ExpiryDays}} days)</a>
+                          <a href="/license">Lic:  {{.CurrentLicInfo.AssignedToEmail}} ({{.CurrentLicInfo.ExpiryDays}} days remaining)</a>
                           {{end}}
                      
                       </li>
@@ -213,6 +221,10 @@
                      
                     </ul>
             </header>
+
+            {{template "messages" .}}
+         
+            
         {{template "content" .}}
       
     </div>
@@ -289,7 +301,7 @@
       icon: "error",
       text: "{{.}}",
       showConfirmButton: false,
-      timer: 4000,
+      timer: 8000,
       showCloseButton: true
     })  
     {{end }}
@@ -339,7 +351,7 @@
   <script src="/static/js/main.js"></script>
 
   <link rel="stylesheet" type="text/css" href="/static/css/work.css">
-  <script src="/static/js/table.js"></script>
+  
 
 
 
@@ -371,14 +383,7 @@
   }
 
 
-
-  $(document).ready(function () {
-
-    document.cookie = "lasttabid" + "=" + getCookie("tabid")
-
-
-    document.cookie = "tabid" + "=" + uuidv4()
-  });
+ 
 </script>
 
 

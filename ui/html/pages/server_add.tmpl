@@ -22,6 +22,7 @@ Add new Server
             <input id="servername" class="form-control {{with .Form.FieldErrors.name}} is-invalid {{end}}" type="text"
                 name="name" aria-describedby="servernamehelp" placeholder="Server name" value='{{.Form.Name}}'
                 required></input>
+                <small id="servernameh" class="form-text text-muted">A human readable name</small>
 
 
             <!-- Use the `with` action to render the value of .Form.FieldErrors.title if it is not empty. -->
@@ -33,6 +34,38 @@ Add new Server
 
  
         </div>
+
+    <!--   type start    -->
+
+        <div class="form-group">
+            <label for="type">Server Type</label>
+        <SELECT id="type" class="form-control" name="type">
+            <OPTION value="">Server Type</OPTION>
+
+            {{if .ServerTypes}}
+            {{range .ServerTypes}}
+            <OPTION 
+
+            {{if $.Form.Type}}
+            {{if eq . $.Form.Type}} selected {{end}} 
+            {{end}}
+            value="{{.}}">
+                
+                {{.}}
+            </OPTION>
+            {{end}}
+            {{end}}
+        </SELECT>
+        {{with .Form.FieldErrors.type}}
+ 
+        <div class='invalid-feedback-error'>{{.}}</div>
+        {{end}}
+    </div>
+
+
+
+    <!--   type end    -->
+
 
         <div class="form-group">
             <label for="serverip">Server IP</label>
@@ -52,6 +85,9 @@ Add new Server
             <input id="serverport" value='{{.Form.Port}}'
                 class="form-control  {{with .Form.FieldErrors.port}} is-invalid {{end}}" type="text"
                 name="port" ></input>
+
+                                <small id="serverporth" class="form-text text-muted">Keep it zero if not sure about it.</small>
+
             {{with .Form.FieldErrors.port}}
             <div class='invalid-feedback'>{{.}}</div>
             {{end}}
@@ -75,7 +111,7 @@ Add new Server
         <div class="form-group">
             <label for="serverpassword">Server Password</label>
 
-            <input id="serverpassword" value='{{.Form.Password}}' type="text"
+            <input id="serverpassword" value='{{.Form.Password}}' type="password"
                 class="form-control  {{with .Form.FieldErrors.password}} is-invalid {{end}}" name="password" required></input>
             {{with .Form.FieldErrors.password}}
             <div class='invalid-feedback'>{{.}}</div>
@@ -107,21 +143,24 @@ Add new Server
             <label for="cage">Connection max age (seconds)</label>
 
             <input id="cage" aria-describedby="cageh"  value='{{.Form.ConnectionMaxAge}}' type="number" class="form-control" min="1"
-                max="1000" name="cage"></input>
+                max="100000" name="cage"></input>
                 <small id="cage" class="form-text text-muted">Default:10 seconds. More info <a href="https://go.dev/doc/database/manage-connections">here</a></small>
 
-        </div>
+        </div> 
 
         <div class="form-group">
             <label for="icage">Connection idle age (seconds)</label>
 
             <input id="icage" aria-describedby="icageh"  value='{{.Form.ConnectionIdleAge}}' type="number" class="form-control" min="1"
-                max="1000" name="icage"></input>
+                max="100000" name="icage"></input>
                 <small id="icage" class="form-text text-muted">Default:10 seconds. More info <a href="https://go.dev/doc/database/manage-connections">here</a></small>
 
         </div>
         
         <br>
+
+        {{if .Features.Promotion}}
+
         <br>
         <div class="form-group">
             <label for="configfilelib">Auto promotion Prefix</label>
@@ -146,18 +185,23 @@ Add new Server
         </div>
 
         <div class="form-group">
-            <label for="configfilelib">Promotion Table lib</label>
+            <label for="configfilelib">Promotion Table schema</label>
 
             <input id="configfilelib" aria-describedby="configfilelibh"  value='{{.Form.ConfigFileLib}}' 
             type="text" class="form-control"  
                   name="configfilelib"></input>
 
-                <small id="configfilelibh" class="form-text text-muted"></small>
+                <small id="configfilelibh" class="form-text text-muted">IBM I: Library or SQL Schema <br> 
+                    MS SQL Server: Catalog name or Catalog.Schema name. Default schema is dbo.</small>
 
         </div>
 
         
         <br>
+        {{end}}
+
+
+        {{if .Features.TokenSync}}
         <br>
         <div class="form-group">
             <label for="usertokenfile">User Token Table</label>
@@ -171,18 +215,23 @@ Add new Server
         </div>
 
         <div class="form-group">
-            <label for="usertokenfilelib">User token Table lib</label>
+            <label for="usertokenfilelib">User token Table schema</label>
 
             <input id="usertokenfilelib" aria-describedby="usertokenfilelibh"  value='{{.Form.UserTokenFileLib}}' 
             type="text" class="form-control"  
                   name="usertokenfilelib"></input>
 
-                <small id="usertokenfilelibh" class="form-text text-muted">Lib for user token tables</small>
+                <small id="usertokenfilelibh" class="form-text text-muted">
+                    IBM I: Library or SQL Schema <br> 
+                    MS SQL Server: Catalog name or Catalog.Schema name. Default schema is dbo.
+                </small>
 
         </div>
 
         
         <br>
+
+        {{end}}
         <br>
         
 

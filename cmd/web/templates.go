@@ -14,12 +14,15 @@ import (
 	"time"
 
 	"github.com/justinas/nosurf"
+	"github.com/onlysumitg/GoQhttp/internal/dbserver"
 	"github.com/onlysumitg/GoQhttp/internal/models"
+	"github.com/onlysumitg/GoQhttp/internal/storedProc"
 	"github.com/onlysumitg/GoQhttp/lic"
 	"github.com/onlysumitg/GoQhttp/ui"
 )
 
 type templateData struct {
+	Version     string
 	CurrentYear int
 
 	HostUrl      string
@@ -37,16 +40,19 @@ type templateData struct {
 
 	CSRFToken string // Add a CSRFToken field.   <input type='hidden' name='csrf_token' value='{{.CSRFToken}}'>
 
-	Server  *models.Server
-	Servers []*models.Server
+	Server      *dbserver.Server
+	Servers     []*dbserver.Server
+	ServerTypes []string
+
+	AllowServerDelete bool
 
 	//CurrentServer *models.Server
 
-	StoredProcs []*models.StoredProc
-	StoredProc  *models.StoredProc
+	StoredProcs []*storedProc.StoredProc
+	StoredProc  *storedProc.StoredProc
 	SPCallLog   *models.SPCallLog
 
-	Promotions []*models.PromotionRecord
+	Promotions []*storedProc.PromotionRecord
 
 	ComparisonOperators []string
 
@@ -71,6 +77,8 @@ type templateData struct {
 	TestMode bool
 
 	GraphData map[int][]*GraphStruc
+
+	Features *features
 }
 
 func ListComparisonOperators() []string {
@@ -103,7 +111,10 @@ func (app *application) newTemplateData(r *http.Request) *templateData {
 
 		ComparisonOperators: ListComparisonOperators(),
 		IsAuthenticated:     app.isAuthenticated(r), // use {{if .IsAuthenticated}} in template
-		TestMode:            app.testMode,
+		TestMode:            app.debugMode,
+		Version:             app.version,
+		Features:            app.features,
+		ServerTypes:         dbserver.GetRegisterDrivers(),
 	}
 	user, err := app.GetUser(r)
 	if err == nil {
@@ -238,10 +249,10 @@ func yesNo(s bool) string {
 //
 // -----------------------------------------------------------------
 func IsPreFormatted(s string) bool {
-	if strings.HasPrefix(s, "00999") || strings.HasPrefix(s, "01000") {
-		return true
-	}
-	return false
+	// if strings.HasPrefix(s, "00999") || strings.HasPrefix(s, "01000") {
+	// 	return true
+	// }
+	return true
 }
 
 // -----------------------------------------------------------------

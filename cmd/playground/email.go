@@ -20,7 +20,7 @@ func SetupMailServer() *mail.SMTPServer {
 	server := mail.NewSMTPClient()
 	server.Host = "smtp.zerobit.tech"
 	server.Port = 587 // SMTP Port 	465 (25 or 587 for non-SSL)
-	server.Username = "support@zerobit.tech"
+	server.Username = "qhttp@zerobit.tech"
 	server.Password = "Zer0#2023"
 	server.Encryption = mail.EncryptionTLS
 	return server
@@ -34,7 +34,7 @@ func (r *EmailRequest) Send(server *mail.SMTPServer) {
 
 	// Create email
 	email := mail.NewMSG()
-	email.SetFrom("support@zerobit.tech")
+	email.SetFrom("qhttp@zerobit.tech")
 	email.AddTo(r.To...)
 	//email.AddCc("another_you@example.com")
 	email.SetSubject(r.Subject)

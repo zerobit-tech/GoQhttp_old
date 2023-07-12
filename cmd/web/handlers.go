@@ -5,7 +5,7 @@ import (
 )
 
 func (app *application) langingPage(w http.ResponseWriter, r *http.Request) {
-	http.Redirect(w, r, "/sp", http.StatusSeeOther)
+	http.Redirect(w, r, "/dashboard", http.StatusSeeOther)
 
 	// data := app.newTemplateData(r)
 
@@ -14,19 +14,8 @@ func (app *application) langingPage(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) appLangingPage() string {
-	return "/sp"
+	return "/dashboard"
 
 }
-func (app *application) helpPage(w http.ResponseWriter, r *http.Request) {
-	data := app.newTemplateData(r)
-
-	app.render(w, r, http.StatusOK, "help.tmpl", data)
-
-}
-
-func (app *application) testModePage(w http.ResponseWriter, r *http.Request) {
-	data := app.newTemplateData(r)
-
-	app.render(w, r, http.StatusOK, "testmode.tmpl", data)
-
-}
+ 
+ 

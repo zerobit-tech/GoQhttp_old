@@ -1,12 +1,11 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
-	"strconv"
+	"runtime/debug"
 	"time"
 
 	"github.com/go-co-op/gocron"
@@ -17,6 +16,8 @@ import (
 )
 
 func main() {
+
+	//validateSetup()
 
 	gocron.SetPanicHandler(func(jobName string, _ interface{}) {
 		fmt.Printf("Panic in job: %s", jobName)
@@ -37,7 +38,17 @@ func main() {
 		log.Fatal(err)
 	}
 
+	myfile, e := os.Create("./env/.env")
+	if e != nil {
+		log.Fatal(e)
+	}
+	myfile.Close()
+
 	err = os.MkdirAll("./lic", os.ModePerm)
+	if err != nil {
+		log.Fatal(err)
+	}
+	err = os.MkdirAll("./cert", os.ModePerm)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -57,11 +68,8 @@ func main() {
 	params := &parameters{}
 	params.Load()
 
-	envPort := env.GetEnvVariable("PORT", "")
-
-	port, err := strconv.Atoi(envPort)
-	if err == nil {
-		params.port = port
+	if params.validateSetup {
+		validateSetup()
 	}
 
 	// --------------------------------------- Setup database ----------------------------
@@ -90,7 +98,11 @@ func main() {
 	app.batches()
 
 	//--------------------------------------- Setup websockets ----------------------------
-	go ListenToWsChannel()
+	go concurrent.RecoverAndRestart(10, "ListenToWsChannel", app.ListenToWsChannel) //goroutine
+	go concurrent.RecoverAndRestart(10, "SendToWsChannel", app.SendToWsChannel)     //goroutine
+	go concurrent.RecoverAndRestart(10, "CaptureGraphData", app.CaptureGraphData)   //goroutine
+
+	go concurrent.RecoverAndRestart(10, "spCallLogModel:AddLogid", app.spCallLogModel.AddLogid) //goroutine
 
 	go concurrent.RecoverAndRestart(10, "spCallLogModel:AddLogid", app.spCallLogModel.AddLogid)
 
@@ -99,12 +111,10 @@ func main() {
 	
 	addr, hostUrl := params.getHttpAddress()
 
-	log.Printf("QHttp is live at %s  :: %s \n", addr, hostUrl)
-
 	// this is short cut to create http.Server and  server.ListenAndServe()
 	// err := http.ListenAndServe(params.addr, routes)
 
-	server := &http.Server{
+	app.mainAppServer = &http.Server{
 		Addr:     addr,
 		Handler:  routes,
 		ErrorLog: app.errorLog,
@@ -112,64 +122,43 @@ func main() {
 
 	//  --------------------------------------- Data clean up job----------------------------
 
-	go app.clearLogsSchedular(db)
+	go app.clearLogsSchedular(db) //goroutine
 
-	//go app.CaptureGraphData()
+	go app.refreshSchedule() //goroutine
 
-	go app.refreshSchedule()
-
-	go app.PingServers()
+	go app.pingServerSchedule() //goroutine
 	//--------------------------------------- Create super user ----------------------------
 
-	go app.CreateSuperUser(params.superuseremail, params.superuserpwd)
-
-	shutDownChan := make(chan bool)
+	go app.CreateSuperUser(params.superuseremail, params.superuserpwd) //goroutine
 
 	// --------------------- SINGAL HANDLER -------------------
 
-	cleanUpFunc := func() {
-		log.Println("Shutting down Server")
-
-		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-		defer func() {
-
-			cancel()
-			shutDownChan <- true
-		}()
-
-		err := server.Shutdown(ctx)
-
-		if err != nil {
-			log.Printf("Server Shutdown Failed:%+v\n", err)
-		}
-
-		log.Println("Server Shutdown Completed")
-	}
-
-	go initSignals(cleanUpFunc)
+	go initSignals(app.CleanupAndShutDown) //goroutine
 
 	// ---------------------LOAD SERVER -------------------
 
 	// profiling server
 	debugMe(*params)
 
+	log.Printf("QHttp is live at  %s \n", hostUrl)
+
 	// go openbrowser(url)
-	if params.https {
+	//if params.https {
 
-		// Construct a tls.config
-		//tlsConfig := app.getCertificateToUse()
-		server.TLSConfig = app.getCertificateToUse()
-		err = server.ListenAndServeTLS("", "")
+	// Construct a tls.config
+	//tlsConfig := app.getCertificateToUse()
+	app.mainAppServer.TLSConfig = app.getCertificateToUse()
+	err = app.mainAppServer.ListenAndServeTLS("", "")
 
-	} else {
-		err = server.ListenAndServe()
+	// } else {
+	// 	err = server.ListenAndServe()
 
-	}
+	// }
 	if err != nil {
-		//log.Fatal(err)
+		log.Println(err)
 	}
 
-	<-shutDownChan
+	<-app.shutDownChan
 	// mux := http.NewServeMux()
 	// mux.Handle("/", http.HandlerFunc(home))
 
@@ -194,6 +183,10 @@ func main() {
 //
 // -----------------------------------------------------------------
 func (app *application) clearLogsSchedular(db *bolt.DB) {
+
+	defer concurrent.Recoverer("clearLogsSchedular")
+	defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
+
 	s := gocron.NewScheduler(time.Local)
 
 	s.Every(1).Day().At("21:30").Do(func() {
@@ -203,7 +196,7 @@ func (app *application) clearLogsSchedular(db *bolt.DB) {
 
 	//s.Jobs()
 
-	if app.testMode {
+	if app.debugMode {
 		t := gocron.NewScheduler(time.Local)
 
 		t.Every(1).Day().At("21:30").Do(func() {
@@ -218,11 +211,9 @@ func (app *application) clearLogsSchedular(db *bolt.DB) {
 //
 // -----------------------------------------------------------------
 func (app *application) refreshSchedule() {
-	defer func() {
-		if r := recover(); r != nil {
-			log.Println("Recovered in refreshSchedule", r)
-		}
-	}()
+
+	defer concurrent.Recoverer("Recovered in refreshSchedule")
+	defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
 
 	//return
 
@@ -232,17 +223,36 @@ func (app *application) refreshSchedule() {
 	if interval1 != "" {
 		//s.Every("5m").Do(func(){ ... })
 		//s.Every(interval1).Do(app.RefreshStoredProces)
-		s.Every(interval1).Do(app.ProcessPromotions)
+
+		if app.features.Promotion {
+			s.Every(interval1).Do(app.ProcessPromotions)
+		}
 	}
 
 	interval2 := env.GetEnvVariable("REFRESH_AT", "")
 	if interval2 != "" {
 		//s.Every(1).Day().At("10:30;08:00").Do(func(){ ... })
 		//s.Every(1).Day().At(interval2).Do(app.RefreshStoredProces)
-		s.Every(1).Day().At(interval2).Do(app.ProcessPromotions)
-
+		if app.features.Promotion {
+			s.Every(1).Day().At(interval2).Do(app.ProcessPromotions)
+		}
 	}
 
+	s.StartAsync()
+
+}
+
+// -----------------------------------------------------------------
+//
+// -----------------------------------------------------------------
+func (app *application) pingServerSchedule() {
+
+	defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
+
+	//return
+
+	s := gocron.NewScheduler(time.Local)
+	s.Every("20s").Do(app.PingServers)
 	s.StartAsync()
 
 }

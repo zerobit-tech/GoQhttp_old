@@ -3,20 +3,24 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log"
+	"os"
+	"runtime"
+	"strconv"
 
 	"github.com/onlysumitg/GoQhttp/env"
 )
 
 type parameters struct {
-	host            string
-	port            int
-	superuseremail  string
-	superuserpwd    string
-	https           bool
-	testmode        bool
-	domain          string
-	redirectToHttps bool
-	useletsencrypt  bool
+	host           string
+	port           int
+	superuseremail string
+	superuserpwd   string
+
+	domain string
+	//redirectToHttps bool
+	useletsencrypt bool
+	validateSetup  bool
 
 	//staticDir string
 	//flag      bool
@@ -29,10 +33,7 @@ func (p *parameters) getHttpAddress() (string, string) {
 		addr = fmt.Sprintf("%s:%d", addr, p.port)
 	}
 
-	protocol := "http://"
-	if p.https || p.redirectToHttps {
-		protocol = "https://"
-	}
+	protocol := "https://"
 
 	if p.domain == "localhost" || p.domain == "0.0.0.0" {
 		p.domain = fmt.Sprintf("%s:%d", p.domain, p.port)
@@ -67,13 +68,25 @@ func (params *parameters) Load() {
 	flag.StringVar(&params.superuseremail, "superuseremail", "admin2@example.com", "Super User email")
 	flag.StringVar(&params.superuserpwd, "superuserpwd", "adminpass", "Super User password")
 
-	flag.BoolVar(&params.https, "https", true, "Use http or https")
 	flag.BoolVar(&params.useletsencrypt, "useletsencrypt", false, "Use let's encrypt ssl certificate")
+	flag.BoolVar(&params.validateSetup, "validate", false, "Validate os setup")
 
-	flag.BoolVar(&params.testmode, "testmode", false, "Enable test mode")
-	flag.StringVar(&params.domain, "domain", "0.0.0.0", "Domain name")
+	domain := "0.0.0.0"
+	if runtime.GOOS == "windows" {
+		domain = "localhost"
+	}
 
-	flag.BoolVar(&params.redirectToHttps, "redirecttohttps", false, "Redirect to https")
+	flag.StringVar(&params.domain, "domain", domain, "Domain name")
+
+	//flag.BoolVar(&params.redirectToHttps, "redirecttohttps", false, "Redirect to https")
 
 	flag.Parse()
+
+	envPort := os.Getenv("PORT")
+	port, err := strconv.Atoi(envPort)
+	if err == nil {
+
+		params.port = port
+		log.Println("Using port>>> ", port, params.port)
+	}
 }

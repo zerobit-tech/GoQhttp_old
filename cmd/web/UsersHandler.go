@@ -14,6 +14,8 @@ import (
 // ------------------------------------------------------
 func (app *application) UsersHandlers(router *chi.Mux) {
 	router.Route("/users", func(r chi.Router) {
+		r.Use(app.sessionManager.LoadAndSave)
+
 		r.Use(app.RequireSuperAdmin)
 		r.Use(CheckLicMiddleware)
 
@@ -82,6 +84,9 @@ func (app *application) userAdd(w http.ResponseWriter, r *http.Request) {
 			user.CheckField(validator.NotBlank(user.Password), "password", "This field cannot be blank")
 			user.CheckField(validator.MinChars(user.Password, 8), "password", "This field must be at least 8 characters long")
 		}
+
+		user.CheckField(!app.users.IsDuplicate(user), "email", "Email already in use.")
+
 		if user.Valid() {
 			if user.ID == "" {
 				user.MaxAllowedEndpoints = app.maxAllowedEndPointsPerUser
@@ -158,7 +163,7 @@ func (app *application) UserDeleteConfirm(w http.ResponseWriter, r *http.Request
 	err := r.ParseForm()
 	if err != nil {
 		app.sessionManager.Put(r.Context(), "error", fmt.Sprintf("001 Error processing form %s", err.Error()))
-		app.goBack(w, r, http.StatusBadRequest)
+		app.goBack(w, r, http.StatusSeeOther)
 		return
 	}
 
@@ -168,7 +173,7 @@ func (app *application) UserDeleteConfirm(w http.ResponseWriter, r *http.Request
 	if err != nil {
 
 		app.sessionManager.Put(r.Context(), "error", fmt.Sprintf("Error deleting User: %s", err.Error()))
-		app.goBack(w, r, http.StatusBadRequest)
+		app.goBack(w, r, http.StatusSeeOther)
 		return
 	}
 	app.sessionManager.Put(r.Context(), "flash", "Deleted sucessfully")

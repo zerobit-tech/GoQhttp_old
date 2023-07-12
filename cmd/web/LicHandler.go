@@ -14,6 +14,8 @@ func (app *application) LicHandlers(router *chi.Mux) {
 
 	router.Route("/license", func(r chi.Router) {
 		// CSRF
+		r.Use(app.sessionManager.LoadAndSave)
+
 		r.Use(app.RequireAuthentication)
 		r.Use(CheckLicMiddlewareNoRedirect)
 		r.Use(noSurf)

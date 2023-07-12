@@ -20,11 +20,21 @@ type MyLicence struct {
 	End    time.Time `json:"end"`
 }
 
+type LicData struct {
+	End         time.Time
+	ExpiryHours float64
+	ExpiryDays  int64
+	Client      string
+	ClientEmail string
+}
+
 type LicenseFile struct {
-	Name       string
-	Status     string
-	ValidTill  time.Time
-	ExpiryDays int64
+	Name            string
+	Status          string
+	ValidTill       time.Time
+	AssignedTo      string
+	AssignedToEmail string
+	ExpiryDays      int64
 }
 
 // keep the length same
@@ -61,10 +71,12 @@ func GetLicFileWithStatus() []*LicenseFile {
 		if err == nil {
 			licFile.Status = "VERIFIED"
 
-			validTill, _, expiryDays, err := GetLicFileExpiryDuration(finalFileName)
+			licData, err := GetLicFileExpiryDuration(finalFileName)
 			if err == nil {
-				licFile.ValidTill = validTill
-				licFile.ExpiryDays = expiryDays
+				licFile.ValidTill = licData.End
+				licFile.ExpiryDays = licData.ExpiryDays
+				licFile.AssignedTo = licData.Client
+				licFile.AssignedToEmail = licData.ClientEmail
 			}
 			licFiles = append(licFiles, licFile)
 			continue
@@ -248,23 +260,32 @@ func CheckLicExpiry(licKeyString string) (expired bool, message string) {
 // ------------------------------------------------------
 //
 // ------------------------------------------------------
-func GetLicFileExpiryDuration(licKeyFile string) (time.Time, float64, int64, error) {
+func GetLicFileExpiryDuration(licKeyFile string) (*LicData, error) {
+
+	licData := &LicData{
+		End:         time.Now().UTC(),
+		ExpiryHours: 0,
+		ExpiryDays:  0,
+		Client:      "",
+		ClientEmail: "",
+	}
+
 	b, err := os.ReadFile(licKeyFile) // just pass the file name
 	if err != nil {
-		return time.Now().UTC(), 0, 0, err
+		return licData, err
 	}
 
 	// fullLicString := string(b) // convert content to a 'string'
 
 	fullLicString, err := stringutils.Decrypt(string(b), MySecret) // convert content to a 'string'
 	if err != nil {
-		return time.Now().UTC(), 0, 0, err
+		return licData, err
 	}
 
 	licKeyBroken := strings.Split(fullLicString, "\n")
 
 	if len(licKeyBroken) != 2 {
-		return time.Now().UTC(), 0, 0, errors.New("Invalid key stored. Can not break it")
+		return licData, errors.New("Invalid key stored. Can not break it")
 	}
 
 	//pubKeyString := licKeyBroken[0]
@@ -277,22 +298,35 @@ func GetLicFileExpiryDuration(licKeyFile string) (time.Time, float64, int64, err
 // ------------------------------------------------------
 //
 // ------------------------------------------------------
-func GetLicExpiryDuration(licKeyString string) (time.Time, float64, int64, error) {
+func GetLicExpiryDuration(licKeyString string) (*LicData, error) {
+
+	licData := &LicData{
+		End:         time.Now().UTC(),
+		ExpiryHours: 0,
+		ExpiryDays:  0,
+		Client:      "",
+		ClientEmail: "",
+	}
 	license, err := lk.LicenseFromB64String(licKeyString)
 	if err != nil {
-		return time.Now().UTC(), 0, 0, err
+		return licData, err
 
 	}
 
 	// unmarshal the document and check the end date:
 	res := MyLicence{}
 	if err := json.Unmarshal(license.Data, &res); err != nil {
-		return time.Now().UTC(), 0, 0, err
+		return licData, err
 	}
 
-	expiryHours := res.End.Sub(time.Now().UTC()).Hours()
+	licData.ExpiryHours = res.End.Sub(time.Now().UTC()).Hours()
 
-	expiryDays := int64(expiryHours / 24)
-	return res.End, expiryHours, expiryDays, nil
+	licData.ExpiryDays = int64(licData.ExpiryHours / 24)
+
+	licData.End = res.End
+	licData.Client = res.Client
+	licData.ClientEmail = res.Email
+
+	return licData, nil
 
 }

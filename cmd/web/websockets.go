@@ -4,10 +4,12 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"runtime/debug"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/gorilla/websocket"
 	"github.com/onlysumitg/GoQhttp/internal/iwebsocket"
+	"github.com/onlysumitg/GoQhttp/utils/concurrent"
 )
 
 // ------------------------------------------------------
@@ -15,6 +17,11 @@ import (
 // ------------------------------------------------------
 func (app *application) WsHandlers(router *chi.Mux) {
 	router.Route("/ws", func(r chi.Router) {
+		r.Use(app.sessionManager.LoadAndSave)
+
+		r.Use(app.RequireAuthentication)
+		r.Use(CheckLicMiddleware)
+
 		r.Get("/notification", app.WsNotification)
 
 	})
@@ -56,10 +63,10 @@ func (app *application) WsNotification(w http.ResponseWriter, r *http.Request) {
 	conn := iwebsocket.WebSocketConnection{Conn: ws}
 
 	// after 1st call this GoRoutine will process all websocket requests.
-	go ListenForWs(&conn)
+	go ListenForWs(&conn) //goroutine
 
 	// ping clien
-	go ping(&conn)
+	go app.ping(&conn) //goroutine
 }
 
 // ------------------------------------------------------
@@ -67,12 +74,18 @@ func (app *application) WsNotification(w http.ResponseWriter, r *http.Request) {
 //	get data from web socket and sent to WS channel
 //
 // ------------------------------------------------------@
-func ping(conn *iwebsocket.WebSocketConnection) {
+func (app *application) ping(conn *iwebsocket.WebSocketConnection) {
+	defer concurrent.Recoverer("ping")
+	defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
 
 	// ping client --> in reponse client will send pong --> check ListenToWsChannel()
-	var response iwebsocket.WsServerPayload
+	response := &iwebsocket.WsServerPayload{}
 	response.Action = "ping"
-	iwebsocket.BroadcastToOne(*conn, response)
+	//iwebsocket.BroadcastToOne(*conn, response)
+
+	response.Conn = conn
+	//iwebsocket.BroadcastToOne(e.Conn, response)
+	app.ToWSChan <- response
 }
 
 // ------------------------------------------------------
@@ -83,12 +96,8 @@ func ping(conn *iwebsocket.WebSocketConnection) {
 // feeds data into the wsChan
 func ListenForWs(conn *iwebsocket.WebSocketConnection) {
 
-	// to recover from panics
-	defer func() {
-		if r := recover(); r != nil {
-			log.Println("ListenForWs Error", fmt.Sprintf("%v", r))
-		}
-	}()
+	defer concurrent.Recoverer("ListenForWs Error")
+	defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
 
 	var payload iwebsocket.WsClientPayload
 
@@ -113,19 +122,22 @@ func ListenForWs(conn *iwebsocket.WebSocketConnection) {
 // ------------------------------------------------------@
 // ListenToWsChannel is a goroutine that waits for an entry on the wsChan, and handles it according to the
 // specified action
-func ListenToWsChannel() {
-	var response iwebsocket.WsServerPayload
+func (app *application) ListenToWsChannel() {
 
 	for {
-		e := <-wsChan
+		e, ok := <-wsChan
 
-		fmt.Println(">>>>>>>>>>>>>>>> WS >>>>>>>>>>>>>.", e.Action)
+		if !ok {
+			continue
+		}
+
+		//fmt.Println(">>>>>>>>>>>>>>>> WS >>>>>>>>>>>>>.", e.Action)
 
 		switch e.Action {
 		case "pong":
 			// // get a list of all users and send it back via broadcast
 			log.Println("Ws is ready")
-			iwebsocket.Clients.Store(e.Conn, e.Username)
+			app.WSClients.Store(e.Conn, e.Username)
 			// users := getUserList()
 			// response.Action = "notification"
 			// response.Message = "Websocket connection is sucessful."
@@ -136,21 +148,90 @@ func ListenToWsChannel() {
 		case "left":
 			// // handle the situation where a user leaves the page
 			// response.Action = "list_users"
-			iwebsocket.Clients.Delete(e.Conn)
+			app.WSClients.Delete(e.Conn)
 			// users := getUserList()
 			// response.ConnectedUsers = users
 			//iwebsocket.BroadcastToAll(response)
 
 		case "getgraphdata":
+			response := &iwebsocket.WsServerPayload{}
+
 			response.Action = "graphdata"
 			response.Message = ""
-			response.Data = GetGraphDataPlotyl()
-			iwebsocket.BroadcastToOne(e.Conn, response)
+			response.Data = app.GetGraphDataPlotyl()
+			response.Conn = &e.Conn
+			//iwebsocket.BroadcastToOne(e.Conn, response)
+			app.ToWSChan <- response
+
+		case "getgraphstats":
+			response := &iwebsocket.WsServerPayload{}
+
+			response.Action = "graphstats"
+			response.Message = ""
+			response.Data = app.GraphStats
+			response.Conn = &e.Conn
+			//iwebsocket.BroadcastToOne(e.Conn, response)
+			app.ToWSChan <- response
 
 		case "broadcast":
+			response := &iwebsocket.WsServerPayload{}
+
 			response.Action = "broadcast"
 			response.Message = fmt.Sprintf("<strong>%s</strong>: %s", e.Username, e.Message)
-			iwebsocket.BroadcastToAll(response)
+			//iwebsocket.BroadcastToAll(response)
+			app.ToWSChan <- response
+		}
+	}
+}
+
+// ------------------------------------------------------@
+// SendToWsChannel is a goroutine that waits for an entry on the wsChan, and handles it according to the
+// specified action
+// ------------------------------------------------------@
+
+func (app *application) SendToWsChannel() {
+	defer concurrent.Recoverer("SendToWsChannel")
+
+	for {
+		//time.Sleep(500 * time.Millisecond)
+
+		dataToSend, ok := <-app.ToWSChan
+		if !ok {
+			continue
+		}
+
+		connectionToDelete := make([]*iwebsocket.WebSocketConnection, 0)
+
+		if dataToSend.Conn != nil {
+
+			err := dataToSend.Conn.WriteJSON(dataToSend)
+			if err != nil {
+				// the user probably left the page, or their connection dropped
+				log.Println("websocket err.....................", err)
+				_ = dataToSend.Conn.Close()
+				connectionToDelete = append(connectionToDelete, dataToSend.Conn)
+			}
+
+		} else {
+			app.WSClients.Range(func(k, v interface{}) bool {
+				conn, ok := k.(iwebsocket.WebSocketConnection)
+				if ok {
+					err := conn.WriteJSON(dataToSend)
+					if err != nil {
+						// the user probably left the page, or their connection dropped
+						log.Println("websocket err.....................", err)
+						_ = conn.Close()
+						connectionToDelete = append(connectionToDelete, &conn)
+					}
+				}
+				return true
+			})
+
+		}
+
+		for _, c := range connectionToDelete {
+			app.WSClients.Delete(c)
+
 		}
 	}
 }

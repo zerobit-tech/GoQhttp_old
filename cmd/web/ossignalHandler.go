@@ -5,12 +5,19 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"runtime/debug"
 	"syscall"
 	"time"
+
+	"github.com/onlysumitg/GoQhttp/utils/concurrent"
 )
 
 // initialize signal handler
 func initSignals(cleanUpFunc func()) {
+
+	defer concurrent.Recoverer("initSignals")
+	defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
+
 	var captureSignal = make(chan os.Signal, 1)
 	signal.Notify(captureSignal, syscall.SIGINT, syscall.SIGTERM, syscall.SIGABRT)
 	signalHandler(<-captureSignal, cleanUpFunc)
