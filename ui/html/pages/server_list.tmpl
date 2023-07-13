@@ -10,7 +10,7 @@ Servers
     <div class="card ">
       <div class="card-header">
         <p class="h5">Servers 
-          <a class="btn btn-ghost-info float-right" href="/servers/add">+Add</a>
+          <a id="addserverbtn" class="btn btn-ghost-info float-right" href="/servers/add">+Add</a>
 
         </p>
        
@@ -115,6 +115,24 @@ Servers
               }
           }
       );
+
+
+      {{if not .Servers}}
+
+
+introJs().setOptions({
+steps: [ 
+
+{
+  title: 'Need a new server!',
+element: document.querySelector('#addserverbtn'),
+intro: 'Click here to add.'
+},
+
+
+]
+}).start();
+{{end}}
   } );
 </script>
 {{end}}
