@@ -7,12 +7,14 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 	"sync"
 	"time"
 
 	"github.com/alexedwards/scs/v2"
 	"github.com/go-playground/form"
 	"github.com/onlysumitg/GoQhttp/env"
+	"github.com/onlysumitg/GoQhttp/featureflags"
 
 	"github.com/onlysumitg/GoQhttp/internal/dbserver"
 	"github.com/onlysumitg/GoQhttp/internal/iwebsocket"
@@ -28,13 +30,6 @@ import (
 	_ "github.com/onlysumitg/GoQhttp/internal/mssqlServer"
 	//_ "github.com/onlysumitg/GoQhttp/internal/mysqlServer"
 )
-
-type features struct {
-	Promotion      bool // enable promotion logic
-	TokenSync      bool // enable token sync logic
-	Dashboard      bool // enable dashboard
-	ParameterAlias bool // enable parameter alias
-}
 
 type application struct {
 	tlsCertificate *tls.Certificate
@@ -99,7 +94,7 @@ type application struct {
 	shutDownContext context.Context
 	shutDownStart   context.CancelFunc
 
-	features *features
+	features *featureflags.Features
 }
 
 func baseAppConfig(params parameters, db *bolt.DB, userdb *bolt.DB, logdb *bolt.DB) *application {
@@ -123,7 +118,7 @@ func baseAppConfig(params parameters, db *bolt.DB, userdb *bolt.DB, logdb *bolt.
 	shutDownctx, startShutdown := context.WithCancel(context.Background())
 	//---------------------------------------  final app config ----------------------------
 	app := &application{
-		version:       "1.1.0",
+		version:       "1.2.0",
 		errorLog:      errorLog,
 		infoLog:       infoLog,
 		templateCache: templateCache,
@@ -174,11 +169,9 @@ func baseAppConfig(params parameters, db *bolt.DB, userdb *bolt.DB, logdb *bolt.
 
 	}
 
-	appFeatures := &features{
-		Dashboard:      true,
-		Promotion:      true,
-		TokenSync:      true,
-		ParameterAlias: true,
+	appFeatures, ok := featureflags.FeatureSetMap[strings.ToUpper(params.featureset)]
+	if !ok {
+		log.Fatalln("Feature Set is not defined!")
 	}
 
 	app.features = appFeatures

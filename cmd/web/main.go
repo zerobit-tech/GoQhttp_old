@@ -15,6 +15,8 @@ import (
 	bolt "go.etcd.io/bbolt"
 )
 
+var FeatureSet string = "ALL"
+
 func main() {
 
 	//validateSetup()
@@ -38,7 +40,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	myfile, e := os.Create("./env/.env")
+	myfile, e := os.OpenFile("./env/.env", os.O_RDWR|os.O_CREATE, 0666)
 	if e != nil {
 		log.Fatal(e)
 	}
@@ -71,6 +73,8 @@ func main() {
 	if params.validateSetup {
 		validateSetup()
 	}
+
+	params.featureset = FeatureSet
 
 	// --------------------------------------- Setup database ----------------------------
 	db, err := bolt.Open("db/internal.db", 0600, nil)

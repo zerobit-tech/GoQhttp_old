@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/justinas/nosurf"
+	"github.com/onlysumitg/GoQhttp/featureflags"
 	"github.com/onlysumitg/GoQhttp/internal/dbserver"
 	"github.com/onlysumitg/GoQhttp/internal/models"
 	"github.com/onlysumitg/GoQhttp/internal/storedProc"
@@ -78,7 +79,7 @@ type templateData struct {
 
 	GraphData map[int][]*GraphStruc
 
-	Features *features
+	Features *featureflags.Features
 }
 
 func ListComparisonOperators() []string {
@@ -114,7 +115,7 @@ func (app *application) newTemplateData(r *http.Request) *templateData {
 		TestMode:            app.debugMode,
 		Version:             app.version,
 		Features:            app.features,
-		ServerTypes:         dbserver.GetRegisterDrivers(),
+		ServerTypes:         dbserver.GetRegisterDrivers(app.features.AllowedServerTypes),
 	}
 	user, err := app.GetUser(r)
 	if err == nil {

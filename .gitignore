@@ -26,3 +26,5 @@ bin/
 .history/
 
 __debug_bin
+env/.env
+*.env

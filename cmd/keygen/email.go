@@ -104,7 +104,7 @@ func ReadEmails(waitC chan<- int) {
 				params := &parameters{
 					client:     email.From.Name,
 					email:      email.From.Address,
-					expiryDays: 30,
+					days: 35,
 				}
 
 				processLicRequest(params)

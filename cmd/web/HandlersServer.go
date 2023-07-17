@@ -82,6 +82,9 @@ func (app *application) ServerHandlers(router *chi.Mux) {
 		r.Get("/select/{serverid}", app.ServerSelect)
 		r.Get("/listprom/{serverid}", app.ListPromotion)
 
+		r.Get("/help/ptable", app.PromotionTableHelp)
+		r.Get("/help/utstable", app.UserTokenTableHelp)
+
 		superadmingroup := r.Group(nil)
 		superadmingroup.Use(app.RequireSuperAdmin)
 		superadmingroup.Get("/add", app.ServerAdd)
@@ -98,9 +101,6 @@ func (app *application) ServerHandlers(router *chi.Mux) {
 		superadmingroup.Get("/clearcache/{serverid}", app.ClearCache)
 
 		superadmingroup.Get("/syncusertoken/{serverid}", app.SyncUserTokens)
-
-		superadmingroup.Get("/help/ptable", app.PromotionTableHelp)
-		superadmingroup.Get("/help/utstable", app.UserTokenTableHelp)
 
 	})
 
@@ -360,7 +360,14 @@ func (app *application) ClearCache(w http.ResponseWriter, r *http.Request) {
 		app.goBack(w, r, http.StatusSeeOther)
 		return
 	}
-	server.ClearCache()
+	err = server.ClearCache()
+	if err != nil {
+
+		//log.Println("ServerDeleteConfirm  002 >>>>>>", err.Error())
+		app.sessionManager.Put(r.Context(), "error", fmt.Sprintf("Error: %s", err.Error()))
+		app.goBack(w, r, http.StatusSeeOther)
+		return
+	}
 	app.sessionManager.Put(r.Context(), "flash", "Cache cleared")
 
 	app.goBack(w, r, http.StatusSeeOther)
@@ -408,6 +415,15 @@ func (app *application) ListPromotion(w http.ResponseWriter, r *http.Request) {
 // add new server
 // ------------------------------------------------------
 func (app *application) ServerAdd(w http.ResponseWriter, r *http.Request) {
+
+	if app.features.MaxAllowedServers > 0 {
+		if len(app.servers.List()) >= app.features.MaxAllowedServers {
+			app.sessionManager.Put(r.Context(), "error", "Limit reached: Can not add more servers")
+			app.goBack(w, r, http.StatusSeeOther)
+			return
+		}
+	}
+
 	data := app.newTemplateData(r)
 
 	// set form initial values
@@ -434,6 +450,14 @@ func (app *application) ServerAddPost(w http.ResponseWriter, r *http.Request) {
 		app.sessionManager.Put(r.Context(), "error", fmt.Sprintf("001 Error processing form %s", err.Error()))
 		app.goBack(w, r, http.StatusSeeOther)
 		return
+	}
+
+	if app.features.MaxAllowedServers > 0 {
+		if len(app.servers.List()) >= app.features.MaxAllowedServers {
+			app.sessionManager.Put(r.Context(), "error", "Limit reached: Can not add more servers")
+			app.goBack(w, r, http.StatusSeeOther)
+			return
+		}
 	}
 
 	// Use the r.PostForm.Get() method to retrieve the title and content

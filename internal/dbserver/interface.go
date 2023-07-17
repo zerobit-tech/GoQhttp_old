@@ -2,6 +2,7 @@ package dbserver
 
 import (
 	"context"
+	"strings"
 	"sync"
 	"time"
 
@@ -79,12 +80,25 @@ func Register(name string, driver DbDriver) {
 // ------------------------------------------------------------
 //
 // ------------------------------------------------------------
-func GetRegisterDrivers() []string {
+func GetRegisterDrivers(allowerServers []string) []string {
 	returnList := make([]string, 0)
 	driversMu.Lock()
 	defer driversMu.Unlock()
-	for k, _ := range drivers {
-		returnList = append(returnList, k)
+mainloop:
+	for k := range drivers {
+
+		if len(allowerServers) > 0 {
+			for _, allowed := range allowerServers {
+				if strings.EqualFold(k, allowed) {
+					returnList = append(returnList, k)
+					continue mainloop
+				}
+			}
+		} else { // allow all
+			returnList = append(returnList, k)
+
+		}
+
 	}
 	return returnList
 }

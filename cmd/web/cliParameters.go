@@ -22,6 +22,8 @@ type parameters struct {
 	useletsencrypt bool
 	validateSetup  bool
 
+	featureset string
+
 	//staticDir string
 	//flag      bool
 }
@@ -70,6 +72,7 @@ func (params *parameters) Load() {
 
 	flag.BoolVar(&params.useletsencrypt, "useletsencrypt", false, "Use let's encrypt ssl certificate")
 	flag.BoolVar(&params.validateSetup, "validate", false, "Validate os setup")
+
 
 	domain := "0.0.0.0"
 	if runtime.GOOS == "windows" {

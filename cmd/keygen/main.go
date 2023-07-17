@@ -17,8 +17,6 @@ import (
 func main() {
 	waitChan := make(chan int)
 
-	go ReadEmails(waitChan)
-
 	err := os.MkdirAll("./lic", os.ModePerm)
 	if err != nil {
 		log.Fatal(err)
@@ -28,12 +26,22 @@ func main() {
 	params := &parameters{}
 	params.Load()
 
-	err = params.Validate()
-	if err != nil {
-		log.Println(err)
-	} else {
-		processLicRequest(params)
+	if params.checkemail {
+		go ReadEmails(waitChan)
 
+	} else {
+		time.Sleep(2 * time.Second)
+		go func() {
+			waitChan <- 2
+		}()
+
+		err = params.Validate()
+		if err != nil {
+			log.Println(err)
+		} else {
+			processLicRequest(params)
+
+		}
 	}
 
 	// file, err := lic.VerifyLicFiles()
@@ -54,7 +62,7 @@ func processLicRequest(params *parameters) error {
 	licData := &lic.MyLicence{
 		Client: params.client,
 		Email:  params.email,
-		End:    time.Now().UTC().Add(time.Hour * 24 * time.Duration(params.expiryDays)),
+		End:    time.Now().UTC().Add(time.Hour * 24 * time.Duration(params.days)),
 	}
 
 	licKeyFile := generateNewLic(licData)

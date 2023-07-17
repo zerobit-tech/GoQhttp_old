@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/onlysumitg/GoQhttp/env"
 	"github.com/onlysumitg/GoQhttp/internal/dbserver"
 	"github.com/onlysumitg/GoQhttp/internal/storedProc"
 	"github.com/onlysumitg/GoQhttp/internal/validator"
@@ -33,7 +34,7 @@ func (s *MSSqlServer) GetConnectionStringX() string {
 	pwd := s.GetPassword()
 
 	//connectionString := fmt.Sprintf("DSN=pub400; UID=%s;PWD=%s", s.UserName, s.Password)
-	connectionString := fmt.Sprintf("server=%s;user id=%s;password=%s;port=%d", s.IP, s.UserName, pwd, s.Port)
+	connectionString := fmt.Sprintf("server=%s;user id=%s;password=%s;port=%d", s.IP, s.GetUserName(), pwd, s.Port)
 	return connectionString
 }
 
@@ -45,6 +46,10 @@ func (s *MSSqlServer) GetPasswordX() string {
 	if err != nil {
 		log.Println("Unable to decrypt password")
 		return ""
+	}
+	if strings.ToUpper(pwd) == "*ENV" {
+		pwd = env.GetServerPassword(s.Name)
+
 	}
 	return pwd
 }

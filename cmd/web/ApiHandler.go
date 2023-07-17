@@ -128,7 +128,7 @@ func (app *application) InjectRequestInfo(r *http.Request, requesyBodyFlatMap ma
 
 func (app *application) InjectServerInfo(server *dbserver.Server, requesyBodyFlatMap map[string]xmlutils.ValueDatatype) {
 	requesyBodyFlatMap["QHTTP_SERVER"] = xmlutils.ValueDatatype{Value: server.Name, DataType: "STRING"}
-	requesyBodyFlatMap["QHTTP_SERVER_USER"] = xmlutils.ValueDatatype{Value: server.UserName, DataType: "STRING"}
+	requesyBodyFlatMap["QHTTP_SERVER_USER"] = xmlutils.ValueDatatype{Value: server.GetUserName(), DataType: "STRING"}
 
 }
 
@@ -312,7 +312,7 @@ func (app *application) ProcessAPICall(w http.ResponseWriter, r *http.Request, e
 
 	}
 
-	apiCall.Logger("INFO", fmt.Sprintf("Server assigned %s@%s", server.UserName, server.Name), false)
+	apiCall.Logger("INFO", fmt.Sprintf("Server assigned %s@%s", server.GetUserName(), server.Name), false)
 
 	app.InjectRequestInfo(r, requesyBodyFlatMap)
 	app.InjectServerInfo(server, requesyBodyFlatMap)

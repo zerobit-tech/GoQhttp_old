@@ -9,13 +9,18 @@ import (
 type parameters struct {
 	client     string
 	email      string
-	expiryDays int
+	days       int
+	checkemail bool
 
 	//staticDir string
 	//flag      bool
 }
 
 func (p *parameters) Validate() error {
+
+	if p.checkemail {
+		return nil
+	}
 	p.client = strings.TrimSpace(p.client)
 	p.email = strings.TrimSpace(p.email)
 
@@ -29,7 +34,7 @@ func (p *parameters) Validate() error {
 
 	}
 
-	if p.expiryDays <= 0 {
+	if p.days <= 0 {
 		return errors.New("Expiry days must be > zero")
 
 	}
@@ -40,7 +45,8 @@ func (p *parameters) Validate() error {
 func (params *parameters) Load() {
 	flag.StringVar(&params.client, "client", "", "Client Name")
 	flag.StringVar(&params.email, "email", "", "Client Email")
-	flag.IntVar(&params.expiryDays, "expiryDays", 365, "Expiry days")
+	flag.IntVar(&params.days, "daya", 365, "Expiry days")
+	flag.BoolVar(&params.checkemail, "checkemail", false, "Start checking emails.")
 
 	flag.Parse()
 }

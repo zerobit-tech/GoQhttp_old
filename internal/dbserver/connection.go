@@ -60,15 +60,17 @@ type DBServer interface {
 //
 // ---------------------------------------------------
 var connectionMap concurrent.MapInterface = concurrent.NewSuperEfficientSyncMap(0)
+var connectionInvalidCache concurrent.MapInterface = concurrent.NewSuperEfficientSyncMap(0)
 
 //var connectionMap2 sync.Map
 
 // ---------------------------------------------------
 //
 // ---------------------------------------------------
-func ClearCache(server DBServer) {
-	//delete(connectionMap, server.GetConnectionID())
-	concurrent.EraseSyncMap(connectionMap)
+func ClearCache(server DBServer) error {
+	connectionInvalidCache.Store(server.GetConnectionID(), true)
+	return nil
+
 }
 
 // ---------------------------------------------------
@@ -89,21 +91,27 @@ func CloseConnections() {
 // ---------------------------------------------------
 //
 // ---------------------------------------------------
-func GetConnectionFromCache(server DBServer) *sql.DB {
+func getConnectionFromCache(server DBServer) (_ *sql.DB, inuse bool) {
 	mapLock.Lock()
 
 	defer mapLock.Unlock()
-
 	defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
 	connectionID := server.GetConnectionID()
+
+	_, found := connectionInvalidCache.Load(connectionID)
+	if found {
+		connectionInvalidCache.Delete(connectionID)
+		return nil, false
+	}
+
 	dbX, found := connectionMap.Load(connectionID)
 	if !found || dbX == nil {
-		return nil
+		return nil, false
 	}
 
 	db, ok := dbX.(*sql.DB)
 	if !ok {
-		return nil
+		return nil, false
 	}
 
 	//fmt.Println(" >>>>>>>>>>>>>>>>>>>>> db.Stats().InUse ", db.Stats().InUse)
@@ -114,7 +122,7 @@ func GetConnectionFromCache(server DBServer) *sql.DB {
 	//fmt.Println(" >>>>>>>>>>>>>>>>>>>>> db.Stats().WaitDuration ", db.Stats().WaitDuration)
 
 	if db.Stats().InUse > 0 {
-		return db
+		return db, true
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), server.PingTimeoutDuration())
@@ -138,9 +146,9 @@ func GetConnectionFromCache(server DBServer) *sql.DB {
 		fmt.Println("Closing connections .....", err)
 		db.Close()
 		connectionMap.Delete(connectionID)
-		return nil
+		return nil, false
 	} else {
-		return db
+		return db, false
 	}
 
 }
@@ -150,7 +158,7 @@ func GetConnectionFromCache(server DBServer) *sql.DB {
 // ---------------------------------------------------
 func GetConnection(server DBServer) (*sql.DB, error) {
 
-	db := GetConnectionFromCache(server)
+	db, _ := getConnectionFromCache(server)
 	if db != nil {
 		return db, nil
 	}

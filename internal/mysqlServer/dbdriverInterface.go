@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/onlysumitg/GoQhttp/env"
 	"github.com/onlysumitg/GoQhttp/go_ibm_db"
 	"github.com/onlysumitg/GoQhttp/internal/dbserver"
 	"github.com/onlysumitg/GoQhttp/internal/storedProc"
@@ -115,7 +116,7 @@ func (s *MySqlServer) PrepareToSaveX(ctx context.Context, sp *storedProc.StoredP
 func (s *MySqlServer) GetConnectionStringX() string {
 
 	pwd := s.GetPassword()
-	connectionString := fmt.Sprintf("%s:%s@tcp(%s:%d)/?multiStatements=true&autocommit=true", s.UserName, pwd, s.IP, s.Port)
+	connectionString := fmt.Sprintf("%s:%s@tcp(%s:%d)/?multiStatements=true&autocommit=true", s.GetUserName(), pwd, s.IP, s.Port)
 	//connectionString := fmt.Sprintf("DSN=pub400; UID=%s;PWD=%s", s.UserName, s.Password)
 
 	return connectionString
@@ -129,6 +130,11 @@ func (s *MySqlServer) GetPasswordX() string {
 	if err != nil {
 		log.Println("Unable to decrypt password")
 		return ""
+	}
+
+	if strings.ToUpper(pwd) == "*ENV" {
+		pwd = env.GetServerPassword(s.Name)
+
 	}
 	return pwd
 }

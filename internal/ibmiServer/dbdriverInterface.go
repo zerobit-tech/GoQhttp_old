@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/onlysumitg/GoQhttp/env"
 	"github.com/onlysumitg/GoQhttp/go_ibm_db"
 	"github.com/onlysumitg/GoQhttp/internal/dbserver"
 	"github.com/onlysumitg/GoQhttp/internal/storedProc"
@@ -119,7 +120,7 @@ func (s *IBMiServer) GetConnectionStringX() string {
 		ssl = 1
 	}
 	pwd := s.GetPassword()
-	connectionString := fmt.Sprintf("DRIVER=%s;SYSTEM=%s; UID=%s;PWD=%s;DBQ=*USRLIBL;UNICODESQL=1;XDYNAMIC=1;EXTCOLINFO=0;PKG=A/DJANGO,2,0,0,1,512;PROTOCOL=TCPIP;NAM=1;CMT=0;SSL=%d;ALLOWUNSCHAR=1", driver, s.IP, s.UserName, pwd, ssl)
+	connectionString := fmt.Sprintf("DRIVER=%s;SYSTEM=%s; UID=%s;PWD=%s;DBQ=*USRLIBL;UNICODESQL=1;XDYNAMIC=1;EXTCOLINFO=0;PKG=A/DJANGO,2,0,0,1,512;PROTOCOL=TCPIP;NAM=1;CMT=0;SSL=%d;ALLOWUNSCHAR=1", driver, s.IP, s.GetUserName(), pwd, ssl)
 
 	//connectionString := fmt.Sprintf("DSN=pub400; UID=%s;PWD=%s", s.UserName, s.Password)
 
@@ -135,6 +136,11 @@ func (s *IBMiServer) GetPasswordX() string {
 		log.Println("Unable to decrypt password")
 		return ""
 	}
+	if strings.ToUpper(pwd) == "*ENV" {
+		pwd = env.GetServerPassword(s.Name)
+
+	}
+
 	return pwd
 }
 

@@ -1,6 +1,7 @@
 package env
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"strings"
@@ -8,10 +9,14 @@ import (
 	"github.com/joho/godotenv"
 )
 
+// ----------------------------------------------------------------
+//
+// ----------------------------------------------------------------
 func GetEnvVariable(key string, defaultVal string) string {
 
 	// load .env file
-	err := godotenv.Load("env/.env")
+	//// It's important to note that it WILL NOT OVERRIDE an env variable that already exists - consider the .env file to set dev vars or sensible defaults.
+	err := godotenv.Overload("env/.env")
 
 	if err != nil {
 		log.Println("Error loading .env file", err.Error())
@@ -26,6 +31,9 @@ func GetEnvVariable(key string, defaultVal string) string {
 	return val
 }
 
+// ----------------------------------------------------------------
+//
+// ----------------------------------------------------------------
 func IsInDebugMode() bool {
 	debugS := strings.TrimSpace(strings.ToUpper(GetEnvVariable("DEBUG", "FALSE")))
 
@@ -34,4 +42,24 @@ func IsInDebugMode() bool {
 	}
 
 	return false
+}
+
+// ----------------------------------------------------------------
+//
+// ----------------------------------------------------------------
+func GetServerPassword(serverName string) string {
+	serverName = strings.ToUpper(strings.TrimSpace(serverName))
+	envVarName := fmt.Sprintf("%s_PASSWORD", serverName)
+	pwd := GetEnvVariable(envVarName, "")
+	return pwd
+}
+
+// ----------------------------------------------------------------
+//
+// ----------------------------------------------------------------
+func GetServerUserName(serverName string) string {
+	serverName = strings.ToUpper(strings.TrimSpace(serverName))
+	envVarName := fmt.Sprintf("%s_USER", serverName)
+	u := GetEnvVariable(envVarName, "")
+	return u
 }

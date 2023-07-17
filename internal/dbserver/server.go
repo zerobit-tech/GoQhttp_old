@@ -4,9 +4,11 @@ import (
 	"database/sql"
 	"fmt"
 	"runtime/debug"
+	"strings"
 	"sync"
 	"time"
 
+	"github.com/onlysumitg/GoQhttp/env"
 	"github.com/onlysumitg/GoQhttp/internal/validator"
 	"github.com/onlysumitg/GoQhttp/utils/concurrent"
 )
@@ -79,6 +81,20 @@ func (s *Server) GetSQLToPing() string {
 // ------------------------------------------------------------
 func (s *Server) GetPassword() string {
 	return s.GetDbDriver().GetPasswordX()
+}
+
+// ------------------------------------------------------------
+//
+// ------------------------------------------------------------
+func (s *Server) GetUserName() string {
+	user := ""
+	if strings.ToUpper(s.UserName) == "*ENV" {
+		user = env.GetServerUserName(s.Name)
+
+	}
+
+	return user
+
 }
 
 // ------------------------------------------------------------
@@ -157,11 +173,11 @@ func (s *Server) GetConnectionID() string {
 // ------------------------------------------------------------
 //
 // ------------------------------------------------------------
-func (s *Server) ClearCache() {
+func (s *Server) ClearCache() error {
 	defer concurrent.Recoverer("ClearCache")
 	defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
 
-	// database.ClearCache(s) //TODO
+	return ClearCache(s)
 }
 
 // ------------------------------------------------------------
