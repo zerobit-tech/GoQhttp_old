@@ -53,6 +53,7 @@ func (app *application) getSelfSignedOrLetsEncryptCert(certManager *autocert.Man
 		} else {
 
 			// first check cert folder for goqhttp.crt and goqhttp.key
+			log.Println("Loading self signed certificate from cert directory...")
 			c, err := getSelfSignedCertificate()
 
 			if err == nil {
@@ -60,8 +61,10 @@ func (app *application) getSelfSignedOrLetsEncryptCert(certManager *autocert.Man
 
 				return c, nil
 			}
+			log.Println("Loading self signed certificate from cert directory failed.", err.Error())
 
 			// check embded certificat
+			log.Println("Loading emdedded self signed certificate ...")
 
 			c, err = getEmdededSelfSignedCertificate()
 
@@ -78,7 +81,6 @@ func (app *application) getSelfSignedOrLetsEncryptCert(certManager *autocert.Man
 //
 // -----------------------------------------------------------------
 func getEmdededSelfSignedCertificate() (*tls.Certificate, error) {
-	log.Println("Loading emdedded self signed certificate.")
 
 	goqhttp_crt, err := embdedTLS.SSLCertificats.ReadFile("cert/goqhttp.crt")
 	if err != nil {
@@ -100,7 +102,6 @@ func getEmdededSelfSignedCertificate() (*tls.Certificate, error) {
 //
 // -----------------------------------------------------------------
 func getSelfSignedCertificate() (*tls.Certificate, error) {
-	log.Println("Loading self signed certificate.")
 
 	goqhttp_crt, err := os.ReadFile("cert/qhttp.crt")
 	if err != nil {

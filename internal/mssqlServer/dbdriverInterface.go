@@ -31,7 +31,7 @@ func (s *MSSqlServer) LoadX(bs *dbserver.Server) {
 // ------------------------------------------------------------
 func (s *MSSqlServer) GetConnectionStringX() string {
 
-	pwd := s.GetPassword()
+	pwd := s.GetPasswordX()
 
 	//connectionString := fmt.Sprintf("DSN=pub400; UID=%s;PWD=%s", s.UserName, s.Password)
 	connectionString := fmt.Sprintf("server=%s;user id=%s;password=%s;port=%d", s.IP, s.GetUserName(), pwd, s.Port)

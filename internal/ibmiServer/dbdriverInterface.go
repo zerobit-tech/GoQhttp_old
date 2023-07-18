@@ -119,7 +119,7 @@ func (s *IBMiServer) GetConnectionStringX() string {
 	if s.Ssl {
 		ssl = 1
 	}
-	pwd := s.GetPassword()
+	pwd := s.GetPasswordX()
 	connectionString := fmt.Sprintf("DRIVER=%s;SYSTEM=%s; UID=%s;PWD=%s;DBQ=*USRLIBL;UNICODESQL=1;XDYNAMIC=1;EXTCOLINFO=0;PKG=A/DJANGO,2,0,0,1,512;PROTOCOL=TCPIP;NAM=1;CMT=0;SSL=%d;ALLOWUNSCHAR=1", driver, s.IP, s.GetUserName(), pwd, ssl)
 
 	//connectionString := fmt.Sprintf("DSN=pub400; UID=%s;PWD=%s", s.UserName, s.Password)
@@ -299,6 +299,9 @@ func (s *IBMiServer) ErrorToHttpStatusX(inerr error) (int, string, string, bool)
 				return http.StatusInternalServerError, "OD10065", odbcError.Error(), true // "[IBM][System i Access ODBC Driver]Communication link failure. comm rc=10065 - CWBCO1003 - Sockets error, function  returned 10065 "
 			case 8002:
 				return http.StatusInternalServerError, "OD8002", odbcError.Error(), true // SQLDriverConnect: {28000} [IBM][System i Access ODBC Driver]Communication link failure. comm rc=8002 - CWBSY0002 - Password for user SUMITG33 on system PUB400.COM is not correct, Password length = 10, Prompt Mode = Never, System IP Address = 185.113.5.134
+
+			default:
+				return http.StatusInternalServerError, fmt.Sprintf("OD%d", code), odbcError.Error(), true // SQLDriverConnect: {28000} [IBM][System i Access ODBC Driver]Communication link failure. comm rc=8002 - CWBSY0002 - Password for user SUMITG33 on system PUB400.COM is not correct, Password length = 10, Prompt Mode = Never, System IP Address = 185.113.5.134
 			}
 
 		}

@@ -101,7 +101,7 @@ func (app *application) ProcessPromotion(s *dbserver.Server) {
 	}
 
 	s.LastAutoPromoteDate = time.Now().Format(go_ibm_db.TimestampFormat)
-	s.Password = s.GetPassword() // make sure it dont update the password
+	//s.Password = s.GetPassword() // make sure it dont update the password
 	app.servers.Update(s, false)
 
 }
@@ -177,10 +177,11 @@ func (app *application) PingServers() {
 
 	for _, s := range app.servers.List() {
 		if !app.ShouldPingServer(s) {
+			log.Println("skilling server ping based on last use:", s.Name)
 			continue
 		}
 
-		s.PingQuery = "select * from qsys2.systables"
+		s.PingQuery = "values('1')"
 		log.Println("Pinging server:", s.Name)
 		s.GetConnection()
 		// if err == nil {

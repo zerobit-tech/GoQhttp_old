@@ -81,7 +81,7 @@ Add new Server
             <label for="serverpassword">Server Password</label>
 
             <input id="serverpassword" value='{{.Form.Password}}' type="password"
-                class="form-control  {{with .Form.FieldErrors.password}} is-invalid {{end}}" name="password" required></input>
+                class="form-control  {{with .Form.FieldErrors.password}} is-invalid {{end}}" name="password"></input>
             {{with .Form.FieldErrors.password}}
             <div class='invalid-feedback'>{{.}}</div>
             {{end}}
@@ -130,7 +130,7 @@ Add new Server
 
         <br>
 
-        {{if .Features.Promotion}}
+        {{if .Features.AllowPromotion}}
         <br>
 
 
@@ -173,7 +173,7 @@ Add new Server
         <br>
         {{end}}
 
-        {{if .Features.TokenSync}}
+        {{if .Features.AllowTokenSync}}
         <br>
 
         <div class="form-group">

@@ -222,7 +222,7 @@ Endpoint
                                         <th>#</th>
                                         <th>Mode</th>
                                         <th>Name</th>
-                                        {{if $.Features.ParameterAlias}} <th>Alias</th> {{end}}
+                                        {{if $.Features.AllowParameterAlias}} <th>Alias</th> {{end}}
 
                                         <th>Data Type</th>
                                         <th>Precision</th>
@@ -239,7 +239,7 @@ Endpoint
                                         <td>{{.Position}}</td>
                                         <td>{{.Mode}}</td>
                                         <td>{{.Name}}</td>
-                                        {{if $.Features.ParameterAlias}} <td>{{.Alias}}</td>{{end}}
+                                        {{if $.Features.AllowParameterAlias}} <td>{{.Alias}}</td>{{end}}
                                         <td>{{.Datatype}}</td>
                                         <td>{{.Precision}}</td>
                                         <td>{{.Scale}}</td>
@@ -302,7 +302,7 @@ Endpoint
   
 </div>
 
-{{if .Features.Promotion}}
+{{if .Features.AllowPromotion}}
 {{ if .StoredProc.Promotionsql }}
 
 <div class="row p-2">

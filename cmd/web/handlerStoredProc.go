@@ -174,7 +174,7 @@ func (app *application) SpLogs(w http.ResponseWriter, r *http.Request) {
 // ------------------------------------------------------
 func (app *application) SpParamAlias(w http.ResponseWriter, r *http.Request) {
 
-	if !app.features.ParameterAlias {
+	if !app.features.AllowParameterAlias {
 		//app.sessionManager.Put(r.Context(), "error", fmt.Sprintf("Error: %s", err.Error()))
 		app.goBack(w, r, http.StatusNotFound)
 		return
@@ -393,7 +393,7 @@ func (app *application) SPCall(w http.ResponseWriter, r *http.Request) {
 //
 // ------------------------------------------------------
 func (app *application) SPsaveparamalias(w http.ResponseWriter, r *http.Request) {
-	if !app.features.ParameterAlias {
+	if !app.features.AllowParameterAlias {
 		//app.sessionManager.Put(r.Context(), "error", fmt.Sprintf("Error: %s", err.Error()))
 		app.goBack(w, r, http.StatusNotFound)
 		return

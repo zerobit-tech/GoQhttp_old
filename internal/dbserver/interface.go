@@ -18,7 +18,7 @@ type DbDriver interface {
 
 	GetConnectionStringX() string
 	//GetSQLToPing() string
-	GetPasswordX() string
+	//GetPasswordX() string
 	GetConnectionTypeX() string
 	PingTimeoutDurationX() time.Duration
 	GetSecretKeyX() string

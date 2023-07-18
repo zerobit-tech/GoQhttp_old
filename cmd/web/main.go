@@ -123,7 +123,7 @@ func main() {
 
 	go app.clearLogsSchedular(db) //goroutine
 
-	go app.refreshSchedule() //goroutine
+	go app.promotionsSchedule() //goroutine
 
 	go app.pingServerSchedule() //goroutine
 	//--------------------------------------- Create super user ----------------------------
@@ -209,7 +209,11 @@ func (app *application) clearLogsSchedular(db *bolt.DB) {
 // -----------------------------------------------------------------
 //
 // -----------------------------------------------------------------
-func (app *application) refreshSchedule() {
+func (app *application) promotionsSchedule() {
+
+	if !app.features.AllowPromotion {
+		return
+	}
 
 	defer concurrent.Recoverer("Recovered in refreshSchedule")
 	defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
@@ -218,21 +222,21 @@ func (app *application) refreshSchedule() {
 
 	s := gocron.NewScheduler(time.Local)
 
-	interval1 := env.GetEnvVariable("REFRESH_EVERY", "")
+	interval1 := env.GetEnvVariable("PROMOTE_EVERY", "")
 	if interval1 != "" {
 		//s.Every("5m").Do(func(){ ... })
 		//s.Every(interval1).Do(app.RefreshStoredProces)
 
-		if app.features.Promotion {
+		if app.features.AllowPromotion {
 			s.Every(interval1).Do(app.ProcessPromotions)
 		}
 	}
 
-	interval2 := env.GetEnvVariable("REFRESH_AT", "")
+	interval2 := env.GetEnvVariable("PROMOTE_AT", "")
 	if interval2 != "" {
 		//s.Every(1).Day().At("10:30;08:00").Do(func(){ ... })
 		//s.Every(1).Day().At(interval2).Do(app.RefreshStoredProces)
-		if app.features.Promotion {
+		if app.features.AllowPromotion {
 			s.Every(1).Day().At(interval2).Do(app.ProcessPromotions)
 		}
 	}
@@ -245,13 +249,20 @@ func (app *application) refreshSchedule() {
 //
 // -----------------------------------------------------------------
 func (app *application) pingServerSchedule() {
-
+	defer concurrent.Recoverer("PingServer")
 	defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
 
 	//return
+	pingServerEvery := env.GetEnvVariable("PING_SERVER_EVERY", "20s")
+	if pingServerEvery == "0" {
+		return
+	}
 
 	s := gocron.NewScheduler(time.Local)
-	s.Every("20s").Do(app.PingServers)
+
+	//s.WithDistributedLocker()
+	s.Every(pingServerEvery).Do(app.PingServers)
+	//s.SingletonMode()
 	s.StartAsync()
 
 }

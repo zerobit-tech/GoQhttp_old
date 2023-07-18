@@ -115,7 +115,7 @@ func (s *MySqlServer) PrepareToSaveX(ctx context.Context, sp *storedProc.StoredP
 // ------------------------------------------------------------
 func (s *MySqlServer) GetConnectionStringX() string {
 
-	pwd := s.GetPassword()
+	pwd := s.GetPasswordX()
 	connectionString := fmt.Sprintf("%s:%s@tcp(%s:%d)/?multiStatements=true&autocommit=true", s.GetUserName(), pwd, s.IP, s.Port)
 	//connectionString := fmt.Sprintf("DSN=pub400; UID=%s;PWD=%s", s.UserName, s.Password)
 

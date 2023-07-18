@@ -3,14 +3,12 @@ package models
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"strings"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/onlysumitg/GoQhttp/go_ibm_db"
 	"github.com/onlysumitg/GoQhttp/internal/dbserver"
-	"github.com/onlysumitg/GoQhttp/utils/stringutils"
 
 	bolt "go.etcd.io/bbolt"
 )
@@ -52,7 +50,6 @@ func (m *ServerModel) Update(u *dbserver.Server, clearCache bool) error {
 			return err
 		}
 		u.Name = strings.ToUpper(strings.TrimSpace(u.Name))
-		u.Password, _ = stringutils.Encrypt(u.Password, u.GetSecretKey())
 
 		if !u.OnHold {
 			u.OnHoldMessage = ""
@@ -129,7 +126,7 @@ func (m *ServerModel) Exists(id string) bool {
 func (m *ServerModel) DuplicateName(serverToCheck *dbserver.Server) bool {
 	exists := false
 	for _, server := range m.List() {
-		fmt.Println(">>>>duplucate name<<<", server.Name, "<>", serverToCheck.Name, "||", server.ID, "<>", serverToCheck.ID)
+		//fmt.Println(">>>>duplucate name<<<", server.Name, "<>", serverToCheck.Name, "||", server.ID, "<>", serverToCheck.ID)
 		if strings.EqualFold(server.Name, serverToCheck.Name) && !strings.EqualFold(server.ID, serverToCheck.ID) {
 			exists = true
 			break

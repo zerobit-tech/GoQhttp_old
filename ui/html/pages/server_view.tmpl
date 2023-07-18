@@ -13,10 +13,10 @@ Server detail
 
              {{if .CurrentUser.IsSuperUser}}
                          <a class="btn btn-ghost-info float-right" href="/servers/clearcache/{{.Server.ID}}">Clear Cache</a>
-                         {{if .Features.Promotion}}
+                         {{if .Features.AllowPromotion}}
                          <a class="btn btn-ghost-info float-right" href="/servers/listprom/{{.Server.ID}}">Promotions</a>
                          {{end}}
-                         {{if .Features.TokenSync}}
+                         {{if .Features.AllowTokenSync}}
                          <a class="btn btn-ghost-info float-right" href="/servers/syncusertoken/{{.Server.ID}}">Sync User tokens</a>
                          {{end}}
 

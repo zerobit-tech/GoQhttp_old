@@ -111,7 +111,7 @@ func (app *application) ServerHandlers(router *chi.Mux) {
 // ------------------------------------------------------
 func (app *application) PromotionTableHelp(w http.ResponseWriter, r *http.Request) {
 
-	if !app.features.Promotion {
+	if !app.features.AllowPromotion {
 		//app.sessionManager.Put(r.Context(), "error", fmt.Sprintf("Error: %s", err.Error()))
 		app.goBack(w, r, http.StatusNotFound)
 		return
@@ -128,7 +128,7 @@ func (app *application) PromotionTableHelp(w http.ResponseWriter, r *http.Reques
 // ------------------------------------------------------
 func (app *application) UserTokenTableHelp(w http.ResponseWriter, r *http.Request) {
 
-	if !app.features.TokenSync {
+	if !app.features.AllowTokenSync {
 		app.goBack(w, r, http.StatusNotFound)
 		return
 	}
@@ -322,7 +322,7 @@ func (app *application) ServerDeleteConfirm(w http.ResponseWriter, r *http.Reque
 // ------------------------------------------------------
 func (app *application) RunPromotion(w http.ResponseWriter, r *http.Request) {
 
-	if !app.features.Promotion {
+	if !app.features.AllowPromotion {
 		//app.sessionManager.Put(r.Context(), "error", fmt.Sprintf("Error: %s", err.Error()))
 		app.goBack(w, r, http.StatusNotFound)
 		return
@@ -378,7 +378,7 @@ func (app *application) ClearCache(w http.ResponseWriter, r *http.Request) {
 // run promotions
 // ------------------------------------------------------
 func (app *application) ListPromotion(w http.ResponseWriter, r *http.Request) {
-	if !app.features.Promotion {
+	if !app.features.AllowPromotion {
 		//app.sessionManager.Put(r.Context(), "error", fmt.Sprintf("Error: %s", err.Error()))
 		app.goBack(w, r, http.StatusNotFound)
 		return
@@ -501,13 +501,13 @@ func (app *application) ServerAddPost(w http.ResponseWriter, r *http.Request) {
 
 	if !server.Valid() {
 		data := app.newTemplateData(r)
-		data.Form = server
+		data.Form = &server
 		app.sessionManager.Put(r.Context(), "error", "Please fix error(s) and resubmit")
 
 		app.render(w, r, http.StatusUnprocessableEntity, "server_add.tmpl", data)
 		return
 	}
-
+	server.Password, _ = stringutils.Encrypt(server.Password, server.GetSecretKey())
 	id, err := app.servers.Insert(&server)
 	if err != nil {
 		app.serverError500(w, r, err)
@@ -546,7 +546,7 @@ func (app *application) ServerUpdate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	server.Password = server.GetPassword()
+	server.Password = ""
 	data := app.newTemplateData(r)
 
 	data.Form = server
@@ -587,7 +587,7 @@ func (app *application) ServerUpdatePost(w http.ResponseWriter, r *http.Request)
 	// If there is a problem, we return a 400 Bad Request response to the client.
 	err = app.formDecoder.Decode(&server, r.PostForm)
 
-	fmt.Println(">> decord form 1", server)
+	//fmt.Println(">> decord form 1", server)
 
 	if err != nil {
 		app.sessionManager.Put(r.Context(), "error", fmt.Sprintf("002 Error processing form %s", err.Error()))
@@ -595,6 +595,12 @@ func (app *application) ServerUpdatePost(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
+	originalServer, err := app.servers.Get(server.ID)
+	if err != nil {
+		app.sessionManager.Put(r.Context(), "error", fmt.Sprintf("003 Invalid serverT"))
+		app.goBack(w, r, http.StatusBadRequest)
+		return
+	}
 	server.Name = stringutils.RemoveSpecialChars(stringutils.RemoveMultipleSpaces(server.Name))
 
 	server.CheckField(!app.servers.DuplicateName(&server), "name", "Duplicate Name")
@@ -602,7 +608,7 @@ func (app *application) ServerUpdatePost(w http.ResponseWriter, r *http.Request)
 	server.CheckField(validator.NotBlank(server.Name), "name", "This field cannot be blank")
 	server.CheckField(validator.NotBlank(server.IP), "ip", "This field cannot be blank")
 	server.CheckField(validator.NotBlank(server.UserName), "user_name", "This field cannot be blank")
-	server.CheckField(validator.NotBlank(server.Password), "password", "This field cannot be blank")
+	//server.CheckField(validator.NotBlank(server.Password), "password", "This field cannot be blank")
 	//server.CheckField(validator.NotBlank(server.WorkLib), "worklib", "This field cannot be blank")
 
 	// Use the Valid() method to see if any of the checks failed. If they did,
@@ -616,6 +622,14 @@ func (app *application) ServerUpdatePost(w http.ResponseWriter, r *http.Request)
 
 		app.render(w, r, http.StatusUnprocessableEntity, "server_update.tmpl", data)
 		return
+	}
+
+	// if new server password is not set --> get it from original server
+	if server.Password == "" {
+		server.Password = originalServer.Password
+	} else {
+		server.Password, _ = stringutils.Encrypt(server.Password, server.GetSecretKey())
+
 	}
 
 	err = app.servers.Update(&server, true)
@@ -632,7 +646,7 @@ func (app *application) ServerUpdatePost(w http.ResponseWriter, r *http.Request)
 // run promotions
 // ------------------------------------------------------
 func (app *application) SyncUserTokens(w http.ResponseWriter, r *http.Request) {
-	if !app.features.TokenSync {
+	if !app.features.AllowTokenSync {
 		app.goBack(w, r, http.StatusNotFound)
 		return
 	}

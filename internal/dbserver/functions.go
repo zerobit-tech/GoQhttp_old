@@ -44,12 +44,16 @@ func (s *Server) GetDbDriver() DbDriver {
 	}
 	driversMu.RLock()
 	dbX, ok := drivers[t]
+	dbX2, _ := drivers[t]
 	driversMu.RUnlock()
 	if !ok {
 		log.Fatalf("sql: unknown driver %q (forgotten import?)", dbX)
 	}
 	s.dbDriver = dbX
 	dbX.LoadX(s)
+
+	fmt.Println("********************>", &s, ":", &dbX, ":", &dbX2)
+
 	return s.dbDriver
 }
 
