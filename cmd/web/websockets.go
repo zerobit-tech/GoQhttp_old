@@ -79,13 +79,14 @@ func (app *application) ping(conn *iwebsocket.WebSocketConnection) {
 	defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
 
 	// ping client --> in reponse client will send pong --> check ListenToWsChannel()
-	response := &iwebsocket.WsServerPayload{}
+	response := iwebsocket.WsServerPayload{}
 	response.Action = "ping"
 	//iwebsocket.BroadcastToOne(*conn, response)
 
 	response.Conn = conn
 	//iwebsocket.BroadcastToOne(e.Conn, response)
-	app.ToWSChan <- response
+	go app.SendToWSChan(response)
+
 }
 
 // ------------------------------------------------------
@@ -154,32 +155,33 @@ func (app *application) ListenToWsChannel() {
 			//iwebsocket.BroadcastToAll(response)
 
 		case "getgraphdata":
-			response := &iwebsocket.WsServerPayload{}
+			response := iwebsocket.WsServerPayload{}
 
 			response.Action = "graphdata"
 			response.Message = ""
 			response.Data = app.GetGraphDataPlotyl()
 			response.Conn = &e.Conn
 			//iwebsocket.BroadcastToOne(e.Conn, response)
-			app.ToWSChan <- response
+			go app.SendToWSChan(response)
 
 		case "getgraphstats":
-			response := &iwebsocket.WsServerPayload{}
+			response := iwebsocket.WsServerPayload{}
 
 			response.Action = "graphstats"
 			response.Message = ""
 			response.Data = app.GraphStats
 			response.Conn = &e.Conn
 			//iwebsocket.BroadcastToOne(e.Conn, response)
-			app.ToWSChan <- response
+			go app.SendToWSChan(response)
 
 		case "broadcast":
-			response := &iwebsocket.WsServerPayload{}
+			response := iwebsocket.WsServerPayload{}
 
 			response.Action = "broadcast"
 			response.Message = fmt.Sprintf("<strong>%s</strong>: %s", e.Username, e.Message)
 			//iwebsocket.BroadcastToAll(response)
-			app.ToWSChan <- response
+			go app.SendToWSChan(response)
+
 		}
 	}
 }
@@ -189,49 +191,72 @@ func (app *application) ListenToWsChannel() {
 // specified action
 // ------------------------------------------------------@
 
-func (app *application) SendToWsChannel() {
-	defer concurrent.Recoverer("SendToWsChannel")
+func (app *application) SendToWSChan(payload iwebsocket.WsServerPayload) {
 
+	defer concurrent.Recoverer("SendToWSChan")
+
+	select {
+	case <-app.Done:
+		return
+	case app.ToWSChan <- payload:
+		return
+
+	}
+
+}
+
+// ------------------------------------------------------@
+// SendToWsChannel is a goroutine that waits for an entry on the wsChan, and handles it according to the
+// specified action
+// ------------------------------------------------------@
+
+func (app *application) SendDataTOWebSocket() {
+	defer concurrent.Recoverer("SendDataTOWebSocket")
+mainloop:
 	for {
 		//time.Sleep(500 * time.Millisecond)
+		select {
+		case <-app.Done:
+			break mainloop
+		case dataToSend, ok := <-app.ToWSChan:
+			if ok {
 
-		dataToSend, ok := <-app.ToWSChan
-		if !ok {
-			continue
-		}
+				connectionToDelete := make([]*iwebsocket.WebSocketConnection, 0)
 
-		connectionToDelete := make([]*iwebsocket.WebSocketConnection, 0)
+				if dataToSend.Conn != nil {
 
-		if dataToSend.Conn != nil {
-
-			err := dataToSend.Conn.WriteJSON(dataToSend)
-			if err != nil {
-				// the user probably left the page, or their connection dropped
-				log.Println("websocket err.....................", err)
-				_ = dataToSend.Conn.Close()
-				connectionToDelete = append(connectionToDelete, dataToSend.Conn)
-			}
-
-		} else {
-			app.WSClients.Range(func(k, v interface{}) bool {
-				conn, ok := k.(iwebsocket.WebSocketConnection)
-				if ok {
-					err := conn.WriteJSON(dataToSend)
+					err := dataToSend.Conn.WriteJSON(dataToSend)
 					if err != nil {
 						// the user probably left the page, or their connection dropped
 						log.Println("websocket err.....................", err)
-						_ = conn.Close()
-						connectionToDelete = append(connectionToDelete, &conn)
+						_ = dataToSend.Conn.Close()
+						connectionToDelete = append(connectionToDelete, dataToSend.Conn)
 					}
+
+				} else {
+					app.WSClients.Range(func(k, v interface{}) bool {
+						conn, ok := k.(iwebsocket.WebSocketConnection)
+						if ok {
+							err := conn.WriteJSON(dataToSend)
+							if err != nil {
+								// the user probably left the page, or their connection dropped
+								log.Println("websocket err.....................", err)
+								_ = conn.Close()
+								connectionToDelete = append(connectionToDelete, &conn)
+							}
+						}
+						return true
+					})
+
 				}
-				return true
-			})
+
+				for _, c := range connectionToDelete {
+					app.WSClients.Delete(c)
+
+				}
+			}
 
 		}
 
-		for _, c := range connectionToDelete {
-			app.WSClients.Delete(c)
-
-		}
 	}
 }

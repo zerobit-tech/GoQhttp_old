@@ -10,10 +10,10 @@ import (
 	"runtime/debug"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/onlysumitg/GoQhttp/go_ibm_db"
-	"github.com/onlysumitg/GoQhttp/internal/dbserver"
 	"github.com/onlysumitg/GoQhttp/internal/storedProc"
 	"github.com/onlysumitg/GoQhttp/internal/validator"
 	"github.com/onlysumitg/GoQhttp/logger"
@@ -21,14 +21,50 @@ import (
 	"github.com/onlysumitg/GoQhttp/utils/stringutils"
 )
 
-type IBMiServer struct {
-	*dbserver.Server
+type Server struct {
+	Mux sync.Mutex `json:"-" db:"-" form:"-"`
+
+	ID string `json:"id" db:"id" form:"id"`
+
+	Name string `json:"server_name" db:"server_name" form:"name"`
+	IP   string `json:"ip" db:"ip" form:"ip"`
+	Port uint16 `json:"port" db:"port" form:"port"`
+	Ssl  bool   `json:"ssl" db:"ssl" form:"ssl"`
+
+	UserName string `json:"un" db:"un" form:"user_name"`
+	Password string `json:"pwd" db:"pwd" form:"password"`
+
+	//WorkLib           string    `json:"wlib" db:"wlib" form:"worklib"`
+	CreatedAt       time.Time `json:"c_at" db:"c_at" form:"-"`
+	UpdatedAt       time.Time `json:"u_at" db:"u_at" form:"-"`
+	ConnectionsOpen int       `json:"conn" db:"conn" form:"connections"`
+	ConnectionsIdle int       `json:"iconn" db:"iconn" form:"idleconnections"`
+
+	ConnectionMaxAge  int    `json:"cage" db:"cage" form:"cage"`
+	ConnectionIdleAge int    `json:"icage" db:"icage" form:"icage"`
+	PingTimeout       int    `json:"pingtout" db:"pingtout" form:"pingtout"`
+	PingQuery         string `json:"pingquery" db:"pingquery" form:"pingquery"`
+
+	OnHold        bool   `json:"oh" db:"oh" form:"onhold"`
+	OnHoldMessage string `json:"ohm" db:"ohm" form:"onholdmessage"`
+
+	ConfigFileLib string `json:"configfilelib" db:"configfilelib" form:"configfilelib"`
+	ConfigFile    string `json:"configfile" db:"configfile" form:"configfile"`
+
+	AutoPromotePrefix string `json:"autopromoteprefix" db:"autopromoteprefix" form:"autopromoteprefix"`
+
+	UserTokenFileLib string `json:"usertokenfilelib" db:"usertokenfilelib" form:"usertokenfilelib"`
+	UserTokenFile    string `json:"usertokenfile" db:"usertokenfile" form:"usertokenfile"`
+
+	LastAutoPromoteDate string `json:"lastautopromotecheck" db:"lastautopromotecheck" form:"lastautopromotecheck"`
+
+	validator.Validator `json:"-" db:"-" form:"-"`
 }
 
 // -----------------------------------------------------------------
 //
 // -----------------------------------------------------------------
-func (s *IBMiServer) hasSPUpdated(ctx context.Context, sp *storedProc.StoredProc) bool {
+func (s *Server) hasSPUpdated(ctx context.Context, sp *storedProc.StoredProc) bool {
 
 	hasModified := "N"
 
@@ -65,7 +101,7 @@ func (s *IBMiServer) hasSPUpdated(ctx context.Context, sp *storedProc.StoredProc
 // -----------------------------------------------------------------
 //
 // -----------------------------------------------------------------
-func (s *IBMiServer) buildCallStatement(sp *storedProc.StoredProc, useNamedParams bool) (err error) {
+func (s *Server) buildCallStatement(sp *storedProc.StoredProc, useNamedParams bool) (err error) {
 
 	paramString := ""
 
@@ -97,7 +133,7 @@ func (s *IBMiServer) buildCallStatement(sp *storedProc.StoredProc, useNamedParam
 // -----------------------------------------------------------------
 //
 // -----------------------------------------------------------------
-func (s *IBMiServer) prepareCallStatement(sp *storedProc.StoredProc, givenParams map[string]any) (*storedProc.PreparedCallStatements, error) {
+func (s *Server) prepareCallStatement(sp *storedProc.StoredProc, givenParams map[string]any) (*storedProc.PreparedCallStatements, error) {
 
 	spResponseFormat := make(map[string]any)
 	inoutParams := make([]any, 0)
@@ -185,7 +221,7 @@ func (s *IBMiServer) prepareCallStatement(sp *storedProc.StoredProc, givenParams
 // -----------------------------------------------------------------
 //
 // -----------------------------------------------------------------
-func (s *IBMiServer) call(ctx context.Context, callID string, sp *storedProc.StoredProc, givenParams map[string]any) (*storedProc.StoredProcResponse, time.Duration, error) {
+func (s *Server) call(ctx context.Context, callID string, sp *storedProc.StoredProc, givenParams map[string]any) (*storedProc.StoredProcResponse, time.Duration, error) {
 	//log.Printf("%v: %v\n", "SeversCall005.002", time.Now())
 	defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
 
@@ -326,7 +362,7 @@ func (s *IBMiServer) call(ctx context.Context, callID string, sp *storedProc.Sto
 // -----------------------------------------------------------------
 //
 // -----------------------------------------------------------------
-func (s *IBMiServer) SeversCall(ctx context.Context, sp *storedProc.StoredProc, preparedCallStatements *storedProc.PreparedCallStatements, dummyCall bool) (ferr error) {
+func (s *Server) SeversCall(ctx context.Context, sp *storedProc.StoredProc, preparedCallStatements *storedProc.PreparedCallStatements, dummyCall bool) (ferr error) {
 
 	defer func() {
 		if r := recover(); r != nil {
@@ -367,7 +403,7 @@ func (s *IBMiServer) SeversCall(ctx context.Context, sp *storedProc.StoredProc, 
 // -----------------------------------------------------------------
 //
 // -----------------------------------------------------------------
-func (s *IBMiServer) getResultSetCount(ctx context.Context, sp *storedProc.StoredProc) error {
+func (s *Server) getResultSetCount(ctx context.Context, sp *storedProc.StoredProc) error {
 
 	resultSets := 0
 
@@ -405,7 +441,7 @@ func (s *IBMiServer) getResultSetCount(ctx context.Context, sp *storedProc.Store
 // -----------------------------------------------------------------
 //
 // -----------------------------------------------------------------
-func (s *IBMiServer) getParameters(ctx context.Context, sp *storedProc.StoredProc) error {
+func (s *Server) getParameters(ctx context.Context, sp *storedProc.StoredProc) error {
 
 	originalParams := sp.Parameters
 

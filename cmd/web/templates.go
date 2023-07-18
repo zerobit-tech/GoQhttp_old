@@ -15,7 +15,7 @@ import (
 
 	"github.com/justinas/nosurf"
 	"github.com/onlysumitg/GoQhttp/featureflags"
-	"github.com/onlysumitg/GoQhttp/internal/dbserver"
+	"github.com/onlysumitg/GoQhttp/internal/ibmiServer"
 	"github.com/onlysumitg/GoQhttp/internal/models"
 	"github.com/onlysumitg/GoQhttp/internal/storedProc"
 	"github.com/onlysumitg/GoQhttp/lic"
@@ -41,8 +41,8 @@ type templateData struct {
 
 	CSRFToken string // Add a CSRFToken field.   <input type='hidden' name='csrf_token' value='{{.CSRFToken}}'>
 
-	Server      *dbserver.Server
-	Servers     []*dbserver.Server
+	Server      *ibmiServer.Server
+	Servers     []*ibmiServer.Server
 	ServerTypes []string
 
 	AllowServerDelete bool
@@ -115,7 +115,7 @@ func (app *application) newTemplateData(r *http.Request) *templateData {
 		TestMode:            app.debugMode,
 		Version:             app.version,
 		Features:            app.features,
-		ServerTypes:         dbserver.GetRegisterDrivers(app.features.AllowedServerTypes),
+		ServerTypes:         []string{"IBM I"},
 	}
 	user, err := app.GetUser(r)
 	if err == nil {

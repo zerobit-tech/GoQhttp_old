@@ -10,7 +10,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	"github.com/onlysumitg/GoQhttp/internal/dbserver"
+	"github.com/onlysumitg/GoQhttp/internal/ibmiServer"
 	"github.com/onlysumitg/GoQhttp/internal/models"
 	"github.com/onlysumitg/GoQhttp/internal/storedProc"
 	"github.com/onlysumitg/GoQhttp/logger"
@@ -126,7 +126,7 @@ func (app *application) InjectRequestInfo(r *http.Request, requesyBodyFlatMap ma
 //
 // ------------------------------------------------------
 
-func (app *application) InjectServerInfo(server *dbserver.Server, requesyBodyFlatMap map[string]xmlutils.ValueDatatype) {
+func (app *application) InjectServerInfo(server *ibmiServer.Server, requesyBodyFlatMap map[string]xmlutils.ValueDatatype) {
 	requesyBodyFlatMap["QHTTP_SERVER"] = xmlutils.ValueDatatype{Value: server.Name, DataType: "STRING"}
 	requesyBodyFlatMap["QHTTP_SERVER_USER"] = xmlutils.ValueDatatype{Value: server.GetUserName(), DataType: "STRING"}
 
@@ -385,10 +385,10 @@ func (app *application) getCurrentUser(r *http.Request) (*models.User, bool) {
 //
 // ------------------------------------------------------
 
-func (app *application) getServerToUse(endPoint *storedProc.StoredProc, user *models.User) (*dbserver.Server, int) {
+func (app *application) getServerToUse(endPoint *storedProc.StoredProc, user *models.User) (*ibmiServer.Server, int) {
 
-	var userServer *dbserver.Server = nil
-	var endPointServer *dbserver.Server = nil
+	var userServer *ibmiServer.Server = nil
+	var endPointServer *ibmiServer.Server = nil
 
 	endPointServer, err1 := app.servers.Get(endPoint.DefaultServer.ID)
 	if err1 != nil {

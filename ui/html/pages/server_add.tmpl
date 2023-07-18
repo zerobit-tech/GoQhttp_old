@@ -37,31 +37,7 @@ Add new Server
 
     <!--   type start    -->
 
-        <div class="form-group">
-            <label for="type">Server Type</label>
-        <SELECT id="type" class="form-control" name="type">
-            <OPTION value="">Server Type</OPTION>
-
-            {{if .ServerTypes}}
-            {{range .ServerTypes}}
-            <OPTION 
-
-            {{if $.Form.Type}}
-            {{if eq . $.Form.Type}} selected {{end}} 
-            {{end}}
-            value="{{.}}">
-                
-                {{.}}
-            </OPTION>
-            {{end}}
-            {{end}}
-        </SELECT>
-        {{with .Form.FieldErrors.type}}
- 
-        <div class='invalid-feedback-error'>{{.}}</div>
-        {{end}}
-    </div>
-
+    
 
 
     <!--   type end    -->
@@ -191,8 +167,8 @@ Add new Server
             type="text" class="form-control"  
                   name="configfilelib"></input>
 
-                <small id="configfilelibh" class="form-text text-muted">IBM I: Library or SQL Schema <br> 
-                    MS SQL Server: Catalog name or Catalog.Schema name. Default schema is dbo.</small>
+                <small id="configfilelibh" class="form-text text-muted">Library or SQL Schema <br> 
+                    .</small>
 
         </div>
 
@@ -222,8 +198,7 @@ Add new Server
                   name="usertokenfilelib"></input>
 
                 <small id="usertokenfilelibh" class="form-text text-muted">
-                    IBM I: Library or SQL Schema <br> 
-                    MS SQL Server: Catalog name or Catalog.Schema name. Default schema is dbo.
+                    Library or SQL Schema <br> 
                 </small>
 
         </div>

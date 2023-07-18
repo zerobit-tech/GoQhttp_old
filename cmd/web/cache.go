@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/onlysumitg/GoQhttp/internal/dbserver"
+	"github.com/onlysumitg/GoQhttp/internal/ibmiServer"
 	"github.com/onlysumitg/GoQhttp/internal/storedProc"
 	"github.com/onlysumitg/GoQhttp/utils/concurrent"
 )
@@ -45,7 +45,7 @@ func (app *application) AddServerLastCall(serverId string) {
 
 }
 
-func (app *application) ShouldPingServer(s *dbserver.Server) bool {
+func (app *application) ShouldPingServer(s *ibmiServer.Server) bool {
 
 	lastCall, found := serverLastCall.Load(s.ID)
 

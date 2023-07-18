@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/onlysumitg/GoQhttp/internal/dbserver"
+	"github.com/onlysumitg/GoQhttp/internal/ibmiServer"
 	"github.com/onlysumitg/GoQhttp/internal/models"
 	"github.com/onlysumitg/GoQhttp/internal/storedProc"
 	"github.com/onlysumitg/GoQhttp/internal/validator"
@@ -427,7 +427,7 @@ func (app *application) ServerAdd(w http.ResponseWriter, r *http.Request) {
 	data := app.newTemplateData(r)
 
 	// set form initial values
-	data.Form = dbserver.Server{
+	data.Form = ibmiServer.Server{
 		ConnectionsOpen:   20,
 		ConnectionsIdle:   20,
 		ConnectionMaxAge:  600,
@@ -470,7 +470,7 @@ func (app *application) ServerAddPost(w http.ResponseWriter, r *http.Request) {
 
 	// In contrast, the r.Form map is populated for all requests (irrespective of their HTTP method),
 
-	var server dbserver.Server
+	var server ibmiServer.Server
 	// Call the Decode() method of the form decoder, passing in the current
 	// request and *a pointer* to our snippetCreateForm struct. This will
 	// essentially fill our struct with the relevant values from the HTML form.
@@ -483,8 +483,6 @@ func (app *application) ServerAddPost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	server.CheckField(validator.NotBlank(server.Name), "name", "This field cannot be blank")
-
-	server.CheckField(validator.NotBlank(server.Type), "type", "This field cannot be blank")
 
 	server.CheckField(validator.NotBlank(server.IP), "ip", "This field cannot be blank")
 	server.CheckField(validator.NotBlank(server.UserName), "user_name", "This field cannot be blank")
@@ -580,7 +578,7 @@ func (app *application) ServerUpdatePost(w http.ResponseWriter, r *http.Request)
 
 	// In contrast, the r.Form map is populated for all requests (irrespective of their HTTP method),
 
-	var server dbserver.Server
+	var server ibmiServer.Server
 	// Call the Decode() method of the form decoder, passing in the current
 	// request and *a pointer* to our snippetCreateForm struct. This will
 	// essentially fill our struct with the relevant values from the HTML form.

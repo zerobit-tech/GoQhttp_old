@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/onlysumitg/GoQhttp/internal/dbserver"
+	"github.com/onlysumitg/GoQhttp/internal/ibmiServer"
 	"github.com/onlysumitg/GoQhttp/internal/models"
 	"github.com/onlysumitg/GoQhttp/internal/storedProc"
 	"github.com/onlysumitg/GoQhttp/utils/httputils"
@@ -109,7 +109,7 @@ func (app *application) downloadPostmanCollectionForServer(w http.ResponseWriter
 // -----------------------------------------------------------------------
 //
 // -----------------------------------------------------------------------
-func (app *application) getServerSPs(s *dbserver.Server) []*storedProc.StoredProc {
+func (app *application) getServerSPs(s *ibmiServer.Server) []*storedProc.StoredProc {
 
 	splist := make([]*storedProc.StoredProc, 0, 10)
 	for _, sp := range app.storedProcs.List() {
@@ -170,7 +170,7 @@ func (app *application) UserToPostmanCollection(user *models.User) (*postman.Col
 //
 // -----------------------------------------------------------------------
 
-func (app *application) ServerToPostmanCollection(s *dbserver.Server) *postman.Collection {
+func (app *application) ServerToPostmanCollection(s *ibmiServer.Server) *postman.Collection {
 	c := postman.CreateCollection(fmt.Sprintf("QHTTP %s", s.Name), fmt.Sprintf("QHTTP collection for server %s", s.Name))
 	c.Variables = make([]*postman.Variable, 0)
 	folder := c.AddItemGroup(s.Name)

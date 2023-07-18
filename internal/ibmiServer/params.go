@@ -12,7 +12,7 @@ import (
 // -----------------------------------------------------------------
 //
 // -----------------------------------------------------------------
-func (s *IBMiServer) getDefaultValue(p *storedProc.StoredProcParamter) string {
+func (s *Server) getDefaultValue(p *storedProc.StoredProcParamter) string {
 	if p.DefaultValue.Valid {
 
 		if go_ibm_db.IsSepecialRegister(p.DefaultValue.String) {
@@ -28,7 +28,7 @@ func (s *IBMiServer) getDefaultValue(p *storedProc.StoredProcParamter) string {
 	return ""
 }
 
-func getSpecialRegisterValue(s *IBMiServer, name string) string {
+func getSpecialRegisterValue(s *Server, name string) string {
 	sqlToUse := fmt.Sprintf("values(%s)", name)
 	conn, err := s.GetConnection()
 

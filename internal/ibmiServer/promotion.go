@@ -10,7 +10,7 @@ import (
 // ------------------------------------------------------------
 //
 // ------------------------------------------------------------
-func (s *IBMiServer) buildPromotionSQL(sp *storedProc.StoredProc) {
+func (s *Server) buildPromotionSQL(sp *storedProc.StoredProc) {
 	sp.Promotionsql = ""
 	if strings.TrimSpace(s.ConfigFile) == "" || strings.TrimSpace(s.ConfigFileLib) == "" {
 		return

@@ -8,7 +8,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/onlysumitg/GoQhttp/go_ibm_db"
-	"github.com/onlysumitg/GoQhttp/internal/dbserver"
+	"github.com/onlysumitg/GoQhttp/internal/ibmiServer"
 
 	bolt "go.etcd.io/bbolt"
 )
@@ -29,7 +29,7 @@ func (m *ServerModel) getTableName() []byte {
 //
 // -----------------------------------------------------------------
 // We'll use the Insert method to add a new record to the "users" table.
-func (m *ServerModel) Insert(u *dbserver.Server) (string, error) {
+func (m *ServerModel) Insert(u *ibmiServer.Server) (string, error) {
 	var id string = uuid.NewString()
 	u.ID = id
 	err := m.Update(u, false)
@@ -43,7 +43,7 @@ func (m *ServerModel) Insert(u *dbserver.Server) (string, error) {
 //
 // -----------------------------------------------------------------
 // We'll use the Insert method to add a new record to the "users" table.
-func (m *ServerModel) Update(u *dbserver.Server, clearCache bool) error {
+func (m *ServerModel) Update(u *ibmiServer.Server, clearCache bool) error {
 	err := m.DB.Update(func(tx *bolt.Tx) error {
 		bucket, err := tx.CreateBucketIfNotExists(m.getTableName())
 		if err != nil {
@@ -123,7 +123,7 @@ func (m *ServerModel) Exists(id string) bool {
 //
 // -----------------------------------------------------------------
 // We'll use the Exists method to check if a user exists with a specific ID.
-func (m *ServerModel) DuplicateName(serverToCheck *dbserver.Server) bool {
+func (m *ServerModel) DuplicateName(serverToCheck *ibmiServer.Server) bool {
 	exists := false
 	for _, server := range m.List() {
 		//fmt.Println(">>>>duplucate name<<<", server.Name, "<>", serverToCheck.Name, "||", server.ID, "<>", serverToCheck.ID)
@@ -140,7 +140,7 @@ func (m *ServerModel) DuplicateName(serverToCheck *dbserver.Server) bool {
 //
 // -----------------------------------------------------------------
 // We'll use the Exists method to check if a user exists with a specific ID.
-func (m *ServerModel) Get(id string) (*dbserver.Server, error) {
+func (m *ServerModel) Get(id string) (*ibmiServer.Server, error) {
 
 	if id == "" {
 		return nil, errors.New("Server blank id not allowed")
@@ -157,7 +157,7 @@ func (m *ServerModel) Get(id string) (*dbserver.Server, error) {
 		return nil
 
 	})
-	server := dbserver.Server{}
+	server := ibmiServer.Server{}
 	if err != nil {
 		return &server, err
 	}
@@ -169,7 +169,7 @@ func (m *ServerModel) Get(id string) (*dbserver.Server, error) {
 		return &server, err
 
 	}
-	server.Load()
+	//server.Load()
 	return &server, errors.New("Not Found")
 
 }
@@ -178,8 +178,8 @@ func (m *ServerModel) Get(id string) (*dbserver.Server, error) {
 //
 // -----------------------------------------------------------------
 // We'll use the Exists method to check if a user exists with a specific ID.
-func (m *ServerModel) List() []*dbserver.Server {
-	servers := make([]*dbserver.Server, 0)
+func (m *ServerModel) List() []*ibmiServer.Server {
+	servers := make([]*ibmiServer.Server, 0)
 	_ = m.DB.View(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket(m.getTableName())
 		if bucket == nil {
@@ -189,10 +189,10 @@ func (m *ServerModel) List() []*dbserver.Server {
 
 		for k, v := c.First(); k != nil; k, v = c.Next() {
 
-			server := dbserver.Server{}
+			server := ibmiServer.Server{}
 			err := json.Unmarshal(v, &server)
 			if err == nil {
-				server.Load()
+				//server.Load()
 				servers = append(servers, &server)
 			}
 		}

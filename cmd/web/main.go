@@ -103,7 +103,7 @@ func main() {
 
 	//--------------------------------------- Setup websockets ----------------------------
 	go concurrent.RecoverAndRestart(10, "ListenToWsChannel", app.ListenToWsChannel) //goroutine
-	go concurrent.RecoverAndRestart(10, "SendToWsChannel", app.SendToWsChannel)     //goroutine
+	go concurrent.RecoverAndRestart(10, "SendToWsChannel", app.SendDataTOWebSocket) //goroutine
 	go concurrent.RecoverAndRestart(10, "CaptureGraphData", app.CaptureGraphData)   //goroutine
 
 	go concurrent.RecoverAndRestart(10, "spCallLogModel:AddLogid", app.spCallLogModel.AddLogid) //goroutine

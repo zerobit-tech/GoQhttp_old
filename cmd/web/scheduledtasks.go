@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/onlysumitg/GoQhttp/go_ibm_db"
-	"github.com/onlysumitg/GoQhttp/internal/dbserver"
+	"github.com/onlysumitg/GoQhttp/internal/ibmiServer"
 	"github.com/onlysumitg/GoQhttp/internal/storedProc"
 	"github.com/onlysumitg/GoQhttp/lic"
 	"github.com/onlysumitg/GoQhttp/utils/concurrent"
@@ -86,7 +86,7 @@ func (app *application) ProcessPromotions() {
 //	for single server
 //
 // --------------------------------
-func (app *application) ProcessPromotion(s *dbserver.Server) {
+func (app *application) ProcessPromotion(s *ibmiServer.Server) {
 
 	defer concurrent.Recoverer("ProcessPromotion")
 	defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
@@ -111,7 +111,7 @@ func (app *application) ProcessPromotion(s *dbserver.Server) {
 //	process single promotion record
 //
 // --------------------------------
-func (app *application) ProcessPromotionRecord(s *dbserver.Server, pr *storedProc.PromotionRecord) {
+func (app *application) ProcessPromotionRecord(s *ibmiServer.Server, pr *storedProc.PromotionRecord) {
 	defer func() {
 		if r := recover(); r != nil {
 			log.Println("Recovered in refreshSchedule", r)
@@ -198,7 +198,7 @@ func (app *application) PingServers() {
 //	for single server
 //
 // --------------------------------
-func (app *application) SyncUserToken(s *dbserver.Server) error {
+func (app *application) SyncUserToken(s *ibmiServer.Server) error {
 	defer func() {
 		if r := recover(); r != nil {
 			log.Println("Recovered in refreshSchedule", r)
@@ -220,7 +220,7 @@ func (app *application) SyncUserToken(s *dbserver.Server) error {
 //	for single server
 //
 // --------------------------------
-func (app *application) ProcessSyncUserToken(s *dbserver.Server, tk *storedProc.UserTokenSyncRecord) {
+func (app *application) ProcessSyncUserToken(s *ibmiServer.Server, tk *storedProc.UserTokenSyncRecord) {
 	defer func() {
 		if r := recover(); r != nil {
 			log.Println("Recovered in refreshSchedule", r)

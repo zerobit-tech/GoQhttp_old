@@ -148,7 +148,7 @@ func (app *application) LogHandler(next http.Handler) http.Handler {
 			defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
 			//models.SaveLogs(app.LogDB, 998, requestId, buf.String(), app.testMode)
 
-			logE := logger.GetLogEvent("REQUEST",   requestId, ("\n\n" + requestBody), !app.debugMode)
+			logE := logger.GetLogEvent("REQUEST", requestId, ("\n\n" + requestBody), !app.debugMode)
 			logger.LoggerChan <- logE
 
 		}()
@@ -176,7 +176,7 @@ func (app *application) LogHandler(next http.Handler) http.Handler {
 				logger.LoggerChan <- logEResp
 
 				//models.SaveLogs(app.LogDB, 1000, requestId, fmt.Sprintf("HTTPCODE:%d", rec.Code), app.testMode)
-				logEH := logger.GetLogEvent("INFO",  requestId, fmt.Sprintf("HTTPCODE:%d", rec.Code), false)
+				logEH := logger.GetLogEvent("INFO", requestId, fmt.Sprintf("HTTPCODE:%d", rec.Code), false)
 				logger.LoggerChan <- logEH
 			}()
 		} else {
@@ -256,7 +256,7 @@ func (app *application) TimeTook(next http.Handler) http.Handler {
 			graphStruc.Responsetime = durationPasses.Milliseconds()
 			graphStruc.Calltime = time.Now().Local().Format(TimestampFormat)
 
-			logEH := logger.GetLogEvent("INFO",  requestId, fmt.Sprintf("ResponseTime:%s", durationPasses), false)
+			logEH := logger.GetLogEvent("INFO", requestId, fmt.Sprintf("ResponseTime:%s", durationPasses), false)
 
 			//goroutine
 			go func() {
@@ -267,15 +267,16 @@ func (app *application) TimeTook(next http.Handler) http.Handler {
 				logger.LoggerChan <- logEH
 
 				select {
-				case <-app.shutDownContext.Done():
+				case <-app.Done:
 					if !app.hasClosedGraphChan {
 						//fmt.Println("closing GraphChan>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<    <<<<<<<<<<<<<<")
-						close(app.GraphChan)
+						close(app.GraphStream)
 					}
 					app.hasClosedGraphChan = true
 
-				default:
-					app.GraphChan <- graphStruc
+				case app.GraphStream <- graphStruc:
+					
+
 				}
 
 			}()

@@ -11,7 +11,7 @@ Add new Server
         <div class="card ">
             <div class="card-header">
                 <p class="h5">
-                    {{if .Form.ID}} {{.Form.Name}} |{{.Form.Type}} : Edit  {{else}} Add {{end}} Server</p>
+                    {{if .Form.ID}} {{.Form.Name}}  : Edit  {{else}} Add {{end}} Server</p>
             </div>
             <div class="card-body">
 <form action="/servers/update" method="POST">
@@ -20,8 +20,7 @@ Add new Server
          <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
         <input name="id"   type="hidden" value="{{.Form.ID}}"></input>
         <input name="name"   type="hidden" value="{{.Form.Name}}"></input>
-        <input name="type"   type="hidden" value="{{.Form.Type}}"></input>
-
+ 
         <!-- <div class="form-group">
             <label for="servername">Server Name</label>
             <input id="servername" class="form-control {{with .Form.FieldErrors.name}} is-invalid {{end}}" type="text"
@@ -163,8 +162,8 @@ Add new Server
             type="text" class="form-control"  
                   name="configfilelib"></input>
 
-                <small id="configfilelibh" class="form-text text-muted">IBM I: Library or SQL Schema <br> 
-                    MS SQL Server: Catalog name or Catalog.Schema name. Default schema is dbo.</small>
+                <small id="configfilelibh" class="form-text text-muted">Library or SQL Schema <br> 
+                </small>
 
         </div>
    
@@ -194,8 +193,8 @@ Add new Server
             type="text" class="form-control"  
                   name="usertokenfilelib"></input>
 
-                <small id="usertokenfilelibh" class="form-text text-muted">IBM I: Library or SQL Schema <br> 
-                    MS SQL Server: Catalog name or Catalog.Schema name. Default schema is dbo.</small>
+                <small id="usertokenfilelibh" class="form-text text-muted">Library or SQL Schema <br> 
+                </small>
 
         </div>
         

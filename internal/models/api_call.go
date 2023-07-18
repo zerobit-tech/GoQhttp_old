@@ -10,7 +10,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/onlysumitg/GoQhttp/internal/dbserver"
+	"github.com/onlysumitg/GoQhttp/internal/ibmiServer"
 	"github.com/onlysumitg/GoQhttp/internal/storedProc"
 	"github.com/onlysumitg/GoQhttp/logger"
 	"github.com/onlysumitg/GoQhttp/utils/concurrent"
@@ -48,7 +48,7 @@ type ApiCall struct {
 
 	CurrentSP *storedProc.StoredProc
 
-	Server *dbserver.Server
+	Server *ibmiServer.Server
 
 	SPCallDuration time.Duration // int64 nanoseconds
 }

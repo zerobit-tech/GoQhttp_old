@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/onlysumitg/GoQhttp/env"
+	"github.com/onlysumitg/GoQhttp/utils/concurrent"
 	bolt "go.etcd.io/bbolt"
 )
 
@@ -34,8 +35,8 @@ type SPCallLogEntry struct {
 // -----------------------------------------------------------------
 // Define a new UserModel type which wraps a database connection pool.
 type SPCallLogModel struct {
-	DB       *bolt.DB
-	dbmux    sync.Mutex
+	DB         *bolt.DB
+	dbmux      sync.Mutex
 	DataChan chan SPCallLogEntry
 }
 
@@ -48,46 +49,52 @@ func (m *SPCallLogModel) getTableName() []byte {
 // -----------------------------------------------------------------
 // We'll use the Insert method to add a new record to the "users" table.
 func (m *SPCallLogModel) AddLogid() {
+
+	defer concurrent.Recoverer("AddLogid")
 	defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
 
 	for {
 		logE, ok := <-m.DataChan
-		m.dbmux.Lock()
-		if ok {
-			logEntry := LogEntry{
-				LogID:    logE.LogId,
-				CalledAt: time.Now().Local(),
-			}
-
-			splog, err := m.Get(logE.SpID)
-
-			if err != nil {
-				logEntries := make([]LogEntry, 0)
-				splog = &SPCallLog{SpID: logE.SpID, Logs: logEntries}
-			}
-
-			//Prepend
-			splog.Logs = append([]LogEntry{logEntry}, splog.Logs...)
-
-			maxEntries, err := strconv.Atoi(env.GetEnvVariable("MAX_LOG_ENTRIES_FOR_ONE_ENDPOINT", "1000"))
-			if err != nil || maxEntries <= 0 {
-				maxEntries = 1000
-			}
-
-			if len(splog.Logs) > maxEntries {
-
-				//delete extra log entries
-				entriesToDelete := splog.Logs[maxEntries:]
-
-				for _, ed := range entriesToDelete {
-					DeleteLog(m.DB, ed.LogID)
-				}
-
-				splog.Logs = splog.Logs[0:maxEntries]
-			}
-
-			m.Save(splog)
+		if !ok {
+			return
 		}
+
+		m.dbmux.Lock()
+
+		logEntry := LogEntry{
+			LogID:    logE.LogId,
+			CalledAt: time.Now().Local(),
+		}
+
+		splog, err := m.Get(logE.SpID)
+
+		if err != nil {
+			logEntries := make([]LogEntry, 0)
+			splog = &SPCallLog{SpID: logE.SpID, Logs: logEntries}
+		}
+
+		//Prepend
+		splog.Logs = append([]LogEntry{logEntry}, splog.Logs...)
+
+		maxEntries, err := strconv.Atoi(env.GetEnvVariable("MAX_LOG_ENTRIES_FOR_ONE_ENDPOINT", "1000"))
+		if err != nil || maxEntries <= 0 {
+			maxEntries = 1000
+		}
+
+		if len(splog.Logs) > maxEntries {
+
+			//delete extra log entries
+			entriesToDelete := splog.Logs[maxEntries:]
+
+			for _, ed := range entriesToDelete {
+				DeleteLog(m.DB, ed.LogID)
+			}
+
+			splog.Logs = splog.Logs[0:maxEntries]
+		}
+
+		m.Save(splog)
+
 		m.dbmux.Unlock()
 	}
 

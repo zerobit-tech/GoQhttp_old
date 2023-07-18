@@ -137,10 +137,6 @@ func (app *application) GetGraphDataPlotyl() []*GraphDatasetPlotly {
 // ------------------------------------------------------
 //
 // ------------------------------------------------------
-
-// ------------------------------------------------------
-//
-// ------------------------------------------------------
 func (app *application) CaptureGraphData() {
 
 	maxEntries, err := strconv.Atoi(env.GetEnvVariable("MAX_GRAPH_ENTRIES", "1000"))
@@ -149,141 +145,156 @@ func (app *application) CaptureGraphData() {
 	}
 
 	//counter := 0
-
+mainloop:
 	for {
 
 		// adding little delay to complete JS render
 		//time.Sleep(500 * time.Millisecond)
 
-		graphStruc, ok := <-app.GraphChan
-		if !ok {
-			continue
-		}
-
-		app.GraphStats.TotalRequests += 1
-
-		//counter += 1
-
-		app.graphMutex.Lock()
-
-		httpCode := strconv.Itoa(graphStruc.Httpcode)
-
-		if strings.HasPrefix(httpCode, "1") {
-			graphStruc.HttpcodeGroup = 100
-			app.GraphData100 = append([]*GraphStruc{graphStruc}, app.GraphData100...)
-			if len(app.GraphData100) > maxEntries {
-				app.GraphData100 = app.GraphData100[0:maxEntries]
+		select {
+		case <-app.Done:
+			break mainloop
+		case graphStruc, ok := <-app.GraphStream:
+			if !ok {
+				break mainloop
 			}
-			app.GraphStats.Http100Count += 1
+			app.processGraphData(graphStruc, maxEntries)
 
 		}
-		if strings.HasPrefix(httpCode, "2") {
-			graphStruc.HttpcodeGroup = 200
-			app.GraphData200 = append([]*GraphStruc{graphStruc}, app.GraphData200...)
-			if len(app.GraphData200) > maxEntries {
-				app.GraphData200 = app.GraphData200[0:maxEntries]
-			}
-			app.GraphStats.Http200Count += 1
-
-		}
-
-		if strings.HasPrefix(httpCode, "3") {
-			graphStruc.HttpcodeGroup = 300
-			app.GraphData300 = append([]*GraphStruc{graphStruc}, app.GraphData300...)
-			if len(app.GraphData300) > maxEntries {
-				app.GraphData300 = app.GraphData300[0:maxEntries]
-			}
-			app.GraphStats.Http300Count += 1
-
-		}
-
-		if strings.HasPrefix(httpCode, "4") {
-			graphStruc.HttpcodeGroup = 400
-			app.GraphData400 = append([]*GraphStruc{graphStruc}, app.GraphData400...)
-			if len(app.GraphData400) > maxEntries {
-				app.GraphData400 = app.GraphData400[0:maxEntries]
-			}
-
-			app.GraphStats.Http400Count += 1
-
-		}
-
-		if strings.HasPrefix(httpCode, "5") {
-			graphStruc.HttpcodeGroup = 500
-			app.GraphData500 = append([]*GraphStruc{graphStruc}, app.GraphData500...)
-			if len(app.GraphData500) > maxEntries {
-				app.GraphData500 = app.GraphData500[0:maxEntries]
-			}
-			app.GraphStats.Http500Count += 1
-
-		}
-
-		if app.GraphStats.Http100Count > 0 {
-			app.GraphStats.Http100Percent = (app.GraphStats.Http100Count * 100 / app.GraphStats.TotalRequests)
-		}
-
-		if app.GraphStats.Http200Count > 0 {
-			app.GraphStats.Http200Percent = (app.GraphStats.Http200Count * 100 / app.GraphStats.TotalRequests)
-		}
-
-		if app.GraphStats.Http300Count > 0 {
-			app.GraphStats.Http300Percent = (app.GraphStats.Http300Count * 100 / app.GraphStats.TotalRequests)
-		}
-
-		if app.GraphStats.Http400Count > 0 {
-			app.GraphStats.Http400Percent = (app.GraphStats.Http400Count * 100 / app.GraphStats.TotalRequests)
-		}
-
-		if app.GraphStats.Http500Count > 0 {
-			app.GraphStats.Http500Percent = (app.GraphStats.Http500Count * 100 / app.GraphStats.TotalRequests)
-		}
-
-		if app.GraphStats.MaxResTime < graphStruc.Responsetime {
-			app.GraphStats.MaxResTime = graphStruc.Responsetime
-		}
-
-		if app.GraphStats.MaxDBTime < graphStruc.SPResponsetime {
-			app.GraphStats.MaxDBTime = graphStruc.SPResponsetime
-		}
-
-		app.GraphStats.AvgResTime = ((app.GraphStats.AvgResTime * int64(app.GraphStats.TotalRequests-1)) + graphStruc.Responsetime) / int64(app.GraphStats.TotalRequests)
-
-		app.GraphStats.AvgDBTime = ((app.GraphStats.AvgDBTime * int64(app.GraphStats.TotalRequests-1)) + graphStruc.SPResponsetime) / int64(app.GraphStats.TotalRequests)
-
-		response := &iwebsocket.WsServerPayload{}
-		response.Action = "graphdata"
-		response.Message = ""
-		response.Data = app.GetGraphDataPlotyl() // GetGraphData()
-
-		app.ToWSChan <- response
-		// go func() {
-		// 	defer concurrent.Recoverer("graphdata")
-		// 	iwebsocket.BroadcastToAll(response)
-		// }()
-
-		response2 := &iwebsocket.WsServerPayload{}
-
-		response2.Action = "graphtablercd"
-		response2.Message = ""
-		response2.Data = graphStruc
-		app.ToWSChan <- response2
-
-		response3 := &iwebsocket.WsServerPayload{}
-
-		response3.Action = "graphstats"
-		response3.Message = ""
-		response3.Data = app.GraphStats
-		app.ToWSChan <- response3
-		// go func() {
-		// 	defer concurrent.Recoverer("graphtablercd")
-		// 	time.Sleep(500 * time.Millisecond)
-
-		// 	iwebsocket.BroadcastToAll(response2)
-		// }()
-		//time.Sleep(2 * time.Second)
-		app.graphMutex.Unlock()
 
 	}
+}
+
+// ------------------------------------------------------
+//
+// ------------------------------------------------------
+func (app *application) processGraphData(graphStruc *GraphStruc, maxEntries int) {
+
+	app.GraphStats.TotalRequests += 1
+
+	//counter += 1
+
+	app.graphMutex.Lock()
+
+	httpCode := strconv.Itoa(graphStruc.Httpcode)
+
+	if strings.HasPrefix(httpCode, "1") {
+		graphStruc.HttpcodeGroup = 100
+		app.GraphData100 = append([]*GraphStruc{graphStruc}, app.GraphData100...)
+		if len(app.GraphData100) > maxEntries {
+			app.GraphData100 = app.GraphData100[0:maxEntries]
+		}
+		app.GraphStats.Http100Count += 1
+
+	}
+	if strings.HasPrefix(httpCode, "2") {
+		graphStruc.HttpcodeGroup = 200
+		app.GraphData200 = append([]*GraphStruc{graphStruc}, app.GraphData200...)
+		if len(app.GraphData200) > maxEntries {
+			app.GraphData200 = app.GraphData200[0:maxEntries]
+		}
+		app.GraphStats.Http200Count += 1
+
+	}
+
+	if strings.HasPrefix(httpCode, "3") {
+		graphStruc.HttpcodeGroup = 300
+		app.GraphData300 = append([]*GraphStruc{graphStruc}, app.GraphData300...)
+		if len(app.GraphData300) > maxEntries {
+			app.GraphData300 = app.GraphData300[0:maxEntries]
+		}
+		app.GraphStats.Http300Count += 1
+
+	}
+
+	if strings.HasPrefix(httpCode, "4") {
+		graphStruc.HttpcodeGroup = 400
+		app.GraphData400 = append([]*GraphStruc{graphStruc}, app.GraphData400...)
+		if len(app.GraphData400) > maxEntries {
+			app.GraphData400 = app.GraphData400[0:maxEntries]
+		}
+
+		app.GraphStats.Http400Count += 1
+
+	}
+
+	if strings.HasPrefix(httpCode, "5") {
+		graphStruc.HttpcodeGroup = 500
+		app.GraphData500 = append([]*GraphStruc{graphStruc}, app.GraphData500...)
+		if len(app.GraphData500) > maxEntries {
+			app.GraphData500 = app.GraphData500[0:maxEntries]
+		}
+		app.GraphStats.Http500Count += 1
+
+	}
+
+	if app.GraphStats.Http100Count > 0 {
+		app.GraphStats.Http100Percent = (app.GraphStats.Http100Count * 100 / app.GraphStats.TotalRequests)
+	}
+
+	if app.GraphStats.Http200Count > 0 {
+		app.GraphStats.Http200Percent = (app.GraphStats.Http200Count * 100 / app.GraphStats.TotalRequests)
+	}
+
+	if app.GraphStats.Http300Count > 0 {
+		app.GraphStats.Http300Percent = (app.GraphStats.Http300Count * 100 / app.GraphStats.TotalRequests)
+	}
+
+	if app.GraphStats.Http400Count > 0 {
+		app.GraphStats.Http400Percent = (app.GraphStats.Http400Count * 100 / app.GraphStats.TotalRequests)
+	}
+
+	if app.GraphStats.Http500Count > 0 {
+		app.GraphStats.Http500Percent = (app.GraphStats.Http500Count * 100 / app.GraphStats.TotalRequests)
+	}
+
+	if app.GraphStats.MaxResTime < graphStruc.Responsetime {
+		app.GraphStats.MaxResTime = graphStruc.Responsetime
+	}
+
+	if app.GraphStats.MaxDBTime < graphStruc.SPResponsetime {
+		app.GraphStats.MaxDBTime = graphStruc.SPResponsetime
+	}
+
+	app.GraphStats.AvgResTime = ((app.GraphStats.AvgResTime * int64(app.GraphStats.TotalRequests-1)) + graphStruc.Responsetime) / int64(app.GraphStats.TotalRequests)
+
+	app.GraphStats.AvgDBTime = ((app.GraphStats.AvgDBTime * int64(app.GraphStats.TotalRequests-1)) + graphStruc.SPResponsetime) / int64(app.GraphStats.TotalRequests)
+
+	response := iwebsocket.WsServerPayload{}
+	response.Action = "graphdata"
+	response.Message = ""
+	response.Data = app.GetGraphDataPlotyl() // GetGraphData()
+
+	go app.SendToWSChan(response)
+	// go func() {
+	// 	defer concurrent.Recoverer("graphdata")
+	// 	iwebsocket.BroadcastToAll(response)
+	// }()
+
+	response2 := iwebsocket.WsServerPayload{}
+
+	response2.Action = "graphtablercd"
+	response2.Message = ""
+	response2.Data = graphStruc
+	go app.SendToWSChan(response2)
+
+	response3 := iwebsocket.WsServerPayload{}
+
+	response3.Action = "graphstats"
+	response3.Message = ""
+	response3.Data = app.GraphStats
+
+	go app.SendToWSChan(response3)
+
+	// go func() {
+	// 	defer concurrent.Recoverer("graphtablercd")
+	// 	time.Sleep(500 * time.Millisecond)
+
+	// 	iwebsocket.BroadcastToAll(response2)
+	// }()
+	//time.Sleep(2 * time.Second)
+	app.graphMutex.Unlock()
+
 }
 
 // ------------------------------------------------------

@@ -27,7 +27,7 @@ import (
 	bolt "go.etcd.io/bbolt"
 
 	_ "github.com/onlysumitg/GoQhttp/internal/ibmiServer"
-	_ "github.com/onlysumitg/GoQhttp/internal/mssqlServer"
+	//_ "github.com/onlysumitg/GoQhttp/internal/mssqlServer"
 	//_ "github.com/onlysumitg/GoQhttp/internal/mysqlServer"
 )
 
@@ -77,7 +77,7 @@ type application struct {
 
 	//redirectToHttps bool
 
-	ToWSChan  chan *iwebsocket.WsServerPayload
+	ToWSChan  chan iwebsocket.WsServerPayload
 	WSClients concurrent.MapInterface
 
 	GraphData100 []*GraphStruc
@@ -86,13 +86,15 @@ type application struct {
 	GraphData400 []*GraphStruc
 	GraphData500 []*GraphStruc
 	GraphStats   *GraphStats
-	GraphChan    chan *GraphStruc
+	GraphStream  chan *GraphStruc
+
+	Done chan any
 
 	hasClosedGraphChan bool
 
-	shutDownChan    chan int // 1= restrt app  2= shutdown app
-	shutDownContext context.Context
-	shutDownStart   context.CancelFunc
+	shutDownChan chan int // 1= restrt app  2= shutdown app
+	// shutDownContextX context.Context
+	// shutDownStart   context.CancelFunc
 
 	features *featureflags.Features
 }
@@ -115,7 +117,7 @@ func baseAppConfig(params parameters, db *bolt.DB, userdb *bolt.DB, logdb *bolt.
 
 	//--------------------------------------- Setup shutdown  ----------------------------
 
-	shutDownctx, startShutdown := context.WithCancel(context.Background())
+	//shutDownctx, startShutdown := context.WithCancel(context.Background())
 	//---------------------------------------  final app config ----------------------------
 	app := &application{
 		version:       "1.2.0",
@@ -137,7 +139,7 @@ func baseAppConfig(params parameters, db *bolt.DB, userdb *bolt.DB, logdb *bolt.
 		servers:     &models.ServerModel{DB: db},
 		storedProcs: &models.StoredProcModel{DB: db},
 
-		spCallLogModel:             &models.SPCallLogModel{DB: logdb, DataChan: make(chan models.SPCallLogEntry, 5000)},
+		spCallLogModel:             &models.SPCallLogModel{DB: logdb, DataChan: make(chan models.SPCallLogEntry)},
 		useHttps:                   true,
 		maxAllowedEndPoints:        -1,
 		maxAllowedEndPointsPerUser: -1,
@@ -145,7 +147,7 @@ func baseAppConfig(params parameters, db *bolt.DB, userdb *bolt.DB, logdb *bolt.
 		//redirectToHttps: params.redirectToHttps,
 		domain:         params.domain,
 		useletsencrypt: params.useletsencrypt,
-		ToWSChan:       make(chan *iwebsocket.WsServerPayload, 500),
+		ToWSChan:       make(chan iwebsocket.WsServerPayload),
 		WSClients:      concurrent.NewSuperEfficientSyncMap(0),
 
 		GraphData100: make([]*GraphStruc, 0, 200),
@@ -154,11 +156,12 @@ func baseAppConfig(params parameters, db *bolt.DB, userdb *bolt.DB, logdb *bolt.
 		GraphData400: make([]*GraphStruc, 0, 200),
 		GraphData500: make([]*GraphStruc, 0, 500),
 		GraphStats:   &GraphStats{},
-		GraphChan:    make(chan *GraphStruc, 5000),
+		GraphStream:  make(chan *GraphStruc),
+		Done:         make(chan any),
 
-		shutDownChan:    make(chan int), // 1= restrt app  2= shutdown app
-		shutDownContext: shutDownctx,
-		shutDownStart:   startShutdown,
+		shutDownChan: make(chan int), // 1= restrt app  2= shutdown app
+		// shutDownContext: shutDownctx,
+		// shutDownStart:   startShutdown,
 
 		debugMode: env.IsInDebugMode(),
 	}
@@ -187,11 +190,14 @@ func baseAppConfig(params parameters, db *bolt.DB, userdb *bolt.DB, logdb *bolt.
 
 func (app *application) CleanupAndShutDown() {
 	log.Println("Closing channels...")
-	if app.shutDownStart != nil {
+	// if app.shutDownStart != nil {
 
-		//fmt.Println("Starting shut down>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<    <<<<<<<<<<<<<<")
-		app.shutDownStart()
-	}
+	// 	//fmt.Println("Starting shut down>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<    <<<<<<<<<<<<<<")
+	// 	app.shutDownStart()
+	// }
+
+	close(app.Done)
+
 	close(app.ToWSChan)
 
 	// close(app.GraphChan)  // closed in TimeTook middleware
