@@ -68,8 +68,10 @@ Add new Server
         <div class="form-group">
             <label for="serveruser">Server User</label>
 
-            <input id="serverip" value='{{.Form.UserName}}' type="text"
+            <input id="serveruser" value='{{.Form.UserName}}' type="text"
                 class="form-control  {{with .Form.FieldErrors.user_name}} is-invalid {{end}}" name="user_name" required></input>
+                <small id="serverusernameh" class="form-text text-muted">*ENV=Use from env variable in format {SERVERNAME}_USER</small>
+
             {{with .Form.FieldErrors.user_name}}
             <div class='invalid-feedback'>{{.}}</div>
             {{end}}
@@ -81,6 +83,8 @@ Add new Server
 
             <input id="serverpassword" value='{{.Form.Password}}' type="password"
                 class="form-control  {{with .Form.FieldErrors.password}} is-invalid {{end}}" name="password"></input>
+                <small id="serverpasswordh" class="form-text text-muted">*ENV=Use from env variable in format {SERVERNAME}_PASSWORD</small>
+
             {{with .Form.FieldErrors.password}}
             <div class='invalid-feedback'>{{.}}</div>
             {{end}}

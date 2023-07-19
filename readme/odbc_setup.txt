@@ -1,7 +1,10 @@
 https://www.ibm.com/docs/en/i/7.4?topic=details-connection-string-keywords
 
+https://www.vertica.com/docs/9.2.x/HTML/Content/Authoring/ConnectingToVertica/InstallingDrivers/LinuxAndUnixLikePlatforms/CreatingAnODBCDSNForLinuxSolarisAIXAndHP-UX.htm
+
 
 /etc/odbcinst.ini
+=================
 
 [IBM i Access ODBC Driver]
 Description=IBM i Access for Linux ODBC Driver
@@ -24,10 +27,18 @@ DontDLClose=1
 UsageCount=1
 Pooling=Yes
 CPTimeout=120
+MinPoolSize=2
+MaxPoolSize=10  
+
+
+
 
 
 
 /etc/odbc.ini
+==============
+
+
 [pub400]
 Description             = pub400 Free server
 Driver                  = IBM i Access ODBC Driver 64-bit

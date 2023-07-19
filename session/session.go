@@ -1,4 +1,4 @@
-package main
+package session
 
 import (
 	"net/http"
@@ -9,7 +9,7 @@ import (
 	bolt "go.etcd.io/bbolt"
 )
 
-func getSessionManager(db *bolt.DB) *scs.SessionManager {
+func GetSessionManager(db *bolt.DB) *scs.SessionManager {
 	// Use the scs.New() function to initialize a new session manager. Then we
 	// configure it to use our MySQL database as the session store, and set a
 	// lifetime of 12 hours (so that sessions automatically expire 12 hours
@@ -17,7 +17,7 @@ func getSessionManager(db *bolt.DB) *scs.SessionManager {
 
 	sessionManager := scs.New()
 	sessionManager.Lifetime = 48 * time.Hour
-	sessionManager.Store = boltstore.NewWithCleanupInterval(db, 48 * time.Hour)
+	sessionManager.Store = boltstore.NewWithCleanupInterval(db, 48*time.Hour)
 	sessionManager.Cookie.Persist = true
 	sessionManager.Cookie.SameSite = http.SameSiteLaxMode
 	//sessionManager.Cookie.Secure = app.InProduction

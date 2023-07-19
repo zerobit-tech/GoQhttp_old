@@ -22,6 +22,9 @@ import (
 	"github.com/onlysumitg/GoQhttp/utils/concurrent"
 )
 
+// ------------------------------------------------------
+//
+// ------------------------------------------------------
 type ContextKey string
 
 const REQUEST_PROCESSING_DATA ContextKey = "REQUEST_PROCESSING_DATA"
@@ -33,6 +36,9 @@ var DateFormat string = "2006-01-02"
 var TimestampFormat string = "2006-01-02 15:04:05.000000"
 var TimestampFormat2 string = "2006-01-02 15:04:05"
 
+// ------------------------------------------------------
+//
+// ------------------------------------------------------
 // Create a NoSurf middleware function which uses a customized CSRF cookie with
 // the Secure, Path and HttpOnly attributes set.
 func noSurf(next http.Handler) http.Handler {
@@ -52,9 +58,16 @@ func noSurf(next http.Handler) http.Handler {
 	return csrfHandler
 }
 
+// ------------------------------------------------------
+//
+// ------------------------------------------------------
 const (
 	xForwardedProtoHeader = "x-forwarded-proto"
 )
+
+// ------------------------------------------------------
+//
+// ------------------------------------------------------
 
 func (app *application) RedirectToHTTPS(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -269,13 +282,11 @@ func (app *application) TimeTook(next http.Handler) http.Handler {
 				select {
 				case <-app.Done:
 					if !app.hasClosedGraphChan {
-						//fmt.Println("closing GraphChan>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>><<<<<<<<<<<<<<<<<<<<<<<    <<<<<<<<<<<<<<")
 						close(app.GraphStream)
 					}
 					app.hasClosedGraphChan = true
 
 				case app.GraphStream <- graphStruc:
-					
 
 				}
 

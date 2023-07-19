@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/go-co-op/gocron"
+	"github.com/onlysumitg/GoQhttp/cliparams"
 	"github.com/onlysumitg/GoQhttp/env"
 	"github.com/onlysumitg/GoQhttp/internal/models"
 	"github.com/onlysumitg/GoQhttp/utils/concurrent"
@@ -67,14 +68,14 @@ func main() {
 	//using struct
 
 	//--------------------------------------- Setup CLI paramters ----------------------------
-	params := &parameters{}
+	params := &cliparams.Parameters{}
 	params.Load()
 
-	if params.validateSetup {
+	if params.ValidateSetup {
 		validateSetup()
 	}
 
-	params.featureset = FeatureSet
+	params.Featureset = FeatureSet
 
 	// --------------------------------------- Setup database ----------------------------
 	db, err := bolt.Open("db/internal.db", 0600, nil)
@@ -108,7 +109,7 @@ func main() {
 
 	go concurrent.RecoverAndRestart(10, "spCallLogModel:AddLogid", app.spCallLogModel.AddLogid) //goroutine
 
-	addr, hostUrl := params.getHttpAddress()
+	addr, hostUrl := params.GetHttpAddress()
 
 	// this is short cut to create http.Server and  server.ListenAndServe()
 	// err := http.ListenAndServe(params.addr, routes)
@@ -120,20 +121,14 @@ func main() {
 	}
 
 	//  --------------------------------------- Data clean up job----------------------------
-
 	go app.clearLogsSchedular(db) //goroutine
-
 	go app.promotionsSchedule() //goroutine
-
 	go app.pingServerSchedule() //goroutine
+
 	//--------------------------------------- Create super user ----------------------------
-
-	go app.CreateSuperUser(params.superuseremail, params.superuserpwd) //goroutine
-
+	go app.CreateSuperUser(params.Superuseremail, params.Superuserpwd) //goroutine
 	// --------------------- SINGAL HANDLER -------------------
-
 	go initSignals(app.CleanupAndShutDown) //goroutine
-
 	// ---------------------LOAD SERVER -------------------
 
 	// profiling server

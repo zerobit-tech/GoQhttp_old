@@ -13,8 +13,10 @@ import (
 
 	"github.com/alexedwards/scs/v2"
 	"github.com/go-playground/form"
+	"github.com/onlysumitg/GoQhttp/cliparams"
 	"github.com/onlysumitg/GoQhttp/env"
 	"github.com/onlysumitg/GoQhttp/featureflags"
+	"github.com/onlysumitg/GoQhttp/session"
 
 	"github.com/onlysumitg/GoQhttp/internal/dbserver"
 	"github.com/onlysumitg/GoQhttp/internal/iwebsocket"
@@ -25,22 +27,20 @@ import (
 
 	mail "github.com/xhit/go-simple-mail/v2"
 	bolt "go.etcd.io/bbolt"
-
-	_ "github.com/onlysumitg/GoQhttp/internal/ibmiServer"
-	//_ "github.com/onlysumitg/GoQhttp/internal/mssqlServer"
-	//_ "github.com/onlysumitg/GoQhttp/internal/mysqlServer"
 )
 
+// -------------------------------------------------------------------------
+//
+// -------------------------------------------------------------------------
 type application struct {
 	tlsCertificate *tls.Certificate
 	tlsMutex       sync.Mutex
 
-	version         string
-	endPointMutex   sync.Mutex
-	requestMutex    sync.Mutex
-	mainAppServer   *http.Server
-	graphMutex      sync.Mutex
-	requestLogMutex sync.Mutex
+	version       string
+	endPointMutex sync.Mutex
+	requestMutex  sync.Mutex
+	mainAppServer *http.Server
+	graphMutex    sync.Mutex
 
 	invalidEndPointCache bool
 	endPointCache        map[string]*storedProc.StoredProc
@@ -99,7 +99,10 @@ type application struct {
 	features *featureflags.Features
 }
 
-func baseAppConfig(params parameters, db *bolt.DB, userdb *bolt.DB, logdb *bolt.DB) *application {
+// -------------------------------------------------------------------------
+//
+// -------------------------------------------------------------------------
+func baseAppConfig(params cliparams.Parameters, db *bolt.DB, userdb *bolt.DB, logdb *bolt.DB) *application {
 
 	//--------------------------------------- Setup loggers ----------------------------
 	infoLog := log.New(os.Stderr, "INFO\t", log.Ldate|log.Ltime)
@@ -113,7 +116,7 @@ func baseAppConfig(params parameters, db *bolt.DB, userdb *bolt.DB, logdb *bolt.
 	//--------------------------------------- Setup form decoder ----------------------------
 	formDecoder := form.NewDecoder()
 
-	_, hostUrl := params.getHttpAddress()
+	_, hostUrl := params.GetHttpAddress()
 
 	//--------------------------------------- Setup shutdown  ----------------------------
 
@@ -130,7 +133,7 @@ func baseAppConfig(params parameters, db *bolt.DB, userdb *bolt.DB, logdb *bolt.
 		UserDB:      userdb,
 		EmailServer: models.SetupMailServer(),
 
-		sessionManager: getSessionManager(db),
+		sessionManager: session.GetSessionManager(db),
 		formDecoder:    formDecoder,
 		users:          &models.UserModel{DB: userdb},
 
@@ -145,8 +148,8 @@ func baseAppConfig(params parameters, db *bolt.DB, userdb *bolt.DB, logdb *bolt.
 		maxAllowedEndPointsPerUser: -1,
 
 		//redirectToHttps: params.redirectToHttps,
-		domain:         params.domain,
-		useletsencrypt: params.useletsencrypt,
+		domain:         params.Domain,
+		useletsencrypt: params.Useletsencrypt,
 		ToWSChan:       make(chan iwebsocket.WsServerPayload),
 		WSClients:      concurrent.NewSuperEfficientSyncMap(0),
 
@@ -172,7 +175,7 @@ func baseAppConfig(params parameters, db *bolt.DB, userdb *bolt.DB, logdb *bolt.
 
 	}
 
-	appFeatures, ok := featureflags.FeatureSetMap[strings.ToUpper(params.featureset)]
+	appFeatures, ok := featureflags.FeatureSetMap[strings.ToUpper(params.Featureset)]
 	if !ok {
 		log.Fatalln("Feature Set is not defined!")
 	}
@@ -188,6 +191,9 @@ func baseAppConfig(params parameters, db *bolt.DB, userdb *bolt.DB, logdb *bolt.
 
 }
 
+// -------------------------------------------------------------------------
+//
+// -------------------------------------------------------------------------
 func (app *application) CleanupAndShutDown() {
 	log.Println("Closing channels...")
 	// if app.shutDownStart != nil {
