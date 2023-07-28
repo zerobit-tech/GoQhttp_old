@@ -11,6 +11,9 @@ import (
 	"github.com/onlysumitg/GoQhttp/env"
 )
 
+// ------------------------------------------------------
+//
+// ------------------------------------------------------
 type Parameters struct {
 	Host           string
 	Port           int
@@ -28,6 +31,9 @@ type Parameters struct {
 	//flag      bool
 }
 
+// ------------------------------------------------------
+//
+// ------------------------------------------------------
 func (p *Parameters) GetHttpAddress() (string, string) {
 	addr := p.Host
 
@@ -37,13 +43,18 @@ func (p *Parameters) GetHttpAddress() (string, string) {
 
 	protocol := "https://"
 
-	if p.Domain == "localhost" || p.Domain == "0.0.0.0" {
-		p.Domain = fmt.Sprintf("%s:%d", p.Domain, p.Port)
+	//if p.domain == "localhost" || p.domain == "0.0.0.0" {
+	domain := p.Domain
+	if p.Port > 0 {
+		domain = fmt.Sprintf("%s:%d", p.Domain, p.Port)
 	}
 
-	return addr, fmt.Sprintf("%s%s", protocol, p.Domain)
+	return addr, fmt.Sprintf("%s%s", protocol, domain)
 }
 
+// ------------------------------------------------------
+//
+// ------------------------------------------------------
 func (p *Parameters) GetHttpAddressForProfile() (string, string) {
 	addr := p.Host
 
@@ -55,14 +66,17 @@ func (p *Parameters) GetHttpAddressForProfile() (string, string) {
 	// if p.https || p.redirectToHttps {
 	// 	protocol = "https://"
 	// }
-
+	domain := p.Domain
 	if p.Domain == "localhost" || p.Domain == "0.0.0.0" {
-		p.Domain = fmt.Sprintf("%s:%s", p.Domain, port)
+		domain = fmt.Sprintf("%s:%s", p.Domain, port)
 	}
 
-	return addr, fmt.Sprintf("%s%s", protocol, p.Domain)
+	return addr, fmt.Sprintf("%s%s", protocol, domain)
 }
 
+// ------------------------------------------------------
+//
+// ------------------------------------------------------
 func (params *Parameters) Load() {
 	flag.StringVar(&params.Host, "host", "", "Http Host Name")
 	flag.IntVar(&params.Port, "port", 4081, "Port")
@@ -83,12 +97,33 @@ func (params *Parameters) Load() {
 	//flag.BoolVar(&params.redirectToHttps, "redirecttohttps", false, "Redirect to https")
 
 	flag.Parse()
+	params.LoadENV()
+}
 
+// ------------------------------------------------------
+//
+// ------------------------------------------------------
+func (params *Parameters) LoadENV() {
 	envPort := os.Getenv("PORT")
 	port, err := strconv.Atoi(envPort)
 	if err == nil {
 
 		params.Port = port
 		log.Println("Using port>>> ", port, params.Port)
+	}
+
+	domainEnv := env.GetEnvVariable("DOMAIN", "")
+
+	if domainEnv != "" {
+		params.Domain = domainEnv
+	}
+
+	useletsencrypt := env.GetEnvVariable("USELETSENCRYPT", "")
+
+	if useletsencrypt != "" {
+		if useletsencrypt == "TRUE" || useletsencrypt == "YES" || useletsencrypt == "Y" {
+			params.Useletsencrypt = true
+		}
+
 	}
 }

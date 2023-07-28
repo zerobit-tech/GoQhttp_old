@@ -105,17 +105,52 @@ func (s *Server) PrepareToSave(ctx context.Context, sp *storedProc.StoredProc) e
 //
 // ------------------------------------------------------------
 func (s *Server) GetConnectionString() string {
+
+	connectionString := ""
+
+	if strings.HasPrefix(strings.ToUpper(s.IP), "*DSN:") {
+		connectionString = s.getDNSConnectionString()
+	} else {
+		connectionString = s.getIPConnectionString()
+	}
+
+	return connectionString
+}
+
+// ------------------------------------------------------------
+//
+// ------------------------------------------------------------
+func (s *Server) getIPConnectionString() string {
 	driver := "IBM i Access ODBC Driver"
 	ssl := 0
 	if s.Ssl {
 		ssl = 1
 	}
 	pwd := s.GetPassword()
-	connectionString := fmt.Sprintf("DRIVER=%s;SYSTEM=%s; UID=%s;PWD=%s;DBQ=*USRLIBL;UNICODESQL=1;XDYNAMIC=1;EXTCOLINFO=0;PKG=A/DJANGO,2,0,0,1,512;PROTOCOL=TCPIP;NAM=1;CMT=0;SSL=%d;ALLOWUNSCHAR=1", driver, s.IP, s.GetUserName(), pwd, ssl)
 
-	//connectionString := fmt.Sprintf("DSN=pub400; UID=%s;PWD=%s", s.UserName, s.Password)
+	return fmt.Sprintf("DRIVER=%s;SYSTEM=%s; UID=%s;PWD=%s;DBQ=*USRLIBL;UNICODESQL=1;XDYNAMIC=1;EXTCOLINFO=0;PKG=A/QHTTP,2,0,0,1,512;PROTOCOL=TCPIP;NAM=1;CMT=0;SSL=%d;ALLOWUNSCHAR=1", driver, s.IP, s.GetUserName(), pwd, ssl)
 
-	return connectionString
+}
+
+// ------------------------------------------------------------
+//
+// ------------------------------------------------------------
+func (s *Server) getDNSConnectionString() string {
+	dnsName := fmt.Sprintf("DSN=%s;", strings.TrimSpace(s.IP[5:]))
+
+	userName := s.GetUserName()
+	userString := ""
+	if !strings.EqualFold(userName, "*DSN") {
+		userString = fmt.Sprintf("UID=%s;", userName)
+	}
+
+	pwd := s.GetPassword()
+	pwdString := ""
+	if !strings.EqualFold(pwd, "*DSN") {
+		pwdString = fmt.Sprintf("PWD=%s;", pwd)
+	}
+
+	return fmt.Sprintf("%s%s%sDBQ=*USRLIBL;UNICODESQL=1;XDYNAMIC=1;EXTCOLINFO=0;CMT=0;ALLOWUNSCHAR=1", dnsName, userString, pwdString)
 }
 
 // ------------------------------------------------------------

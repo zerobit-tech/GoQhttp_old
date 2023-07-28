@@ -38,7 +38,7 @@ Add new Server
         </div> -->
 
         <div class="form-group">
-            <label for="serverip">Server IP</label>
+            <label for="serverip">Server IP or DSN</label>
 
             <input id="serverip" value='{{.Form.IP}}'
                 class="form-control  {{with .Form.FieldErrors.ip}} is-invalid {{end}}" type="text" name="ip"
@@ -70,7 +70,11 @@ Add new Server
 
             <input id="serveruser" value='{{.Form.UserName}}' type="text"
                 class="form-control  {{with .Form.FieldErrors.user_name}} is-invalid {{end}}" name="user_name" required></input>
-                <small id="serverusernameh" class="form-text text-muted">*ENV=Use from env variable in format {SERVERNAME}_USER</small>
+                <small id="serverusernameh" class="form-text text-muted">*ENV=Use from env variable in format {SERVERNAME}_USER<br />
+                    *DSN=Use UserID specified in DSN config. Not valid if using Server IP for connection<br />
+
+
+                </small>
 
             {{with .Form.FieldErrors.user_name}}
             <div class='invalid-feedback'>{{.}}</div>
@@ -83,7 +87,12 @@ Add new Server
 
             <input id="serverpassword" value='{{.Form.Password}}' type="password"
                 class="form-control  {{with .Form.FieldErrors.password}} is-invalid {{end}}" name="password"></input>
-                <small id="serverpasswordh" class="form-text text-muted">*ENV=Use from env variable in format {SERVERNAME}_PASSWORD</small>
+                <small id="serverpasswordh" class="form-text text-muted">
+                    Leave it blank if dont want to update password<br />
+                    *ENV=Use from env variable in format {SERVERNAME}_PASSWORD<br />
+                    *DSN=Use Password specified in DSN config. Not valid if using Server IP for connection<br />
+                </small>
+                 
 
             {{with .Form.FieldErrors.password}}
             <div class='invalid-feedback'>{{.}}</div>
