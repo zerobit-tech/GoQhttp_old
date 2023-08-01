@@ -201,9 +201,10 @@ Server detail
                         <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-pencil"></use>
                     </svg>
                   </a>
+                  {{if $.CurrentUser.IsSuperUser}}
                     <a class="btn btn-danger" href='/users/delete/{{.ID}}'>Delete</a>
                      
-
+                  {{end}}
 
                 </td>
 

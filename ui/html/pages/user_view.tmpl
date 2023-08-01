@@ -1,0 +1,49 @@
+{{define "title"}}
+User
+{{end}}
+
+{{define "content"}}
+
+<div class="row p-2">
+  <div class="col">
+    <div class="card ">
+      <div class="card-header">
+        <p class="h5"> Current User
+
+
+          <a class="btn btn-ghost-info float-right" 
+          data-toggle="tooltip" data-placement="bottom" title="Postman collection" 
+          href='/postman/u/{{.User.ID}}'  >   
+           <svg class="c-icon mfe-2">
+           <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-arrow-bottom"></use>
+       </svg>Postman collection</a>
+
+        </p>
+
+      </div>
+      <div class="card-body">
+
+
+
+        <div class="alert alert-secondary" role="alert">
+          Name.........: <strong>{{.User.Name}}</strong>
+          <br>
+          <br>
+          Email.........: <strong>{{.User.Email}}</strong>
+
+        </div>
+        {{if .User.Token}}
+        <div class="alert alert-secondary" role="alert">
+
+          API Auth token.........: <strong>{{.User.Token}}</strong>
+
+        </div>
+        {{end}}
+
+
+
+      </div>
+    </div>
+  </div>
+</div>
+{{end}}

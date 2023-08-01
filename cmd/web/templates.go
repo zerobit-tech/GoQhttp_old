@@ -80,6 +80,8 @@ type templateData struct {
 	GraphData map[int][]*GraphStruc
 
 	Features *featureflags.Features
+
+	LoginMessage []string
 }
 
 func ListComparisonOperators() []string {
@@ -116,6 +118,8 @@ func (app *application) newTemplateData(r *http.Request) *templateData {
 		Version:             app.version,
 		Features:            app.features,
 		ServerTypes:         []string{"IBM I"},
+
+		LoginMessage: app.features.LoginMessages,
 	}
 	user, err := app.GetUser(r)
 	if err == nil {

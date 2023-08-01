@@ -76,8 +76,8 @@ func (app *application) RedirectToHTTPS(next http.Handler) http.Handler {
 		//log.Println("starte", u.String(), "::", r.URL.Scheme, r.TLS, r.Host, r.RequestURI, "::", r.Header.Get(xForwardedProtoHeader))
 		if r.Header.Get(xForwardedProtoHeader) != "https" {
 
-			//log.Println(":::::::: REDIRECTING :::::::::")
 			sslUrl := "https://" + r.Host + r.RequestURI
+			log.Println(":::::::: REDIRECTING :::::::::", sslUrl)
 			http.Redirect(w, r, sslUrl, http.StatusMovedPermanently)
 			return
 		}

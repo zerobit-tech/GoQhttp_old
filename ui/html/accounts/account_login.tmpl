@@ -6,68 +6,153 @@ Login
 
 
 
-
+{{if .LoginMessage}}
 <div class="card p-4" style="opacity: 80%">
     <div class="card-body">
+        <div class="row">
+            <div class="col col-lg-6">
+                <h1>#QHttp</h1>
+                <p class="text-muted"> Sign In to your account </p>
+                {{template "messages" .}}
 
 
-        <h1>#QHttp</h1>
-        <p class="text-muted"> Sign In to your account </p>
-        {{template "messages" .}}
-   
-
-        <form action='/user/login' method='POST' novalidate>
-            <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
-
-            <!-- Notice that here we are looping over the NonFieldErrors and displaying
-    them, if any exist -->
+                <form action='/user/login' method='POST' novalidate>
+                    <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+ 
 
 
-            <div class="input-group mb-3">
-                <div class="input-group-prepend"><span class="input-group-text">
-                        <svg class="c-icon">
-                            <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-envelope-closed"></use>
-                        </svg></span></div>
-                <input class="form-control {{with .Form.FieldErrors.email}} is-invalid {{end}}" name="email" required
-                    maxlength="150" id="id_login" type="email" value='{{.Form.Email}}' placeholder="Email">
+                    <div class="input-group mb-3">
+                        <div class="input-group-prepend"><span class="input-group-text">
+                                <svg class="c-icon">
+                                    <use
+                                        xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-envelope-closed">
+                                    </use>
+                                </svg></span></div>
+                        <input class="form-control {{with .Form.FieldErrors.email}} is-invalid {{end}}" name="email"
+                            required maxlength="150" id="id_login" type="email" value='{{.Form.Email}}'
+                            placeholder="Email">
 
-                {{with .Form.FieldErrors.email}}
-                <div class='invalid-feedback'>{{.}}</div>
+                        {{with .Form.FieldErrors.email}}
+                        <div class='invalid-feedback'>{{.}}</div>
+                        {{end}}
+                    </div>
+
+
+                    <div class="input-group mb-4">
+                        <div class="input-group-prepend"><span class="input-group-text">
+                                <svg class="c-icon">
+                                    <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-lock-locked">
+                                    </use>
+                                </svg></span></div>
+                        <input class="form-control" name="password" id="id_password" type="password" required
+                            placeholder="Password">
+
+                        {{with .Form.FieldErrors.email}}
+                        <div class='invalid-feedback'>{{.}}</div>
+                        {{end}}
+                    </div>
+
+
+
+
+
+
+                    <div class="row">
+                        <div class="col-6">
+                            <button type="submit" id="login_button" class="btn btn-primary px-4 c-loading-button"
+                                data-coreui="loading-button" data-timeout="500" data-progress="true"> Sign In </button>
+                        </div>
+
+
+
+
+                    </div>
+                </form>
+
+            </div>
+          
+            <div class=" col-lg-6">
+                <br />
+
+                {{range .LoginMessage}}
+                <p>{{.}}</p>
+
                 {{end}}
+
+
             </div>
+           
+        </div>
 
 
-            <div class="input-group mb-4">
-                <div class="input-group-prepend"><span class="input-group-text">
-                        <svg class="c-icon">
-                            <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-lock-locked">
-                            </use>
-                        </svg></span></div>
-                <input class="form-control" name="password" id="id_password" type="password" required
-                    placeholder="Password">
+    </div>
+</div>
+{{else}}
+<div class="card p-4" style="opacity: 80%">
+    <div class="card-body">
+        <div class="row">
+            <div class="col">
+                <h1>#QHttp</h1>
+                <p class="text-muted"> Sign In to your account </p>
+                {{template "messages" .}}
 
-                {{with .Form.FieldErrors.email}}
-                <div class='invalid-feedback'>{{.}}</div>
-                {{end}}
+
+                <form action='/user/login' method='POST' novalidate>
+                    <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+ 
+
+
+                    <div class="input-group mb-3">
+                        <div class="input-group-prepend"><span class="input-group-text">
+                                <svg class="c-icon">
+                                    <use
+                                        xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-envelope-closed">
+                                    </use>
+                                </svg></span></div>
+                        <input class="form-control {{with .Form.FieldErrors.email}} is-invalid {{end}}" name="email"
+                            required maxlength="150" id="id_login" type="email" value='{{.Form.Email}}'
+                            placeholder="Email">
+
+                        {{with .Form.FieldErrors.email}}
+                        <div class='invalid-feedback'>{{.}}</div>
+                        {{end}}
+                    </div>
+
+
+                    <div class="input-group mb-4">
+                        <div class="input-group-prepend"><span class="input-group-text">
+                                <svg class="c-icon">
+                                    <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-lock-locked">
+                                    </use>
+                                </svg></span></div>
+                        <input class="form-control" name="password" id="id_password" type="password" required
+                            placeholder="Password">
+
+                        {{with .Form.FieldErrors.email}}
+                        <div class='invalid-feedback'>{{.}}</div>
+                        {{end}}
+                    </div>
+
+
+
+
+
+
+                    <div class="row">
+                        <div class="col-6">
+                            <button type="submit" id="login_button" class="btn btn-primary px-4 c-loading-button"
+                                data-coreui="loading-button" data-timeout="500" data-progress="true"> Sign In </button>
+                        </div>
+
+
+
+
+                    </div>
+                </form>
+
             </div>
-
-
-
-
-
-
-            <div class="row">
-                <div class="col-6">
-                    <button type="submit" id="login_button" class="btn btn-primary px-4 c-loading-button"
-                        data-coreui="loading-button" data-timeout="500" data-progress="true"> Sign In </button>
-                </div>
-
-
-                 
-
-                <!-- <div class="col-6 text-right">
-                    <a class="btn btn-link px-0" href="/user/signup" type="button">Sign up </a> | <a class="btn btn-link px-0" href="/user/trouble" type="button"> Trouble? </a>
-                </div> -->
-            </div>
-        </form>
-        {{end}}
+        </div>
+    </div>
+</div>
+{{end}}
+{{end}}

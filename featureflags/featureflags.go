@@ -8,6 +8,9 @@ type Features struct {
 	MaxAllowedServers   int
 	MaxAllowedEndPoints int
 	AllowedServerTypes  []string
+	LoginMessages       []string
+	AdminEmail          string
+	AdminPassword       string
 }
 
 // --------------------------------------------------------------
@@ -32,6 +35,9 @@ func AllowALL() *Features {
 		MaxAllowedServers:   0,
 		MaxAllowedEndPoints: 0,
 		AllowedServerTypes:  make([]string, 0),
+		LoginMessages:       make([]string, 0),
+		AdminEmail:          "",
+		AdminPassword:       "",
 	}
 }
 
@@ -40,15 +46,16 @@ func AllowALL() *Features {
 // --------------------------------------------------------------
 func Demo() *Features {
 
-	return &Features{
-		Dashboard:           true,
-		AllowPromotion:      false,
-		AllowTokenSync:      false,
-		AllowParameterAlias: false,
-		MaxAllowedServers:   5,
-		MaxAllowedEndPoints: 20,
-		AllowedServerTypes:  []string{"IBM I"},
-	}
+	fset := AllowALL()
+
+	fset.AllowPromotion = false
+	fset.AllowTokenSync = false
+	fset.AllowParameterAlias = false
+	fset.MaxAllowedServers = 5
+	fset.MaxAllowedEndPoints = 20
+	fset.AllowedServerTypes = []string{"IBM I"}
+
+	return fset
 }
 
 // --------------------------------------------------------------
@@ -60,9 +67,24 @@ func Pub400() *Features {
 		Dashboard:           true,
 		AllowPromotion:      false,
 		AllowTokenSync:      false,
-		AllowParameterAlias: false,
+		AllowParameterAlias: true,
 		MaxAllowedServers:   1,
-		MaxAllowedEndPoints: 0,
+		MaxAllowedEndPoints: -1,
 		AllowedServerTypes:  []string{"IBM I"},
+		AdminEmail:          "admin2@example.com",
+		AdminPassword:       "SaveAdmin#2023",
+
+
+
+		LoginMessages: []string{
+			"Thanks to Pub400.com",
+			"Please be respectful to other users.",
+			"This is a Demo app \nand depends on Pub400.com \navailbility and speed.",
+
+			"\n\nLogin Email: demo@example.com",
+			"Password: demopass",
+
+			"\n\nFor support email to: support@zerobit.tech",
+		},
 	}
 }

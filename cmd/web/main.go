@@ -14,6 +14,7 @@ import (
 	"github.com/onlysumitg/GoQhttp/internal/models"
 	"github.com/onlysumitg/GoQhttp/utils/concurrent"
 	bolt "go.etcd.io/bbolt"
+	"golang.org/x/crypto/acme/autocert"
 )
 
 var FeatureSet string = "ALL"
@@ -31,41 +32,7 @@ func main() {
 	})
 
 	log.Println("Initializing....")
-
-	err := os.MkdirAll("./db", os.ModePerm)
-	if err != nil {
-		log.Fatal(err)
-	}
-	err = os.MkdirAll("./env", os.ModePerm)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	myfile, e := os.OpenFile("./env/.env", os.O_RDWR|os.O_CREATE, 0666)
-	if e != nil {
-		log.Fatal(e)
-	}
-	myfile.Close()
-
-	err = os.MkdirAll("./lic", os.ModePerm)
-	if err != nil {
-		log.Fatal(err)
-	}
-	err = os.MkdirAll("./cert", os.ModePerm)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// go run ./cmd/web -port=4002 -host="localhost"
-	// go run ./cmd/web -h  ==> help text
-	// default value for addr => ":4000"
-
-	// using single var
-	// addr := flag.String("addr", ":4000", "HTTP work addess")
-	// fmt.Printf("\nStarting servers at port %s", *addr)
-	// err := http.ListenAndServe(*addr, getTestRoutes())
-
-	//using struct
+	createInitialFolders()
 
 	//--------------------------------------- Setup CLI paramters ----------------------------
 	params := &cliparams.Parameters{}
@@ -122,8 +89,8 @@ func main() {
 
 	//  --------------------------------------- Data clean up job----------------------------
 	go app.clearLogsSchedular(db) //goroutine
-	go app.promotionsSchedule() //goroutine
-	go app.pingServerSchedule() //goroutine
+	go app.promotionsSchedule()   //goroutine
+	go app.pingServerSchedule()   //goroutine
 
 	//--------------------------------------- Create super user ----------------------------
 	go app.CreateSuperUser(params.Superuseremail, params.Superuserpwd) //goroutine
@@ -137,17 +104,24 @@ func main() {
 	log.Printf("QHttp is live at  %s \n", hostUrl)
 
 	// go openbrowser(url)
-	//if params.https {
+	if params.Https {
 
-	// Construct a tls.config
-	//tlsConfig := app.getCertificateToUse()
-	app.mainAppServer.TLSConfig = app.getCertificateToUse()
-	err = app.mainAppServer.ListenAndServeTLS("", "")
+		// Construct a tls.config
+		//tlsConfig := app.getCertificateToUse()
+		var m *autocert.Manager
+		app.mainAppServer.TLSConfig, m = app.getCertificateAndManager()
 
-	// } else {
-	// 	err = server.ListenAndServe()
+		// lets encrypt need port 80 to run verification
+		if app.useletsencrypt {
+			go concurrent.RecoverAndRestart(10, "http server", func() { http.ListenAndServe(":http", m.HTTPHandler(nil)) })
+		}
 
-	// }
+		err = app.mainAppServer.ListenAndServeTLS("", "")
+
+	} else {
+		err = app.mainAppServer.ListenAndServe()
+
+	}
 	if err != nil {
 		log.Println(err)
 	}
@@ -155,6 +129,33 @@ func main() {
 	<-app.shutDownChan
 	// mux := http.NewServeMux()
 	// mux.Handle("/", http.HandlerFunc(home))
+
+}
+
+func createInitialFolders() {
+	err := os.MkdirAll("./db", os.ModePerm)
+	if err != nil {
+		log.Fatal(err)
+	}
+	err = os.MkdirAll("./env", os.ModePerm)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	myfile, e := os.OpenFile("./env/.env", os.O_RDWR|os.O_CREATE, 0666)
+	if e != nil {
+		log.Fatal(e)
+	}
+	myfile.Close()
+
+	err = os.MkdirAll("./lic", os.ModePerm)
+	if err != nil {
+		log.Fatal(err)
+	}
+	err = os.MkdirAll("./cert", os.ModePerm)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 }
 

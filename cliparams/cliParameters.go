@@ -26,6 +26,7 @@ type Parameters struct {
 	ValidateSetup  bool
 
 	Featureset string
+	Https      bool
 
 	//staticDir string
 	//flag      bool
@@ -42,6 +43,9 @@ func (p *Parameters) GetHttpAddress() (string, string) {
 	}
 
 	protocol := "https://"
+	if !p.Https {
+		protocol = "http://"
+	}
 
 	//if p.domain == "localhost" || p.domain == "0.0.0.0" {
 	domain := p.Domain
@@ -86,6 +90,8 @@ func (params *Parameters) Load() {
 
 	flag.BoolVar(&params.Useletsencrypt, "useletsencrypt", false, "Use let's encrypt ssl certificate")
 	flag.BoolVar(&params.ValidateSetup, "validate", false, "Validate os setup")
+
+	flag.BoolVar(&params.Https, "https", true, "Use https [default true]")
 
 	domain := "0.0.0.0"
 	if runtime.GOOS == "windows" {

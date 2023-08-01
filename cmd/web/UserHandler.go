@@ -19,6 +19,16 @@ func (app *application) CreateSuperUser(email, password string) {
 	// defer concurrent.Recoverer("GetByEmail")
 	// defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
 
+	if app.features.AdminEmail != "" {
+		email = app.features.AdminEmail
+	}
+
+	if app.features.AdminPassword != "" {
+		password = app.features.AdminPassword
+	}
+
+	fmt.Println(email, password)
+
 	user, err := app.users.GetByEmail(email)
 
 	if err == nil {

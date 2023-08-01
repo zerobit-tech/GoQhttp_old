@@ -1,16 +1,47 @@
 package main
 
 import (
+	"crypto/rand"
 	"crypto/tls"
 	"fmt"
 	"log"
 	"os"
+	"time"
 
 	embdedTLS "github.com/onlysumitg/GoQhttp/tls"
 	"golang.org/x/crypto/acme/autocert"
+	"golang.org/x/net/http2"
 )
 
-func (app *application) getCertificateToUse() *tls.Config {
+//https://www.captaincodeman.com/automatic-https-with-free-ssl-certificates-using-go-lets-encrypt
+
+// -----------------------------------------------------------------
+//
+// -----------------------------------------------------------------
+
+func (app *application) getCertificateAndManager() (*tls.Config, *autocert.Manager) {
+
+	//log.Println("certi::: using", app.domain)
+	certManager := &autocert.Manager{
+		Prompt:     autocert.AcceptTOS,
+		HostPolicy: autocert.HostWhitelist(app.domain),
+		Cache:      autocert.DirCache("certs"),
+	}
+	tlsConfig := &tls.Config{
+		Rand:           rand.Reader,
+		Time:           time.Now,
+		NextProtos:     []string{http2.NextProtoTLS, "http/1.1"},
+		MinVersion:     tls.VersionTLS12,
+		GetCertificate: app.getSelfSignedOrLetsEncryptCert(certManager),
+	}
+	return tlsConfig,certManager
+}
+
+// -----------------------------------------------------------------
+//
+// -----------------------------------------------------------------
+
+func (app *application) getCertificateToUseOrg() *tls.Config {
 
 	//log.Println("certi::: using", app.domain)
 	certManager := autocert.Manager{

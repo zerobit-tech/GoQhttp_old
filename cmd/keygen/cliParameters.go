@@ -45,7 +45,7 @@ func (p *parameters) Validate() error {
 func (params *parameters) Load() {
 	flag.StringVar(&params.client, "client", "", "Client Name")
 	flag.StringVar(&params.email, "email", "", "Client Email")
-	flag.IntVar(&params.days, "daya", 365, "Expiry days")
+	flag.IntVar(&params.days, "days", 365, "Expiry days")
 	flag.BoolVar(&params.checkemail, "checkemail", false, "Start checking emails.")
 
 	flag.Parse()
