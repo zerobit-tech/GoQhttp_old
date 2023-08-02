@@ -97,6 +97,8 @@ type application struct {
 	// shutDownStart   context.CancelFunc
 
 	features *featureflags.Features
+
+	//SystemLoggerChan chan *logger.LogEvent
 }
 
 // -------------------------------------------------------------------------
@@ -167,6 +169,8 @@ func baseAppConfig(params cliparams.Parameters, db *bolt.DB, userdb *bolt.DB, lo
 		// shutDownStart:   startShutdown,
 
 		debugMode: env.IsInDebugMode(),
+
+		//SystemLoggerChan:  make(chan *logger.LogEvent,),
 	}
 
 	if app.debugMode {

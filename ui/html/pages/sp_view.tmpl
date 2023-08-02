@@ -43,12 +43,20 @@ Endpoint
                                 {{if .StoredProc.AllowWithoutAuth}}
                                 <tr>
                                     <th class="text-danger" scope="row">URL without Auth</th>
-                                    <td class="text-danger" >{{$.HostUrl}}/{{.StoredProc.MockUrlWithoutAuth}}</td>
+                                    <td class="text-danger" >
+                                        <span class="copyclip" data-clipboard-text="{{$.HostUrl}}/{{.StoredProc.MockUrlWithoutAuth}}">
+                                            {{$.HostUrl}}/{{.StoredProc.MockUrlWithoutAuth}}
+                                        </span></td>
                                 </tr>
                                 {{end}}
                                 <tr>
                                     <th scope="row">URL</th>
-                                    <td>{{$.HostUrl}}/{{.StoredProc.MockUrl}}</td>
+                                    <td>
+                                        <span class="copyclip" data-clipboard-text="{{$.HostUrl}}/{{.StoredProc.MockUrl}}">
+                                        {{$.HostUrl}}/{{.StoredProc.MockUrl}}
+                                    </span>
+                                    
+                                    </td>
                                 </tr>
                                 <tr>
                                     <th scope="row">Payload</th>
@@ -333,4 +341,29 @@ Endpoint
 {{end}}
 
 
- 
+{{block "aftercontent" .}}
+<script>
+  var clipboard = new ClipboardJS('.copyclip');
+
+
+clipboard.on('success', function(e) {
+  
+
+    Swal.fire({
+      position: 'top-end',
+      icon: "success",
+      text: "Copied to clipboard",
+      showConfirmButton: false,
+      timer: 2000,
+      showCloseButton: true
+    })
+
+    e.clearSelection();
+});
+
+clipboard.on('error', function(e) {
+    console.error('Action:', e.action);
+    console.error('Trigger:', e.trigger);
+});
+</script>
+{{end}}

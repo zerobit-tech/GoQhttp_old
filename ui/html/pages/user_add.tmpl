@@ -144,7 +144,8 @@
             </div>
             <div class="card-body">
                 {{if .Form.Token}}
-                <p>{{.Form.Token}}</p>
+                <p>
+                    <strong><span class="copyclip" data-clipboard-text="{{.Form.Token}}">{{.Form.Token}}</span></strong></p>
                 {{end}}
         
      
@@ -156,4 +157,32 @@
     {{end}}
 
 </div>
+{{end}}
+
+
+{{block "aftercontent" .}}
+<script>
+  var clipboard = new ClipboardJS('.copyclip');
+
+
+clipboard.on('success', function(e) {
+  
+
+    Swal.fire({
+      position: 'top-end',
+      icon: "success",
+      text: "Copied to clipboard",
+      showConfirmButton: false,
+      timer: 2000,
+      showCloseButton: true
+    })
+
+    e.clearSelection();
+});
+
+clipboard.on('error', function(e) {
+    console.error('Action:', e.action);
+    console.error('Trigger:', e.trigger);
+});
+</script>
 {{end}}

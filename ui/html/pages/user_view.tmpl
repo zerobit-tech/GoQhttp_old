@@ -35,7 +35,7 @@ User
         {{if .User.Token}}
         <div class="alert alert-secondary" role="alert">
 
-          API Auth token.........: <strong>{{.User.Token}}</strong>
+          API Auth token.........: <strong><span class="copyclip" data-clipboard-text="{{.User.Token}}">{{.User.Token}}</span></strong>
 
         </div>
         {{end}}
@@ -46,4 +46,33 @@ User
     </div>
   </div>
 </div>
+{{end}}
+
+
+
+{{block "aftercontent" .}}
+<script>
+  var clipboard = new ClipboardJS('.copyclip');
+
+
+clipboard.on('success', function(e) {
+  
+
+    Swal.fire({
+      position: 'top-end',
+      icon: "success",
+      text: "Copied to clipboard",
+      showConfirmButton: false,
+      timer: 2000,
+      showCloseButton: true
+    })
+
+    e.clearSelection();
+});
+
+clipboard.on('error', function(e) {
+    console.error('Action:', e.action);
+    console.error('Trigger:', e.trigger);
+});
+</script>
 {{end}}

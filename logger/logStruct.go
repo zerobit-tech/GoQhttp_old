@@ -20,6 +20,9 @@ var TimestampFormat2 string = "2006-01-02 15:04:05"
 // var RequestLog *log.Logger = log.New(os.Stderr, "Request\t", log.Ldate|log.Ltime)
 // var ResponseLog *log.Logger = log.New(os.Stderr, "Response\t", log.Ldate|log.Ltime)
 
+
+// TODO move to app level
+
 var LoggerChan chan *LogEvent = make(chan *LogEvent, 5000)
 
 // ----------------------------------------------------------------------------------
