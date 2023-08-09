@@ -10,8 +10,8 @@ EndPoints
     <div class="card ">
       <div class="card-header">
         <p class="h5">Endpoints 
-          <a class="btn btn-ghost-info float-right" href="/sp/add">+Add</a>
-          <a class="btn btn-ghost-info float-right" href="/sp/help">Help</a>
+          <a hx-boost="true" hx-push-url="true"  class="btn btn-ghost-info float-right" href="/sp/add">+Add</a>
+          <a hx-boost="true" hx-push-url="true"  class="btn btn-ghost-info float-right" href="/sp/help">Help</a>
 
         </p>
        
@@ -40,7 +40,7 @@ EndPoints
       <td>{{.Lib}}/{{.Name}}</td>
       <td>{{.SpecificLib}}/{{.SpecificName}}</td>
        <td nowrap>
-        <a class="btn btn-ghost-info" href='/sp/{{.ID}}'>
+        <a hx-boost="true" hx-push-url="true"  class="btn btn-ghost-info" href='/sp/{{.ID}}'>
         
           View</a>
 
@@ -50,7 +50,7 @@ EndPoints
           <svg class="c-icon mfe-2">
             <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-pencil"></use>
         </svg></a> -->
-        <a class="btn btn-ghost-danger" 
+        <a hx-boost="true" hx-push-url="true"  class="btn btn-ghost-danger" 
         data-toggle="tooltip" data-placement="bottom" title="Delete" 
         href='/sp/delete/{{.ID}}'>
           <svg class="c-icon mfe-2">

@@ -93,6 +93,67 @@ func (app *application) RedirectToHTTPS(next http.Handler) http.Handler {
 //	middleware
 //
 // ------------------------------------------------------
+func (app *application) RequireTokenOrSessionAuthentication(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		response := &storedProc.StoredProcResponse{ReferenceId: middleware.GetReqID(r.Context())}
+
+		token := r.Header.Get("Authorization")
+		if token == "" {
+			token = r.Header.Get("Authentication")
+
+		}
+
+		if strings.HasPrefix(token, "bearer ") {
+			token = strings.Trim(token, "bearer ")
+		}
+
+		if strings.HasPrefix(token, "Bearer ") {
+			token = strings.Trim(token, "Bearer ")
+		}
+
+		// get token from session  TEMPLATING
+		if token == "" {
+			user, err := app.GetUser(r)
+			if err == nil {
+				token = user.Token
+			}
+		}
+
+		if token == "" {
+			response.Status = http.StatusUnauthorized
+			response.Message = http.StatusText(http.StatusUnauthorized)
+			app.writeJSONAPI(w, response, nil)
+			return
+
+		}
+
+		user, err := app.users.GetByToken(token)
+		if err != nil {
+			response.Status = http.StatusUnauthorized
+			response.Message = http.StatusText(http.StatusUnauthorized)
+			app.writeJSONAPI(w, response, nil)
+			return
+		}
+
+		ctx := context.WithValue(r.Context(), models.ContextUserKey, user.ID)
+		ctx = context.WithValue(ctx, models.ContextUserName, user.Name)
+
+		// Otherwise set the "Cache-Control: no-store" header so that pages
+		// require authentication are not stored in the users browser cache (or
+		// other intermediary cache).
+		w.Header().Add("Cache-Control", "no-store")
+		// And call the next handler in the chain.
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+
+
+// ------------------------------------------------------
+//
+//	middleware
+//
+// ------------------------------------------------------
 func (app *application) RequireTokenAuthentication(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		response := &storedProc.StoredProcResponse{ReferenceId: middleware.GetReqID(r.Context())}

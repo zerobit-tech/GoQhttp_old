@@ -18,7 +18,7 @@ Users
             <tr>
                 <th>Email</th>
                 <th>Name</th>
-                <th>Created</th>
+                <th>Server</th>
                 <th>Super User</th>
                 <th>Staff</th>
 
@@ -36,7 +36,7 @@ Users
                 <td>{{.Email}}   </td>
 
                 <td>{{.Name}} </td>
-                <td>{{.Created }} </td>
+                <td>{{.ServerId |servername}} </td>
                 <td>{{.IsSuperUser | yesNo}} </td>
                 <td>{{.IsStaff | yesNo}} </td>
 

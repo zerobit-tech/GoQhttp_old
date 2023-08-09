@@ -141,10 +141,10 @@ func (c *BaseColumn) TypeScan() reflect.Type {
 		return reflect.TypeOf(int64(0))
 	case api.SQL_C_DOUBLE:
 		return reflect.TypeOf(float64(0.0))
-	case api.SQL_C_CHAR, api.SQL_C_WCHAR:
-		if c.SType == api.SQL_DECFLOAT {
-			return reflect.TypeOf(float64(0.0))
-		}
+	case api.SQL_C_CHAR, api.SQL_C_WCHAR, api.SQL_VARCHAR:
+		// if c.SType == api.SQL_DECFLOAT {
+		// 	return reflect.TypeOf(float64(0.0))
+		// }
 		return reflect.TypeOf(string(""))
 	case api.SQL_C_TYPE_DATE, api.SQL_C_TYPE_TIME, api.SQL_C_TYPE_TIMESTAMP:
 		return reflect.TypeOf(time.Time{})

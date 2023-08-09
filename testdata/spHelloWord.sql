@@ -2,7 +2,7 @@ CREATE OR REPLACE PROCEDURE SUMITG1.HelloWorld (
                 IN Name CHAR(10) DEFAULT '',
               
          
-                OUT Message CLOB
+                OUT Message char(200)
             )
         LANGUAGE SQL
         SPECIFIC SUMITG1.HelloWorld
@@ -12,7 +12,7 @@ CREATE OR REPLACE PROCEDURE SUMITG1.HelloWorld (
         CALLED ON NULL INPUT
 PROCBODY : BEGIN
  
-SET Message = 'Hello ' || Name || ' ' || 'Welcome to QHTTP';
+SET Message = 'Hello ' || trim(Name) || '.' || 'Welcome to QHTTP.';
  
 
  

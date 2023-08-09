@@ -47,6 +47,8 @@ Add
             <OPTION {{if eq .Form.HttpMethod "POST" }}selected{{end}} value="POST">POST</OPTION>
             <OPTION {{if eq .Form.HttpMethod "GET" }}selected{{end}} value="GET">GET</OPTION>
             <OPTION {{if eq .Form.HttpMethod "PUT" }}selected{{end}} value="PUT">PUT</OPTION>
+            <OPTION {{if eq .Form.HttpMethod "PATCH" }}selected{{end}} value="PATCH">PATCH</OPTION>
+
             <OPTION {{if eq .Form.HttpMethod "DELETE" }}selected{{end}} value="DELETE">DELETE
             </OPTION>
         </SELECT>
@@ -59,7 +61,7 @@ Add
 
     </div>
 
-            <div class="form-group">
+        <div class="form-group">
                 <label for="defaultserver">Default Server</label>
             <SELECT id="defaultserver" class="form-control" name="serverid">
                 <OPTION value="">Default Server</OPTION>
@@ -122,7 +124,37 @@ Add
     
 
 
-       
+       {{if .Features.AllowHtmlTemplates}}
+      <div class="form-group">
+        <label for="htmltemplate">Html Template</label>
+    <SELECT id="htmltemplate" class="form-control" name="htmltemplate">
+        <OPTION value="">None</OPTION>
+
+        {{if .SpTemplates}}
+        {{range .SpTemplates}}
+        <OPTION 
+
+        {{if $.Form.HtmlTemplate}}
+        {{if eq . $.Form.HtmlTemplate}} selected {{end}} 
+        {{end}}
+        value="{{.}}">
+            
+            {{.}}
+        </OPTION>
+        {{end}}
+        {{end}}
+    </SELECT>
+
+    <small id="htmltemplateh" class="form-text text-muted">If want to return HTML in place of JSON<br> 
+    </small>
+
+    {{with .Form.FieldErrors.htmltemplate}}
+
+    <div class='invalid-feedback-error'>{{.}}</div>
+    {{end}}
+</div>
+
+    {{end}}
 
      
 

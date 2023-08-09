@@ -63,3 +63,16 @@ func GetServerUserName(serverName string) string {
 	u := GetEnvVariable(envVarName, "")
 	return u
 }
+
+// ----------------------------------------------------------------
+//
+// ----------------------------------------------------------------
+func AllowHtmlTemplates() bool {
+	debugS := strings.TrimSpace(strings.ToUpper(GetEnvVariable("ALLOWHTMLTEMPLATES", "FALSE")))
+
+	if debugS == "TRUE" || debugS == "YES" || debugS == "Y" {
+		return true
+	}
+
+	return false
+}

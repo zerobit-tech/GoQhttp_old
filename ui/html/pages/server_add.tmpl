@@ -49,6 +49,11 @@ Add new Server
             <input id="serverip" value='{{.Form.IP}}'
                 class="form-control  {{with .Form.FieldErrors.ip}} is-invalid {{end}}" type="text" name="ip"
                 required></input>
+
+                <small id="serverpasswordh" class="form-text text-muted">
+                    To use DSN use: *DSN:{dsn_name}
+                </small>
+
             {{with .Form.FieldErrors.ip}}
             <div class='invalid-feedback'>{{.}}</div>
             {{end}}

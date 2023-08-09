@@ -64,8 +64,15 @@ func main() {
 	}
 	defer logdb.Close()
 
+	// --------------------------------------- Setup database ----------------------------
+	systemlogdb, err := bolt.Open("db/systemlog.db", 0600, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer logdb.Close()
+
 	// --------------------------------------- Setup app config and dependency injection ----------------------------
-	app := baseAppConfig(*params, db, userdb, logdb)
+	app := baseAppConfig(*params, db, userdb, logdb,systemlogdb)
 	routes := app.routes()
 	app.batches()
 
@@ -75,6 +82,7 @@ func main() {
 	go concurrent.RecoverAndRestart(10, "CaptureGraphData", app.CaptureGraphData)   //goroutine
 
 	go concurrent.RecoverAndRestart(10, "spCallLogModel:AddLogid", app.spCallLogModel.AddLogid) //goroutine
+	go concurrent.RecoverAndRestart(10, "systemlogger", app.SystemLogger)                       //goroutine
 
 	addr, hostUrl := params.GetHttpAddress()
 
@@ -153,6 +161,11 @@ func createInitialFolders() {
 		log.Fatal(err)
 	}
 	err = os.MkdirAll("./cert", os.ModePerm)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = os.MkdirAll("./templates", os.ModePerm)
 	if err != nil {
 		log.Fatal(err)
 	}

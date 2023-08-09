@@ -14,7 +14,7 @@ Server detail
              {{if .CurrentUser.IsSuperUser}}
                          <a class="btn btn-ghost-info float-right" href="/servers/clearcache/{{.Server.ID}}">Clear Cache</a>
                          {{if .Features.AllowPromotion}}
-                         <a class="btn btn-ghost-info float-right" href="/servers/listprom/{{.Server.ID}}">Promotions</a>
+                         <a hx-boost="true" hx-push-url="true"  class="btn btn-ghost-info float-right" href="/servers/listprom/{{.Server.ID}}">Promotions</a>
                          {{end}}
                          {{if .Features.AllowTokenSync}}
                          <a class="btn btn-ghost-info float-right" href="/servers/syncusertoken/{{.Server.ID}}">Sync User tokens</a>
@@ -80,7 +80,7 @@ Server detail
     </tbody>
 </table>
 
-<a class="btn btn-primary " href="/servers">Back to Server list</a>
+<a hx-boost="true" hx-push-url="true"  class="btn btn-primary " href="/servers">Back to Server list</a>
 
  
 </div>

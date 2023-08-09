@@ -34,13 +34,42 @@ func (app *application) APIHandlers(router *chi.Mux) {
 		r.Get("/", app.GET)
 		r.Post("/", app.POST)
 		r.Put("/", app.POST)
-		r.Delete("/", app.POST)
+		r.Delete("/", app.GET)
+		r.Patch("/", app.POST)
 
 		r.Get("/*", app.GET)
 		r.Post("/*", app.POST)
 		r.Put("/*", app.POST)
-		r.Delete("/*", app.POST)
+		r.Delete("/*", app.GET)
+		r.Patch("/*", app.POST)
 	})
+
+	// only allowed from html templats
+	if app.allowHtmlTemplates() {
+		// endpoints with HTML templates
+		router.Route("/tapi/{apiname}", func(r chi.Router) {
+			r.Use(app.TimeTook)
+			r.Use(app.sessionManager.LoadAndSave)
+			r.Use(app.LogHandler)
+			r.Use(app.RequireAuthenticationForTemplatedAPI)
+
+			r.Use(app.RequireTokenOrSessionAuthentication) // todo check if need both
+
+			//	r.Use(app.RequireTemplatedEndPoint)
+
+			r.Get("/", app.GET)
+			r.Post("/", app.POST)
+			r.Put("/", app.POST)
+			r.Delete("/", app.GET)
+			r.Patch("/", app.POST)
+
+			r.Get("/*", app.GET)
+			r.Post("/*", app.POST)
+			r.Put("/*", app.POST)
+			r.Delete("/*", app.GET)
+			r.Patch("/*", app.POST)
+		})
+	}
 
 	// for unauthorized end points
 	router.Route("/uapi/{apiname}", func(r chi.Router) {
@@ -48,15 +77,19 @@ func (app *application) APIHandlers(router *chi.Mux) {
 		r.Use(app.TimeTook)
 		r.Use(app.LogHandler)
 		r.Use(app.RequireUnAuthEndPoint)
+
 		r.Get("/", app.GET)
 		r.Post("/", app.POST)
 		r.Put("/", app.POST)
-		r.Delete("/", app.POST)
+		r.Delete("/", app.GET)
+		r.Patch("/", app.POST)
 
 		r.Get("/*", app.GET)
 		r.Post("/*", app.POST)
 		r.Put("/*", app.POST)
-		r.Delete("/*", app.POST)
+		r.Delete("/*", app.GET)
+		r.Patch("/*", app.POST)
+
 	})
 
 }
@@ -74,6 +107,29 @@ func (app *application) RequireUnAuthEndPoint(next http.Handler) http.Handler {
 		endPoint, err := app.GetEndPoint(fmt.Sprintf("%s_%s", strings.ToUpper(endpointName), strings.ToUpper(r.Method)))
 
 		if err != nil || !endPoint.AllowWithoutAuth {
+			response.Status = http.StatusNotFound
+			response.Message = http.StatusText(http.StatusNotFound)
+			app.writeJSONAPI(w, response, nil)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
+
+// ------------------------------------------------------
+//
+//	middleware
+//
+// ------------------------------------------------------
+func (app *application) RequireTemplatedEndPoint(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		response := &storedProc.StoredProcResponse{ReferenceId: middleware.GetReqID(r.Context())}
+
+		endpointName, _ := app.GetPathParameters(r)
+		endPoint, err := app.GetEndPoint(fmt.Sprintf("%s_%s", strings.ToUpper(endpointName), strings.ToUpper(r.Method)))
+
+		if err != nil || endPoint.HtmlTemplate == "" {
 			response.Status = http.StatusNotFound
 			response.Message = http.StatusText(http.StatusNotFound)
 			app.writeJSONAPI(w, response, nil)
@@ -207,18 +263,32 @@ func (app *application) POST(w http.ResponseWriter, r *http.Request) {
 
 	requestBodyMap := make(map[string]any)
 
-	// //need to handle xml body
+	formData := false
 
-	decoder := json.NewDecoder(r.Body)
-	err := decoder.Decode(&requestBodyMap)
-	switch {
-	case err == io.EOF:
-		// empty body
-	case err != nil:
-		response.Status = http.StatusBadRequest
-		response.Message = err.Error()
-		app.writeJSONAPI(w, response, nil)
-		return
+	//parse form data for html templates
+	if app.allowHtmlTemplates() && httputils.HasFormData(r) {
+		formMap, err := httputils.FormToJson(r)
+		if err == nil {
+			formData = true
+			requestBodyMap = formMap
+		}
+
+	}
+
+	if !formData {
+
+		decoder := json.NewDecoder(r.Body)
+		err := decoder.Decode(&requestBodyMap)
+		switch {
+		case err == io.EOF:
+			// empty body
+		case err != nil:
+			response.Status = http.StatusBadRequest
+			response.Message = err.Error()
+			app.writeJSONAPI(w, response, nil)
+			return
+
+		}
 
 	}
 
@@ -348,7 +418,17 @@ func (app *application) ProcessAPICall(w http.ResponseWriter, r *http.Request, e
 	// //app.writeJSON(w, apiCall.ResponseCode, apiCall.Response, apiCall.GetHttpHeader())
 	// //app.writeJSON(w, apiCall.ResponseCode, apiCall.Response, apiCall.GetHttpHeader())
 
-	app.writeJSON(w, apiCall.StatusCode, apiCall.Response, nil)
+	if app.allowHtmlTemplates() && endPoint.HtmlTemplate != "" {
+		templateData := map[string]any{
+			"response": apiCall.Response,
+			"request":  apiCall.RequestFlatMap,
+		}
+
+		app.spRender(w, r, apiCall.StatusCode, endPoint.HtmlTemplate, templateData) //apiCall.Response)
+	} else {
+
+		app.writeJSON(w, apiCall.StatusCode, apiCall.Response, nil)
+	}
 
 	// save SP logid
 	//goroutine

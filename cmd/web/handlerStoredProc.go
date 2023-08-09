@@ -9,6 +9,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/onlysumitg/GoQhttp/internal/storedProc"
 	"github.com/onlysumitg/GoQhttp/internal/validator"
+	"github.com/onlysumitg/GoQhttp/utils/concurrent"
 	"github.com/onlysumitg/GoQhttp/utils/stringutils"
 )
 
@@ -125,6 +126,7 @@ func (app *application) SpRefresh(w http.ResponseWriter, r *http.Request) {
 		app.sessionManager.Put(r.Context(), "error", err.Error())
 
 	}
+	app.invalidateEndPointCache()
 
 	app.goBack(w, r, http.StatusSeeOther)
 
@@ -237,13 +239,17 @@ func (app *application) SPAddPost(w http.ResponseWriter, r *http.Request) {
 		sP.AddAllowedServer(server.ID, server.Name)
 	}
 
+	logBeforeImage := ""
+
 	// Check SP details from iBMI
 	if sP.Valid() {
 
 		if sP.ID != "" {
 			orginalSp, err := app.storedProcs.Get(sP.ID)
 			if err == nil {
+				logBeforeImage = orginalSp.LogImage()
 				sP.Parameters = orginalSp.Parameters
+
 			}
 		}
 
@@ -265,6 +271,11 @@ func (app *application) SPAddPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	logAction := "Endpoint Created"
+	if sP.ID != "" {
+		logAction = "Endpoint Modified"
+	}
+
 	id, err := app.storedProcs.Save(&sP)
 	if err != nil {
 		app.serverError500(w, r, err)
@@ -272,6 +283,16 @@ func (app *application) SPAddPost(w http.ResponseWriter, r *http.Request) {
 	}
 	app.invalidateEndPointCache()
 	app.sessionManager.Put(r.Context(), "flash", fmt.Sprintf("Endpoint %s added sucessfully", sP.Name))
+
+	go func() {
+		defer concurrent.Recoverer("SPMODIFIED")
+		logEvent := GetSystemLogEvent(app.getCurrentUserID(r), logAction, fmt.Sprintf(" %s %s,IP %s", sP.EndPointName, sP.HttpMethod, r.RemoteAddr), false)
+		logEvent.ImpactedEndpointId = id
+		logEvent.BeforeUpdate = logBeforeImage
+		logEvent.AfterUpdate = sP.LogImage()
+		app.SystemLoggerChan <- logEvent
+
+	}()
 
 	//http.Redirect(w, r, fmt.Sprintf("/savesql/%s", id), http.StatusSeeOther)
 	http.Redirect(w, r, fmt.Sprintf("/sp/%s", id), http.StatusSeeOther)
@@ -324,6 +345,14 @@ func (app *application) SPDeleteConfirm(w http.ResponseWriter, r *http.Request) 
 
 	go app.deleteSPData(spId) //goroutine
 	app.sessionManager.Put(r.Context(), "flash", "Endpoint deleted sucessfully")
+
+	go func() {
+		defer concurrent.Recoverer("SPMODIFIED")
+		logEvent := GetSystemLogEvent(app.getCurrentUserID(r), "Endpoint Deleted", fmt.Sprintf("IP %s", r.RemoteAddr), false)
+		logEvent.ImpactedEndpointId = spId
+		app.SystemLoggerChan <- logEvent
+
+	}()
 
 	http.Redirect(w, r, "/sp", http.StatusSeeOther)
 
@@ -543,4 +572,17 @@ func (app *application) RemoveAssignServer(w http.ResponseWriter, r *http.Reques
 
 	app.sessionManager.Put(r.Context(), "flase", "Done")
 	app.goBack(w, r, http.StatusSeeOther)
+}
+
+// ------------------------------------------------------
+// Server details
+// ------------------------------------------------------
+func (app *application) ReloadSpTemplate(w http.ResponseWriter, r *http.Request) {
+
+	app.LoadSPTemplates()
+
+	app.sessionManager.Put(r.Context(), "flash", "Done")
+
+	app.goBack(w, r, http.StatusSeeOther)
+
 }

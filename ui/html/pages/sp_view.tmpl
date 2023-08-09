@@ -111,7 +111,12 @@ Endpoint
                                     <td>{{.StoredProc.Modified}}</td>
                                 </tr>
 
-                                
+                                {{if .Features.AllowHtmlTemplates}}
+                                <tr>
+                                    <th scope="row">HTML Template</th>
+                                    <td>{{.StoredProc.HtmlTemplate}}</td>
+                                </tr>
+                                {{end}}
                             </tbody>
                         </table>
                     </div>

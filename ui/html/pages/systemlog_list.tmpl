@@ -1,0 +1,82 @@
+{{define "title"}}
+System logs
+{{end}}
+
+{{define "content"}}
+ 
+
+<!-- Parameter -->
+
+ 
+    <div class="row p-2">
+   
+
+    <div class="col-xl">
+        <div class="card ">
+            <div class="card-header">
+                <p class="h5">
+                    System logs
+                </p>
+            </div>
+            <div class="card-body">
+                {{with .SystemLogEntries}}
+                <table id="logids" class="table   table-borderless table-responsive-sm table-striped    ">
+                    <thead class="thead-dark">
+                        <tr><th>ID</th>
+                            <th>Event Time</th>
+                            <th>Type</th>
+                            <th>Message</th>
+                            <th>Trigger By User</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{range $.SystemLogEntries}}
+                        <tr>
+                            <td> <a href="/syslogs/d/{{.Id}}">{{.Id}}</a> </td>
+                            <td> {{.EventTime}} </td>
+                            <td> {{.Type}} </td>
+                            <td> {{.Message}} </td>
+                            <td> {{.TriggerByUserId|username}} </td>
+                        </tr>
+                        {{end}}
+
+
+                        {{if $.SystemLogEntries}}
+                    <tr>
+                        <td colspan="5" style="text-align: center">
+                            <span hx-target="closest tr" 
+                                  hx-trigger="revealed" 
+                                  hx-swap="outerHTML"
+                                  hx-select="tbody > tr"
+                                  hx-indicator = "#processing"
+                                  
+                                  hx-get="/syslogs/{{$.NextPageNumber}}">Loading More...</span>
+                        </td>
+                    </tr>
+                    {{end}}
+
+
+                    </tbody>
+                </table>
+                {{end}}
+            </div>
+        </div>
+    </div>
+</div>
+
+ 
+
+{{end}}
+
+
+{{define "aftercontent"}}
+
+ 
+
+ 
+<script>
+    $(document).ready(function () {
+       
+    });
+</script>
+{{end}}

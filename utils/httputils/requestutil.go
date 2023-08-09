@@ -22,7 +22,7 @@ func GetHeadersAsMap(r *http.Request) map[string]string {
 	for name, values := range r.Header {
 		// Loop over all values for the name.
 		returnMap[name] = strings.Join(values, ",")
-		 
+
 	}
 
 	return returnMap
@@ -34,8 +34,41 @@ func GetHeadersAsMap2(h http.Header) map[string]string {
 	for name, values := range h {
 		// Loop over all values for the name.
 		returnMap[name] = strings.Join(values, ",")
-		 
+
 	}
 
 	return returnMap
+}
+
+func HasFormData(r *http.Request) bool {
+
+	contentType := r.Header.Get("Content-Type")
+
+	return strings.EqualFold(contentType, "application/x-www-form-urlencoded")
+
+}
+
+func FormToJson(r *http.Request) (map[string]any, error) {
+	asJson := make(map[string]any)
+	err := r.ParseForm()
+	if err != nil {
+		return asJson, err
+	}
+
+	for k, v := range r.Form {
+
+		length := len(v)
+
+		switch length {
+		case 0:
+			asJson[k] = ""
+		case 1:
+			asJson[k] = v[0]
+		default:
+			asJson[k] = v
+		}
+
+	}
+
+	return asJson, nil
 }

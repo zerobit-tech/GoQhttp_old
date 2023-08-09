@@ -1,0 +1,104 @@
+{{define "title"}}
+System log
+{{end}}
+
+{{define "content"}}
+
+<div class="row p-2">
+
+  <div class="col ">
+    <div class="card ">
+      <div class="card-header">
+        <p class="h5">Detail</p>
+      </div>
+      <div class="card-body">
+
+        <div class="row">
+          <div class="col">
+            <table class="table table-bordered table-striped">
+              <tbody>
+                <tr>
+                  <td>ID</td>
+                  <td>{{.SystemLogEntry.Id}}</td>
+                </tr>
+
+                <tr>
+                  <td>Event Time</td>
+                  <td>{{.SystemLogEntry.EventTime}}</td>
+                </tr>
+
+                <tr>
+                  <td>Type</td>
+                  <td>{{.SystemLogEntry.Type}}</td>
+                </tr>
+
+                <tr>
+                  <td>Message</td>
+                  <td>{{.SystemLogEntry.Message}}</td>
+                </tr>
+
+
+                <tr>
+                  <td>Trigger By User</td>
+                  <td>{{.SystemLogEntry.TriggerByUserId|username}}</td>
+                </tr>
+
+
+                <tr>
+                  <td>Impacted User</td>
+                  <td>{{.SystemLogEntry.ImpactedUserId|username}}</td>
+                </tr>
+
+                <tr>
+                  <td>Impacted Server</td>
+                  <td>{{.SystemLogEntry.ImpactedServerId}}</td>
+                </tr>
+                <tr>
+                  <td>Impacted Endpoint</td>
+                  <td>{{.SystemLogEntry.ImpactedEndpointId}}</td>
+                </tr>
+
+
+
+
+
+
+              </tbody>
+            </table>
+
+          </div>
+        </div>
+
+
+        <table id="serverslist"           class="table   table-borderless table-responsive-sm table-striped    ">
+          <thead class="thead-dark">
+
+            <tr>
+              <th>Before Image</th>
+              <th>After Image</th>
+            </tr>
+            
+            </thead>
+
+            <tbody>
+              <tr>
+                <td> <pre>{{.SystemLogEntry.BeforeUpdate}}</pre></td>
+                <td> <pre>{{.SystemLogEntry.AfterUpdate}}</pre></td>
+               </tr> 
+              </tbody>
+
+              </table>
+     
+
+      </div>
+    </div>
+  </div>
+
+</div>
+
+
+
+
+
+
+{{end}}

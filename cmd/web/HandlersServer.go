@@ -9,6 +9,7 @@ import (
 	"github.com/onlysumitg/GoQhttp/internal/models"
 	"github.com/onlysumitg/GoQhttp/internal/storedProc"
 	"github.com/onlysumitg/GoQhttp/internal/validator"
+	"github.com/onlysumitg/GoQhttp/utils/concurrent"
 	"github.com/onlysumitg/GoQhttp/utils/stringutils"
 )
 
@@ -311,6 +312,15 @@ func (app *application) ServerDeleteConfirm(w http.ResponseWriter, r *http.Reque
 		app.goBack(w, r, http.StatusBadRequest)
 		return
 	}
+
+	go func() {
+		defer concurrent.Recoverer("Server ADD log")
+		logEvent := GetSystemLogEvent(app.getCurrentUserID(r), "Server Deleted", fmt.Sprintf("IP %s", r.RemoteAddr), false)
+		logEvent.ImpactedServerId = serverID
+		app.SystemLoggerChan <- logEvent
+
+	}()
+
 	app.sessionManager.Put(r.Context(), "flash", "Server deleted sucessfully")
 
 	http.Redirect(w, r, "/servers", http.StatusSeeOther)
@@ -340,6 +350,14 @@ func (app *application) RunPromotion(w http.ResponseWriter, r *http.Request) {
 	}
 	go app.ProcessPromotion(server) //goroutine
 	app.sessionManager.Put(r.Context(), "flash", "Queued. Please wait.")
+
+	go func() {
+		defer concurrent.Recoverer("Manual Promotion log")
+		logEvent := GetSystemLogEvent(app.getCurrentUserID(r), "Manual Promotion", fmt.Sprintf("Server %s,IP %s", server.Name, r.RemoteAddr), false)
+		logEvent.ImpactedServerId = serverID
+		app.SystemLoggerChan <- logEvent
+
+	}()
 
 	app.goBack(w, r, http.StatusSeeOther)
 
@@ -524,6 +542,14 @@ func (app *application) ServerAddPost(w http.ResponseWriter, r *http.Request) {
 
 	// 	return
 	// }
+
+	go func() {
+		defer concurrent.Recoverer("Server ADD log")
+		logEvent := GetSystemLogEvent(app.getCurrentUserID(r), "Server added", fmt.Sprintf("Server %s,IP %s", server.Name, r.RemoteAddr), false)
+		logEvent.ImpactedServerId = server.ID
+		app.SystemLoggerChan <- logEvent
+
+	}()
 
 	app.sessionManager.Put(r.Context(), "flash", fmt.Sprintf("Server %s added sucessfully", server.Name))
 

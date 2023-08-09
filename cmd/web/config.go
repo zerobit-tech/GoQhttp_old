@@ -42,6 +42,8 @@ type application struct {
 	mainAppServer *http.Server
 	graphMutex    sync.Mutex
 
+	cacheMutext sync.RWMutex
+
 	invalidEndPointCache bool
 	endPointCache        map[string]*storedProc.StoredProc
 
@@ -50,10 +52,15 @@ type application struct {
 
 	DB          *bolt.DB
 	LogDB       *bolt.DB
+	SystemLogDB *bolt.DB
+
 	UserDB      *bolt.DB
 	EmailServer *mail.SMTPServer
 
 	templateCache map[string]*template.Template
+
+	storedProcsTemplateCache map[string]*template.Template
+	storedProcsTemplates     []string
 
 	maxAllowedEndPoints        int
 	maxAllowedEndPointsPerUser int
@@ -98,23 +105,18 @@ type application struct {
 
 	features *featureflags.Features
 
-	//SystemLoggerChan chan *logger.LogEvent
+	SystemLoggerChan chan *SystemLogEvent
 }
 
 // -------------------------------------------------------------------------
 //
 // -------------------------------------------------------------------------
-func baseAppConfig(params cliparams.Parameters, db *bolt.DB, userdb *bolt.DB, logdb *bolt.DB) *application {
+func baseAppConfig(params cliparams.Parameters, db *bolt.DB, userdb *bolt.DB, logdb *bolt.DB, systemlogdb *bolt.DB) *application {
 
 	//--------------------------------------- Setup loggers ----------------------------
 	infoLog := log.New(os.Stderr, "INFO\t", log.Ldate|log.Ltime)
 	errorLog := log.New(os.Stderr, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
 
-	//--------------------------------------- Setup template cache ----------------------------
-	templateCache, err := newTemplateCache()
-	if err != nil {
-		errorLog.Fatal(err)
-	}
 	//--------------------------------------- Setup form decoder ----------------------------
 	formDecoder := form.NewDecoder()
 
@@ -125,14 +127,15 @@ func baseAppConfig(params cliparams.Parameters, db *bolt.DB, userdb *bolt.DB, lo
 	//shutDownctx, startShutdown := context.WithCancel(context.Background())
 	//---------------------------------------  final app config ----------------------------
 	app := &application{
-		version:       "1.2.0",
-		errorLog:      errorLog,
-		infoLog:       infoLog,
-		templateCache: templateCache,
+		version:  "1.2.0",
+		errorLog: errorLog,
+		infoLog:  infoLog,
 
 		DB:          db,
 		LogDB:       logdb,
 		UserDB:      userdb,
+		SystemLogDB: systemlogdb,
+
 		EmailServer: models.SetupMailServer(),
 
 		sessionManager: session.GetSessionManager(db),
@@ -170,8 +173,15 @@ func baseAppConfig(params cliparams.Parameters, db *bolt.DB, userdb *bolt.DB, lo
 
 		debugMode: env.IsInDebugMode(),
 
-		//SystemLoggerChan:  make(chan *logger.LogEvent,),
+		SystemLoggerChan: make(chan *SystemLogEvent),
 	}
+
+	//--------------------------------------- Setup template cache ----------------------------
+	templateCache, err := app.newTemplateCache()
+	if err != nil {
+		errorLog.Fatal(err)
+	}
+	app.templateCache = templateCache
 
 	if app.debugMode {
 		app.maxAllowedEndPoints = 50
@@ -185,6 +195,8 @@ func baseAppConfig(params cliparams.Parameters, db *bolt.DB, userdb *bolt.DB, lo
 	}
 
 	app.features = appFeatures
+
+	app.LoadSPTemplates()
 
 	//goroutine
 	//go models.SaveLogs(app.LogDB)
@@ -207,8 +219,8 @@ func (app *application) CleanupAndShutDown() {
 	// }
 
 	close(app.Done)
-
 	close(app.ToWSChan)
+	close(app.SystemLoggerChan)
 
 	// close(app.GraphChan)  // closed in TimeTook middleware
 
@@ -216,7 +228,7 @@ func (app *application) CleanupAndShutDown() {
 	dbserver.CloseConnections()
 
 	log.Println("Shutting down Server...")
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer func() {
 
 		cancel()
@@ -253,5 +265,17 @@ func (app *application) CleanupAndShutDown() {
 // 		log.Printf("Forced Server Shutdown:%+v\n", err)
 // 	}
 
-// 	log.Println("Server Shutdown Completed")
-// }
+//		log.Println("Server Shutdown Completed")
+//	}
+//
+// -------------------------------------------------------------------------
+//
+// -------------------------------------------------------------------------
+func (app *application) allowHtmlTemplates() bool {
+	if env.AllowHtmlTemplates() {
+		return true
+	}
+
+	return app.features.AllowHtmlTemplates
+
+}

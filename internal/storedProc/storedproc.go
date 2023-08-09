@@ -61,18 +61,49 @@ type StoredProc struct {
 	UseNamedParams bool `json:"useunnamedparams" db:"useunnamedparams" form:"-"`
 
 	Promotionsql string `json:"promotionsql" db:"promotionsql" form:"-"`
+
+	HtmlTemplate string `json:"htmltemplate" db:"htmltemplate" form:"htmltemplate"`
 }
+
+// ------------------------------------------------------------
+//
+// ------------------------------------------------------------
 
 type PreparedCallStatements struct {
 	ResponseFormat         map[string]any
-	InOutParams            []any  // to send values to SP call
+	InOutParams            []any // to send values to SP call
 	InOutParamVariables    map[string]*any
 	InOutParamMapToSPParam map[string]*StoredProcParamter
 	FinalCallStatement     string
 }
 
 // ------------------------------------------------------------
-// BuildMockUrl(s)
+//
+// ------------------------------------------------------------
+func (s *StoredProc) LogImage() string {
+	imageMap := make(map[string]any)
+	imageMap["EndPointName"] = s.EndPointName
+	imageMap["HttpMethod"] = s.HttpMethod
+	imageMap["Name"] = s.Name
+	imageMap["Lib"] = s.Lib
+
+	imageMap["SpecificName"] = s.SpecificName
+	imageMap["SpecificLib"] = s.SpecificLib
+	imageMap["UseSpecificName"] = s.UseSpecificName
+	imageMap["DefaultServerId"] = s.DefaultServer.ID
+
+	imageMap["AllowWithoutAuth"] = s.AllowWithoutAuth
+
+	j, err := json.MarshalIndent(imageMap, " ", " ")
+	if err == nil {
+		return string(j)
+	}
+
+	return err.Error()
+}
+
+// ------------------------------------------------------------
+//
 // ------------------------------------------------------------
 func (s *StoredProc) Slug() string {
 	return slug.Make(s.EndPointName + "_" + s.HttpMethod)
@@ -80,7 +111,7 @@ func (s *StoredProc) Slug() string {
 }
 
 // ------------------------------------------------------------
-// BuildMockUrl(s)
+//
 // ------------------------------------------------------------
 func (s *StoredProc) ValidateAlias() error {
 
@@ -96,7 +127,7 @@ func (s *StoredProc) ValidateAlias() error {
 }
 
 // ------------------------------------------------------------
-// BuildMockUrl(s)
+//
 // ------------------------------------------------------------
 func (s *StoredProc) IsAllowedForServer(serverID string) bool {
 	if serverID == "" {
@@ -114,7 +145,7 @@ func (s *StoredProc) IsAllowedForServer(serverID string) bool {
 }
 
 // ------------------------------------------------------------
-// BuildMockUrl(s)
+//
 // ------------------------------------------------------------
 func (s *StoredProc) AddAllowedServer(serverID, serverName string) {
 	alreadyAssigned := false
@@ -134,7 +165,7 @@ func (s *StoredProc) AddAllowedServer(serverID, serverName string) {
 }
 
 // ------------------------------------------------------------
-// BuildMockUrl(s)
+//
 // ------------------------------------------------------------
 func (s *StoredProc) DeleteAllowedServer(serverID string) {
 
@@ -157,6 +188,7 @@ func (s *StoredProc) BuildMockUrl() {
 
 	queryParamString := ""
 	inputPayload := make(map[string]string)
+	s.InputPayload = ""
 
 outerloop:
 	for _, p := range s.Parameters {
@@ -181,7 +213,7 @@ outerloop:
 
 	}
 
-	if s.HttpMethod != "GET" {
+	if s.HttpMethod != "GET" && s.HttpMethod != "DELETE" {
 
 		jsonPayload, err := json.MarshalIndent(inputPayload, "", "  ")
 		if err == nil {

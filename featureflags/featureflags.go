@@ -11,6 +11,7 @@ type Features struct {
 	LoginMessages       []string
 	AdminEmail          string
 	AdminPassword       string
+	AllowHtmlTemplates  bool
 }
 
 // --------------------------------------------------------------
@@ -73,8 +74,6 @@ func Pub400() *Features {
 		AllowedServerTypes:  []string{"IBM I"},
 		AdminEmail:          "admin2@example.com",
 		AdminPassword:       "SaveAdmin#2023",
-
-
 
 		LoginMessages: []string{
 			"Thanks to Pub400.com",

@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"runtime/debug"
+	"strings"
 
 	"github.com/onlysumitg/GoQhttp/internal/validator"
 	"github.com/onlysumitg/GoQhttp/utils/concurrent"
@@ -26,8 +27,6 @@ func (app *application) CreateSuperUser(email, password string) {
 	if app.features.AdminPassword != "" {
 		password = app.features.AdminPassword
 	}
-
-	fmt.Println(email, password)
 
 	user, err := app.users.GetByEmail(email)
 
@@ -97,7 +96,7 @@ func (app *application) RequireAuthentication(next http.Handler) http.Handler {
 		// the chain are executed.
 		goToUrl := fmt.Sprintf("/user/login?next=%s", r.URL.RequestURI())
 
-		if !app.isAuthenticated(r) {
+		if !app.isAuthenticated(r, true) {
 			app.sessionManager.Put(r.Context(), "error", "Login required")
 
 			http.Redirect(w, r, goToUrl, http.StatusSeeOther)
@@ -200,17 +199,18 @@ func (app *application) RequireStaff(next http.Handler) http.Handler {
 // ------------------------------------------------------
 // Return true if the current request is from an authenticated user, otherwise
 // return false.
-func (app *application) isAuthenticated(r *http.Request) bool {
+func (app *application) isAuthenticated(r *http.Request, allowOnlyStaff bool) bool {
 	user, err := app.GetUser(r)
 
 	if err != nil {
 		return false
 	}
-	if user.IsSuperUser || user.IsStaff {
-		return true
+
+	if allowOnlyStaff && !(user.IsSuperUser || user.IsStaff) {
+		return false
 	}
 
-	return false
+	return true
 }
 
 // ------------------------------------------------------
@@ -262,6 +262,23 @@ func (app *application) GetUser(r *http.Request) (*models.User, error) {
 	userId := app.sessionManager.GetString(r.Context(), "authenticatedUserID")
 
 	return app.users.Get(userId)
+
+}
+
+// ------------------------------------------------------
+//
+// ------------------------------------------------------
+// Return true if the current request is from an authenticated user, otherwise
+// return false.
+func (app *application) getCurrentUserID(r *http.Request) string {
+	userId := app.sessionManager.GetString(r.Context(), "authenticatedUserID")
+
+	if userId == "" {
+		return "UNKNOWN"
+
+	}
+
+	return userId
 
 }
 
@@ -355,9 +372,15 @@ func (app *application) userSignupPost(w http.ResponseWriter, r *http.Request) {
 //
 // ------------------------------------------------------
 func (app *application) userLogin(w http.ResponseWriter, r *http.Request) {
+	nextUrl := r.URL.Query().Get("next")
+	if nextUrl == "" {
+		nextUrl = app.appLangingPage()
+	}
 
+	nextUrl = strings.TrimSpace(nextUrl)
 	data := app.newTemplateData(r)
 	data.Form = models.UserLoginForm{}
+	data.Next = nextUrl
 	app.render(w, r, http.StatusOK, "account_login.tmpl", data)
 }
 
@@ -365,6 +388,13 @@ func (app *application) userLogin(w http.ResponseWriter, r *http.Request) {
 //
 // ------------------------------------------------------
 func (app *application) userLoginPost(w http.ResponseWriter, r *http.Request) {
+	nextUrl := r.URL.Query().Get("next")
+	if nextUrl == "" {
+		nextUrl = app.appLangingPage()
+	}
+
+	nextUrl = strings.TrimSpace(nextUrl)
+
 	var form models.UserLoginForm
 	err := app.decodePostForm(r, &form)
 	if err != nil {
@@ -378,7 +408,8 @@ func (app *application) userLoginPost(w http.ResponseWriter, r *http.Request) {
 	if !form.Valid() {
 		data := app.newTemplateData(r)
 		data.Form = form
-		app.render(w, r, http.StatusUnprocessableEntity, "account_login.tmpl", data)
+		data.Next = nextUrl
+		app.render(w, r, http.StatusBadRequest, "account_login.tmpl", data)
 		return
 	}
 
@@ -389,7 +420,9 @@ func (app *application) userLoginPost(w http.ResponseWriter, r *http.Request) {
 			form.AddNonFieldError("Email or password is incorrect")
 			data := app.newTemplateData(r)
 			data.Form = form
-			app.render(w, r, http.StatusUnprocessableEntity, "account_login.tmpl", data)
+			data.Next = nextUrl
+			app.render(w, r, http.StatusBadRequest, "account_login.tmpl", data)
+
 		} else {
 			app.serverError500(w, r, err)
 		}
@@ -408,9 +441,15 @@ func (app *application) userLoginPost(w http.ResponseWriter, r *http.Request) {
 	// 'logged in'.
 	app.sessionManager.Put(r.Context(), "authenticatedUserID", user.ID)
 
-	nextUrl := r.URL.Query().Get("next")
-	if nextUrl == "" {
-		nextUrl = app.appLangingPage()
+	go func() {
+		defer concurrent.Recoverer("UserLogin log")
+		logEvent := GetSystemLogEvent(user.ID, "LOGIN", fmt.Sprintf("IP %s", r.RemoteAddr), false)
+		app.SystemLoggerChan <- logEvent
+
+	}()
+
+	if user.LandingPage != "" {
+		nextUrl = user.LandingPage
 	}
 	http.Redirect(w, r, nextUrl, http.StatusSeeOther)
 }
@@ -421,6 +460,8 @@ func (app *application) userLoginPost(w http.ResponseWriter, r *http.Request) {
 func (app *application) userLogoutPost(w http.ResponseWriter, r *http.Request) {
 	// Use the RenewToken() method on the current session to change the session
 	// ID again.
+
+	currentUserId := app.getCurrentUserID(r)
 	err := app.sessionManager.RenewToken(r.Context())
 	if err != nil {
 		app.serverError500(w, r, err)
@@ -433,6 +474,14 @@ func (app *application) userLogoutPost(w http.ResponseWriter, r *http.Request) {
 	// logged out.
 	app.sessionManager.Put(r.Context(), "flash", "You've been logged out successfully!")
 	// Redirect the user to the application home page.
+
+	go func() {
+		defer concurrent.Recoverer("UserOutout log")
+		logEvent := GetSystemLogEvent(currentUserId, "LOGOUT", fmt.Sprintf("IP %s", r.RemoteAddr), false)
+		app.SystemLoggerChan <- logEvent
+
+	}()
+
 	http.Redirect(w, r, "/user/login", http.StatusSeeOther)
 }
 

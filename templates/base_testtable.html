@@ -1,0 +1,53 @@
+{{define "title"}}
+Table list
+{{end}}
+{{define "content"}}
+<div class="row p-2">
+    <div class="col">
+      <div class="card ">
+        <div class="card-header">
+          <p class="h5">Tables (infinite scroll)</p>
+        </div>   
+        <div class="card-body">
+            <table id="tablelist"           class="table   table-borderless table-responsive-sm table-striped    ">
+                <thead class="thead-dark">
+                    <tr>
+                        <th>Table Name</th>
+                        <th>Owner</th>
+                        
+                        <th>Type</th>
+                        
+                    </tr>
+                </thead>
+            
+                <tbody>
+                    {{range .Data.DATASET_1}}
+                    <tr>
+                        <td>{{.TABLE_NAME}}</td>
+                        <td>{{.TABLE_OWNER}}</td>
+                        <td>{{.TABLE_TYPE}}</td>
+                    </tr> 
+                    {{end}}   
+
+
+                    <tr>
+                        <td colspan="3" style="text-align: center">
+                            <span hx-target="closest tr" 
+                                  hx-trigger="revealed" 
+                                  hx-swap="outerHTML"
+                                  hx-select="tbody > tr"
+                                  hx-indicator = "#processing"
+                                  
+                                  hx-get="/tapi/tablelist?PAGENUMBER={{.Data.NEXTPAGENUMBER}}">Loading More...</span>
+                        </td>
+                    </tr>
+            </table>
+        </div> 
+    </div> 
+</div> 
+
+</div> 
+
+ 
+   
+{{end}}

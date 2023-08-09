@@ -171,5 +171,11 @@ func (app *application) routes() *chi.Mux {
 
 	app.PostmantHandlers(router)
 	app.CurrentUsersHandlers(router)
+
+	app.SystemHandler(router)
+
+	app.SPtemplateHandler(router)
+
+	app.SystemLogHandlers(router)
 	return router // standard.Then(router)
 }

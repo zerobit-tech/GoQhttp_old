@@ -59,7 +59,7 @@
        <li class="c-sidebar-nav-title">User: </li>
         
         <li class="c-sidebar-nav-item">
-          <a class="c-sidebar-nav-link" >{{.CurrentUser.Email}}</a>
+          <a href="/currentuser" class="c-sidebar-nav-link" >{{.CurrentUser.Email}}</a>
 
        </li>
 
@@ -96,7 +96,7 @@
 
 
       <li class="c-sidebar-nav-divider"></li>
-            <li class="c-sidebar-nav-item"><a class="c-sidebar-nav-link" href="/dashboard">
+            <li class="c-sidebar-nav-item"><a  class="c-sidebar-nav-link" href="/dashboard">
         <svg class="c-icon mfe-2">
           <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-monitor"></use>
       </svg>Dashboard</a>
@@ -117,20 +117,23 @@
       </li>
     
 
-      <li class="c-sidebar-nav-divider"></li>
-      <li class="c-sidebar-nav-item"><a class="c-sidebar-nav-link" href="/currentuser">
-        <svg class="c-icon mfe-2">
-          <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-user"></use>
-      </svg>Current user</a>
-      </li>
+   
  
     
       {{if .CurrentUser.IsSuperUser}}
       <li class="c-sidebar-nav-divider"></li>
       <li class="c-sidebar-nav-item"><a class="c-sidebar-nav-link" href="/users">
         <svg class="c-icon mfe-2">
-          <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-user"></use>
+          <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-group"></use>
       </svg>Users</a>
+      </li>
+
+
+
+      <li class="c-sidebar-nav-item"><a   class="c-sidebar-nav-link" href="/sys/invalidatecachee">
+        <svg class="c-icon mfe-2">
+          <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-reload"></use>
+      </svg>Invalidate cache</a>
       </li>
       {{end}}
 
@@ -142,10 +145,18 @@
       </li> -->
       
       <li class="c-sidebar-nav-divider"></li>
-      <li class="c-sidebar-nav-item"><a class="c-sidebar-nav-link" href="/apilogs">
+      <li class="c-sidebar-nav-item"><a  class="c-sidebar-nav-link" href="/apilogs">
         <svg class="c-icon mfe-2">
           <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-task"></use>
       </svg>Api Logs</a>
+      </li>
+
+
+      <li class="c-sidebar-nav-divider"></li>
+      <li class="c-sidebar-nav-item"><a  class="c-sidebar-nav-link" href="/syslogs/1">
+        <svg class="c-icon mfe-2">
+          <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-notes"></use>
+      </svg>System Logs</a>
       </li>
 
 
@@ -230,9 +241,13 @@
                      
                     </ul>
             </header>
-
+            <div class="htmx-indicator"  style="padding: 20px;" id="processing" >
+            <div class="progress"   >
+              <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%"></div>
+            </div>
+          </div>
             {{template "messages" .}}
-         
+     
             
         {{template "content" .}}
       
@@ -364,7 +379,9 @@
   
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/intro.js/7.0.1/intro.min.js"  crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-
+  <script src="https://unpkg.com/htmx.org@1.9.2"
+  integrity="sha384-L6OqL9pRWyyFU3+/bjdSri+iIphTN/bvYyM37tICVyOJkWZLpP2vGn6VUEXgzg6h"
+  crossorigin="anonymous"></script>
 
 </body>
 

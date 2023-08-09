@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"html/template"
 	"io/fs"
@@ -57,7 +56,9 @@ type templateData struct {
 
 	ComparisonOperators []string
 
-	LogEntries []string
+	LogEntries       []string
+	SystemLogEntries []SystemLogEvent
+	SystemLogEntry      SystemLogEvent
 
 	LicenseEntries []*lic.LicenseFile
 
@@ -82,6 +83,9 @@ type templateData struct {
 	Features *featureflags.Features
 
 	LoginMessage []string
+
+	SpTemplates []string
+	NextPageNumber int
 }
 
 func ListComparisonOperators() []string {
@@ -113,14 +117,19 @@ func (app *application) newTemplateData(r *http.Request) *templateData {
 		WebSocketUrl: strings.ReplaceAll(strings.ReplaceAll(app.hostURL, "https://", ""), "http://", ""),
 
 		ComparisonOperators: ListComparisonOperators(),
-		IsAuthenticated:     app.isAuthenticated(r), // use {{if .IsAuthenticated}} in template
+		IsAuthenticated:     app.isAuthenticated(r, true), // use {{if .IsAuthenticated}} in template
 		TestMode:            app.debugMode,
 		Version:             app.version,
 		Features:            app.features,
 		ServerTypes:         []string{"IBM I"},
 
 		LoginMessage: app.features.LoginMessages,
+		SpTemplates:  app.storedProcsTemplates,
 	}
+
+	// check allow html template from env
+	td.Features.AllowHtmlTemplates = app.allowHtmlTemplates()
+
 	user, err := app.GetUser(r)
 	if err == nil {
 		td.CurrentUser = user
@@ -194,6 +203,72 @@ func (app *application) render(w http.ResponseWriter, r *http.Request, status in
 // -----------------------------------------------------------------
 //
 // -----------------------------------------------------------------
+func (app *application) newTemplateCache() (map[string]*template.Template, error) {
+	cache := map[string]*template.Template{}
+	pages, err := fs.Glob(ui.Files, "html/pages/*.tmpl")
+	if err != nil {
+		return nil, err
+	}
+	app.loadPages(cache, pages)
+
+	pages, err = fs.Glob(ui.Files, "html/accounts/*.tmpl")
+	if err != nil {
+		return nil, err
+	}
+	app.loadPages(cache, pages)
+
+	pages, err = fs.Glob(ui.Files, "html/emails/*.tmpl")
+	if err != nil {
+		return nil, err
+	}
+	app.loadPages(cache, pages)
+
+	pages, err = fs.Glob(ui.Files, "html/public/*.tmpl")
+	if err != nil {
+		return nil, err
+	}
+	app.loadPages(cache, pages)
+
+	return cache, nil
+}
+
+// -----------------------------------------------------------------
+//
+// -----------------------------------------------------------------
+func (app *application) loadPages(cache map[string]*template.Template, pages []string) {
+	// Use fs.Glob() to get a slice of all filepaths in the ui.Files embedded
+	// filesystem which match the pattern 'html/pages/*.tmpl'. This essentially
+	// gives us a slice of all the 'page' templates for the application, just
+	// like before.
+
+	for _, page := range pages {
+		name := filepath.Base(page)
+		// Create a slice containing the filepath patterns for the templates we
+		// want to parse.
+		patterns := []string{
+			"html/base.tmpl",
+			"html/account_base.tmpl",
+			"html/email_base.tmpl",
+			"html/public_base.tmpl",
+
+			"html/partials/*.tmpl",
+
+			page,
+		}
+		// Use ParseFS() instead of ParseFiles() to parse the template files
+		// from the ui.Files embedded filesystem.
+		ts, err := template.New(name).Funcs(app.getFunctionMap()).ParseFS(ui.Files, patterns...)
+		if err != nil {
+			log.Fatalln("Error loading template", err.Error())
+		}
+		cache[name] = ts
+
+	}
+}
+
+// -----------------------------------------------------------------
+//
+// -----------------------------------------------------------------
 func (app *application) templateToString(page string, data any) (string, error) {
 	ts, ok := app.templateCache[page]
 	if !ok {
@@ -224,135 +299,4 @@ func (app *application) templateToString(page string, data any) (string, error) 
 	}
 
 	return buf.String(), nil
-}
-
-// -----------------------------------------------------------------
-//
-// -----------------------------------------------------------------
-
-func toJson(s interface{}) string {
-	jsonBytes, err := json.Marshal(s)
-	if err != nil {
-		return ""
-	}
-
-	return string(jsonBytes)
-}
-
-// -----------------------------------------------------------------
-//
-// -----------------------------------------------------------------
-func yesNo(s bool) string {
-	if s {
-		return "Yes"
-	}
-
-	return "No"
-}
-
-// -----------------------------------------------------------------
-//
-// -----------------------------------------------------------------
-func IsPreFormatted(s string) bool {
-	// if strings.HasPrefix(s, "00999") || strings.HasPrefix(s, "01000") {
-	// 	return true
-	// }
-	return true
-}
-
-// -----------------------------------------------------------------
-//
-// -----------------------------------------------------------------
-func httpCodeText(i int) string {
-	return http.StatusText(i)
-}
-
-func humanDate(t time.Time) string {
-	// Return the empty string if time has the zero value.
-	if t.IsZero() {
-		return ""
-	}
-	// Convert the time to UTC before formatting it.
-	//time.Kitchen
-	return t.Local().Format("02 Jan 2006 at 03:04:05PM")
-}
-
-// -----------------------------------------------------------------
-//
-// -----------------------------------------------------------------
-// Initialize a template.FuncMap object and store it in a global variable. This is essentially
-// a string-keyed map which acts as a lookup between the names of our custom template
-// functions and the functions themselves.
-var functions = template.FuncMap{
-	"humanDate":      humanDate,
-	"toJson":         toJson,
-	"yesNo":          yesNo,
-	"ispreformatted": IsPreFormatted,
-	"httpCodeText":   httpCodeText,
-}
-
-// -----------------------------------------------------------------
-//
-// -----------------------------------------------------------------
-func newTemplateCache() (map[string]*template.Template, error) {
-	cache := map[string]*template.Template{}
-	pages, err := fs.Glob(ui.Files, "html/pages/*.tmpl")
-	if err != nil {
-		return nil, err
-	}
-	loadPages(cache, pages)
-
-	pages, err = fs.Glob(ui.Files, "html/accounts/*.tmpl")
-	if err != nil {
-		return nil, err
-	}
-	loadPages(cache, pages)
-
-	pages, err = fs.Glob(ui.Files, "html/emails/*.tmpl")
-	if err != nil {
-		return nil, err
-	}
-	loadPages(cache, pages)
-
-	pages, err = fs.Glob(ui.Files, "html/public/*.tmpl")
-	if err != nil {
-		return nil, err
-	}
-	loadPages(cache, pages)
-
-	return cache, nil
-}
-
-// -----------------------------------------------------------------
-//
-// -----------------------------------------------------------------
-func loadPages(cache map[string]*template.Template, pages []string) {
-	// Use fs.Glob() to get a slice of all filepaths in the ui.Files embedded
-	// filesystem which match the pattern 'html/pages/*.tmpl'. This essentially
-	// gives us a slice of all the 'page' templates for the application, just
-	// like before.
-
-	for _, page := range pages {
-		name := filepath.Base(page)
-		// Create a slice containing the filepath patterns for the templates we
-		// want to parse.
-		patterns := []string{
-			"html/base.tmpl",
-			"html/account_base.tmpl",
-			"html/email_base.tmpl",
-			"html/public_base.tmpl",
-
-			"html/partials/*.tmpl",
-
-			page,
-		}
-		// Use ParseFS() instead of ParseFiles() to parse the template files
-		// from the ui.Files embedded filesystem.
-		ts, err := template.New(name).Funcs(functions).ParseFS(ui.Files, patterns...)
-		if err != nil {
-			log.Fatalln("Error loading template", err.Error())
-		}
-		cache[name] = ts
-
-	}
 }

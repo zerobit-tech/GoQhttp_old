@@ -83,7 +83,8 @@ type User struct {
 
 	Token string `json:"token" db:"token" form:"-"`
 
-	ServerId string `json:"serverid" db:"serverid" form:"serverid"`
+	ServerId    string `json:"serverid" db:"serverid" form:"serverid"`
+	LandingPage string `json:"landingpage" db:"landingpage" form:"landingpage"`
 }
 
 // -----------------------------------------------------------------

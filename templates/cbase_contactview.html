@@ -1,0 +1,48 @@
+{{define "title"}}
+Table list
+{{end}}
+
+
+
+ 
+
+
+
+
+{{define "content"}}
+<div class="row p-2">
+    <div class="col">
+      <div class="card ">
+        <div class="card-header">
+          <p class="h5">Contacts</p>
+        </div>   
+        <div class="card-body">
+            
+                    {{range .Data.DATASET_1}}
+                   
+                        <div>{{.UNIQUE_ID}}</div>
+                        <div>First Name ...... {{.FIRST_NAME}}</div>
+                        <div>Last Name ....... {{.LAST_NAME}}</div>
+                        <div>Phone ........... {{.PHONE_NO}}</div>
+                        <div>Address .........{{.ADDRESS}}</div>
+                        <div>
+                            <button class="btn btn-danger" 
+                            hx-target="body"
+                            hx-push-url="true"
+                            hx-confirm="Are you sure you want to delete this contact?"
+                            hx-delete="/tapi/contactdelete?UNIQUEID={{.UNIQUE_ID}}">Delete</button>
+                        </td>
+                   
+                    {{end}}   
+
+
+              
+        </div> 
+    </div> 
+</div> 
+
+</div> 
+
+ 
+   
+{{end}}

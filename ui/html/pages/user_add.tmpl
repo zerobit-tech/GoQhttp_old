@@ -48,6 +48,10 @@
 
                                 <input class="form-control {{with .Form.FieldErrors.password}} is-invalid {{end}}"
                                     type='password' name='password'>
+                                    {{if .Form.ID}}
+                                    <small id="landingpageh" class="form-text text-muted">Leave it blank if dont want to update the password.</small>   
+                                    {{end}}
+
                                 {{with .Form.FieldErrors.password}}
                                 <div class='invalid-feedback'>{{.}}</div>
                                 {{end}}
@@ -73,10 +77,28 @@
                                     class="form-control {{with .Form.FieldErrors.maxallowedendpoints}} is-invalid {{end}}"
                                     type='number' name='maxallowedendpoints' value='{{.Form.MaxAllowedEndpoints}}'
                                     required>
+
+                                    <small id="maxallowedendpointsh" class="form-text text-muted"> Negative number: no limit</small>   
+   
                                 {{with .Form.FieldErrors.maxallowedendpoints}}
                                 <div class='invalid-feedback'>{{.}}</div>
                                 {{end}}
                             </div>
+
+                            <div class="form-group">
+                                <label>Landing page:</label>
+
+                                <input class="form-control {{with .Form.FieldErrors.landingpage}} is-invalid {{end}}"
+                                    type='text' name='landingpage' value='{{.Form.LandingPage}}'  >
+
+                                    <small id="landingpageh" class="form-text text-muted"></small>   
+                                {{with .Form.FieldErrors.landingpage}}
+                                <div class='invalid-feedback'>{{.}}</div>
+                                {{end}}
+
+                            </div>
+
+
                             <div class="form-check">
                                 <input value='true' {{if .Form.IsSuperUser}} checked {{end}} type="checkbox"
                                     class=" form-check-input" name="issuperuser" id="issuperuser">
