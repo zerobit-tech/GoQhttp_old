@@ -5,7 +5,7 @@ Endpoint
 {{define "content"}}
 <div class="row p-2">
     <div class="col-xl-6">
-        <div class="card ">
+        <div class="card " style="height: 100%;">
             <div class="card-header">
                 <p class="h5">
                     EndPoint details:{{.StoredProc.EndPointName}}
@@ -132,7 +132,7 @@ Endpoint
         </div>
     </div>
     <div class="col-xl-6">
-        <div class="card ">
+        <div class="card " style="height: 100%;">
             <div class="card-header">
                 <p class="h5">
                     Allowed for servers
@@ -263,9 +263,9 @@ Endpoint
                                             {{if ne .Mode "OUT"}}
                                             <div class="form-group">
 
-                                                <input id="{{.GetNameToUse}}" class="form-control  " type="text"
-                                                    name="{{.GetNameToUse}}" aria-describedby="{{.GetNameToUse}}help"
-                                                    placeholder="{{.GetNameToUse}}" value='{{.GivenValue}}' required></input>
+                                                <input id="{{.GetNameToUse false}}" class="form-control  " type="text"
+                                                    name="{{.GetNameToUse false}}" aria-describedby="{{.GetNameToUse false}}help"
+                                                    placeholder="{{.GetNameToUse false}}" value='{{.GivenValue}}' required></input>
 
 
 

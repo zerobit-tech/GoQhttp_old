@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"runtime/debug"
+	"strings"
 	"sync"
 	"time"
 
@@ -14,6 +15,7 @@ import (
 	"github.com/onlysumitg/GoQhttp/internal/storedProc"
 	"github.com/onlysumitg/GoQhttp/logger"
 	"github.com/onlysumitg/GoQhttp/utils/concurrent"
+	"github.com/onlysumitg/GoQhttp/utils/stringutils"
 	"github.com/onlysumitg/GoQhttp/utils/xmlutils"
 	bolt "go.etcd.io/bbolt"
 )
@@ -98,6 +100,34 @@ func (a *ApiCall) Finalize() {
 	}
 	a.Response.ReferenceId = a.ID
 
+}
+
+// ------------------------------------------------------
+//
+// ------------------------------------------------------
+func (a *ApiCall) BuildHeaders() http.Header {
+	keysToRemove := make([]string, 0)
+	headers := make(http.Header)
+	for k, v := range a.Response.Data {
+		if strings.HasPrefix(strings.ToUpper(k), "QHTTP_HEADER_") {
+			keysToRemove = append(keysToRemove, k)
+			hk := strings.TrimPrefix(k, "QHTTP_HEADER_")
+			hk = stringutils.ToCamel(hk)
+			hk = strings.ReplaceAll(hk, "_", "-")
+
+			hv, ok := v.(string)
+			if ok {
+				headers[hk] = []string{hv}
+			}
+		}
+	}
+
+	// Remove QHTTP_HEADER_* keys from the response
+	for _, k := range keysToRemove {
+		delete(a.Response.Data, k)
+	}
+
+	return headers
 }
 
 // // ------------------------------------------------------

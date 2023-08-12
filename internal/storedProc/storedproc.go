@@ -113,13 +113,40 @@ func (s *StoredProc) Slug() string {
 // ------------------------------------------------------------
 //
 // ------------------------------------------------------------
+func (s *StoredProc) AvailableParamterPostions() []string {
+
+	a := []string{"QUERY", "PATH"}
+
+	if s.HttpMethod != "GET" && s.HttpMethod != "DELETE" {
+		a = append(a, "BODY")
+	}
+	return a
+}
+
+// ------------------------------------------------------------
+//
+// ------------------------------------------------------------
+func (s *StoredProc) AssignAliasForPathPlacement() {
+	pathCounter := 0 // after api and endpoint name
+	for _, p1 := range s.Parameters {
+		if p1.Placement == "PATH" {
+			p1.Alias = fmt.Sprintf("*PATH_%d", pathCounter)
+			pathCounter += 1
+		}
+	}
+}
+
+// ------------------------------------------------------------
+//
+// ------------------------------------------------------------
 func (s *StoredProc) ValidateAlias() error {
 
 	for _, p1 := range s.Parameters {
 		for _, p2 := range s.Parameters {
-			if p1.Name != p2.Name && p1.GetNameToUse() == p2.GetNameToUse() {
+			if p1.Name != p2.Name && p1.GetNameToUse(false) == p2.GetNameToUse(false) {
 				return fmt.Errorf("Conflict between %s and %s.", p1.Name, p2.Name)
 			}
+
 		}
 
 	}
@@ -184,7 +211,7 @@ func (s *StoredProc) DeleteAllowedServer(serverID string) {
 // ------------------------------------------------------------
 // BuildMockUrl(s)
 // ------------------------------------------------------------
-func (s *StoredProc) BuildMockUrl() {
+func (s *StoredProc) BuildMockUrlXX() {
 
 	queryParamString := ""
 	inputPayload := make(map[string]string)
@@ -195,20 +222,20 @@ outerloop:
 		if p.Mode == "OUT" {
 			continue outerloop
 		}
-
+		nameToUse := p.GetNameToUse(false)
 		// dont display inbuilt param
 		for _, ibp := range InbuiltParams {
-			if strings.EqualFold(ibp, p.GetNameToUse()) {
+			if strings.EqualFold(ibp, nameToUse) {
 				continue outerloop
 			}
 		}
 
-		inputPayload[p.GetNameToUse()] = fmt.Sprintf("{%s}", p.Datatype)
-		if queryParamString == "" {
-			queryParamString = fmt.Sprintf("?%s={%s}", p.GetNameToUse(), p.Datatype)
-		} else {
-			queryParamString = queryParamString + fmt.Sprintf("&%s={%s}", p.GetNameToUse(), p.Datatype)
+		inputPayload[nameToUse] = fmt.Sprintf("{%s}", p.Datatype)
 
+		if queryParamString == "" {
+			queryParamString = fmt.Sprintf("?%s={%s}", nameToUse, p.Datatype)
+		} else {
+			queryParamString = queryParamString + fmt.Sprintf("&%s={%s}", nameToUse, p.Datatype)
 		}
 
 	}
@@ -224,4 +251,105 @@ outerloop:
 
 	s.MockUrl = fmt.Sprintf("api/%s%s", s.EndPointName, queryParamString)
 	s.MockUrlWithoutAuth = fmt.Sprintf("uapi/%s%s", s.EndPointName, queryParamString)
+}
+
+// ------------------------------------------------------------
+// BuildMockUrl(s)
+// ------------------------------------------------------------
+func (s *StoredProc) BuildMockUrl() {
+
+	switch s.HttpMethod {
+	case "GET", "DELETE":
+		s.BuildMockUrlGET()
+	default:
+		s.BuildMockUrlPost()
+	}
+}
+
+// ------------------------------------------------------------
+// BuildMockUrl(s)
+// ------------------------------------------------------------
+func (s *StoredProc) BuildMockUrlGET() {
+
+	queryParamString := ""
+	s.InputPayload = ""
+	pathParamString := ""
+outerloop:
+	for _, p := range s.Parameters {
+
+		nameToUse := p.GetNameToUse(false)
+		if p.Mode == "OUT" {
+			continue outerloop
+		}
+
+		// dont display inbuilt param
+		for _, ibp := range InbuiltParams {
+			if strings.EqualFold(ibp, nameToUse) {
+				continue outerloop
+			}
+		}
+
+		switch p.Placement {
+		case "PATH":
+			pathParamString = pathParamString + fmt.Sprintf("/{%s__%s}", nameToUse, p.Datatype)
+
+		default:
+			if queryParamString == "" {
+				queryParamString = fmt.Sprintf("?%s={%s}", nameToUse, p.Datatype)
+			} else {
+				queryParamString = queryParamString + fmt.Sprintf("&%s={%s}", nameToUse, p.Datatype)
+			}
+		}
+
+	}
+
+	s.MockUrl = fmt.Sprintf("api/%s%s%s", s.EndPointName, pathParamString, queryParamString)
+	s.MockUrlWithoutAuth = fmt.Sprintf("uapi/%s%s%s", s.EndPointName, pathParamString, queryParamString)
+}
+
+// ------------------------------------------------------------
+// BuildMockUrl(s)
+// ------------------------------------------------------------
+func (s *StoredProc) BuildMockUrlPost() {
+
+	queryParamString := ""
+	inputPayload := make(map[string]string)
+	s.InputPayload = ""
+	pathParamString := ""
+outerloop:
+	for _, p := range s.Parameters {
+		if p.Mode == "OUT" {
+			continue outerloop
+		}
+
+		nameToUse := p.GetNameToUse(false)
+
+		// dont display inbuilt param
+		for _, ibp := range InbuiltParams {
+			if strings.EqualFold(ibp, nameToUse) {
+				continue outerloop
+			}
+		}
+
+		switch p.Placement {
+		case "PATH":
+			pathParamString = pathParamString + fmt.Sprintf("/{%s__%s}", nameToUse, p.Datatype)
+		case "QUERY":
+			if queryParamString == "" {
+				queryParamString = fmt.Sprintf("?%s={%s}", nameToUse, p.Datatype)
+			} else {
+				queryParamString = queryParamString + fmt.Sprintf("&%s={%s}", nameToUse, p.Datatype)
+			}
+		default:
+			inputPayload[nameToUse] = fmt.Sprintf("{%s}", p.Datatype)
+		}
+	}
+
+	jsonPayload, err := json.MarshalIndent(inputPayload, "", "  ")
+	if err == nil {
+		s.InputPayload = string(jsonPayload)
+	}
+
+	s.MockUrl = fmt.Sprintf("api/%s%s%s", s.EndPointName, pathParamString, queryParamString)
+	s.MockUrlWithoutAuth = fmt.Sprintf("uapi/%s%s%s", s.EndPointName, pathParamString, queryParamString)
 }

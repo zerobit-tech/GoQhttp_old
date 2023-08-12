@@ -72,7 +72,7 @@ func main() {
 	defer logdb.Close()
 
 	// --------------------------------------- Setup app config and dependency injection ----------------------------
-	app := baseAppConfig(*params, db, userdb, logdb,systemlogdb)
+	app := baseAppConfig(*params, db, userdb, logdb, systemlogdb)
 	routes := app.routes()
 	app.batches()
 
@@ -260,7 +260,7 @@ func (app *application) promotionsSchedule() {
 func (app *application) pingServerSchedule() {
 	defer concurrent.Recoverer("PingServer")
 	defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
-
+	//ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	//return
 	pingServerEvery := env.GetEnvVariable("PING_SERVER_EVERY", "20s")
 	if pingServerEvery == "0" {

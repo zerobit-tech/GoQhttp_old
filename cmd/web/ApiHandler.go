@@ -224,7 +224,6 @@ func (app *application) GET(w http.ResponseWriter, r *http.Request) {
 	response := &storedProc.StoredProcResponse{ReferenceId: middleware.GetReqID(r.Context())}
 
 	endpointName, pathParams := app.GetPathParameters(r)
-	queryString := fmt.Sprint(r.URL)
 	//apiName := chi.URLParam(r, "apiname")
 
 	// apiName, err := httputils.QueryParamPath(queryString, "/api/")
@@ -233,6 +232,7 @@ func (app *application) GET(w http.ResponseWriter, r *http.Request) {
 	// 	return
 	// }
 
+	queryString := fmt.Sprint(r.URL)
 	requestJson, err := httputils.QueryParamToMap(queryString)
 	if err != nil {
 		response.Status = http.StatusBadRequest
@@ -263,6 +263,16 @@ func (app *application) POST(w http.ResponseWriter, r *http.Request) {
 
 	requestBodyMap := make(map[string]any)
 
+	queryString := fmt.Sprint(r.URL)
+	queryParamJson, err := httputils.QueryParamToMap(queryString)
+	if err != nil {
+		response.Status = http.StatusBadRequest
+		response.Message = err.Error()
+		app.writeJSONAPI(w, response, nil)
+		return
+
+	}
+
 	formData := false
 
 	//parse form data for html templates
@@ -292,13 +302,21 @@ func (app *application) POST(w http.ResponseWriter, r *http.Request) {
 
 	}
 
-	requestBodyFlatMap := jsonutils.JsonToFlatMapFromMap(requestBodyMap)
+	queryParameters := jsonutils.JsonToFlatMapFromMap(queryParamJson)
 
-	for _, p := range pathParams {
-		requestBodyFlatMap[p.Name] = xmlutils.ValueDatatype{Value: p.Value, DataType: "STRING"}
+	bodyParameters := jsonutils.JsonToFlatMapFromMap(requestBodyMap)
+
+	// body param can override query param
+	for k, v := range bodyParameters {
+		queryParameters[k] = v
 	}
 
-	app.ProcessAPICall(w, r, endpointName, pathParams, requestBodyFlatMap)
+	// path param can override query and body
+	for _, p := range pathParams {
+		queryParameters[p.Name] = xmlutils.ValueDatatype{Value: p.Value, DataType: "STRING"}
+	}
+
+	app.ProcessAPICall(w, r, endpointName, pathParams, queryParameters)
 
 }
 
@@ -424,10 +442,10 @@ func (app *application) ProcessAPICall(w http.ResponseWriter, r *http.Request, e
 			"request":  apiCall.RequestFlatMap,
 		}
 
-		app.spRender(w, r, apiCall.StatusCode, endPoint.HtmlTemplate, templateData) //apiCall.Response)
+		app.spRender(w, r, apiCall.StatusCode, endPoint.HtmlTemplate, templateData, apiCall.BuildHeaders()) //apiCall.Response)
 	} else {
 
-		app.writeJSON(w, apiCall.StatusCode, apiCall.Response, nil)
+		app.writeJSON(w, apiCall.StatusCode, apiCall.Response, apiCall.BuildHeaders())
 	}
 
 	// save SP logid

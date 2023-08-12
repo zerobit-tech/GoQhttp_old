@@ -6,6 +6,7 @@ import (
 	"log"
 	"reflect"
 	"strconv"
+	"strings"
 
 	"github.com/onlysumitg/GoQhttp/utils/typeutils"
 	"github.com/onlysumitg/GoQhttp/utils/xmlutils"
@@ -89,7 +90,7 @@ func processValue(value any, keyChain string) map[string]xmlutils.ValueDatatype 
 			iMap := buildFlatMap(newValueMap, keyChain)
 
 			for ikey, ivalue := range iMap {
-				flatmap[ikey] = ivalue
+				flatmap[strings.ToUpper(ikey)] = ivalue
 			}
 		}
 	} else if typeutils.IsList(value) {
@@ -101,12 +102,12 @@ func processValue(value any, keyChain string) map[string]xmlutils.ValueDatatype 
 		iMap := buildFlatList(newList, keyChain)
 
 		for ikey, ivalue := range iMap {
-			flatmap[ikey] = ivalue
+			flatmap[strings.ToUpper(ikey)] = ivalue
 		}
 
 	} else {
 
-		flatmap[keyChain] = xmlutils.ValueDatatype{Value: value, DataType: fmt.Sprint(reflect.ValueOf(value).Kind())}
+		flatmap[strings.ToUpper(keyChain)] = xmlutils.ValueDatatype{Value: value, DataType: fmt.Sprint(reflect.ValueOf(value).Kind())}
 
 	}
 	return flatmap

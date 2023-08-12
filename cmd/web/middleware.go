@@ -103,13 +103,9 @@ func (app *application) RequireTokenOrSessionAuthentication(next http.Handler) h
 
 		}
 
-		if strings.HasPrefix(token, "bearer ") {
-			token = strings.Trim(token, "bearer ")
-		}
+		token = strings.TrimPrefix(token, "bearer ")
 
-		if strings.HasPrefix(token, "Bearer ") {
-			token = strings.Trim(token, "Bearer ")
-		}
+		token = strings.TrimPrefix(token, "Bearer ")
 
 		// get token from session  TEMPLATING
 		if token == "" {
@@ -147,8 +143,6 @@ func (app *application) RequireTokenOrSessionAuthentication(next http.Handler) h
 	})
 }
 
-
-
 // ------------------------------------------------------
 //
 //	middleware
@@ -164,13 +158,9 @@ func (app *application) RequireTokenAuthentication(next http.Handler) http.Handl
 
 		}
 
-		if strings.HasPrefix(token, "bearer ") {
-			token = strings.Trim(token, "bearer ")
-		}
+		token = strings.TrimPrefix(token, "bearer ")
 
-		if strings.HasPrefix(token, "Bearer ") {
-			token = strings.Trim(token, "Bearer ")
-		}
+		token = strings.TrimPrefix(token, "Bearer ")
 
 		if token == "" {
 			response.Status = http.StatusUnauthorized

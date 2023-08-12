@@ -35,8 +35,8 @@ type SPCallLogEntry struct {
 // -----------------------------------------------------------------
 // Define a new UserModel type which wraps a database connection pool.
 type SPCallLogModel struct {
-	DB         *bolt.DB
-	dbmux      sync.Mutex
+	DB       *bolt.DB
+	dbmux    sync.Mutex
 	DataChan chan SPCallLogEntry
 }
 

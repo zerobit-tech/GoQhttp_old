@@ -9,11 +9,11 @@ Endpoint
 
 <div class="row p-2">
     <div class="col">
-        <form action="/sp/saveparamalias" method="POST">
+        <form action="/sp/saveparamplacement" method="POST">
             <div class="card ">
                 <div class="card-header">
                     <p class="h5">
-                        Parameters Alias <button type="submit" class="btn btn-ghost-primary  float-right">Update Alias</button>
+                        Parameter Placement <button type="submit" class="btn btn-ghost-primary  float-right">Update Placement</button>
                     </p>
                 </div>
                 <div class="card-body">
@@ -32,38 +32,37 @@ Endpoint
                                         <th>#</th>
                                         <th>Mode</th>
                                         <th>Name</th>
-                                        {{if $.Features.AllowParamPlacement}} <th>Placement</th> {{end}}
-                                        <th>Data Type</th>
-                                        
-                                        <th>Default Value</th>
                                         <th>Alias</th>
+                                        <th>Data Type</th>
+                                        <th>Placement</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {{if .StoredProc.Parameters}}
-                                    {{range .StoredProc.Parameters}}
+                                    {{range $param := .StoredProc.Parameters}}
                                     <tr>
-                                        <td>{{.Position}}</td>
-                                        <td>{{.Mode}}</td>
-                                        <td>{{.Name}}</td>
-                                        {{if $.Features.AllowParamPlacement}} <td>{{.Placement}}</td> {{end}}
-                                        <td>{{.Datatype}}</td>
+                                        <td>{{$param.Position}}</td>
+                                        <td>{{$param.Mode}}</td>
+                                        <td>{{$param.Name}}</td>
+                                        <td>{{$param.Alias}}</td>
+                                        <td>{{$param.Datatype}}</td>
                                      
-                                        <td>{{.GetDefaultValueX}}</td>
+                                     
 
-                                        <td>                                            
-                                            {{if ne "PATH" .Placement}}
+                                        <td>
+                                            {{if ne "OUT" $param.Mode}}
+                                            <div class="form-group">
+                                                <SELECT id="{{$param.Name}}" class="form-control" name="{{$param.Name}}">
+                                                    <OPTION value="">Default</OPTION>
+                                                    {{range $pos := $.ParamPlacements}}
+                                                    <OPTION {{if eq $pos $param.Placement}} selected {{end}}  value="{{$pos}}"> {{$pos}} </OPTION>
+                                                    {{end}}
+                                                </SELECT>
 
-                                             <div class="form-group">
-                                              
-                                                <input id="{{.Name}}" class="form-control  " type="text"
-                                                    name="{{.Name}}" aria-describedby="{{.Name}}help"
-                                                    placeholder="{{.Name}}" value='{{.Alias}}'  ></input>
-
-
+                                                <small id="{{$param.Name}}f" class="form-text text-muted">
+                                                    "PATH": will override the Alias
+                                                </small>
                                             </div>
-                                            {{else}}
-                                            <strong>  {{.Alias}}</strong>
                                             {{end}}
                                          </td>
 

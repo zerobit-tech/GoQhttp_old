@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"runtime/debug"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/onlysumitg/GoQhttp/internal/ibmiServer"
@@ -82,7 +83,7 @@ func (app *application) ServerHandlers(router *chi.Mux) {
 		r.Get("/{serverid}", app.ServerView)
 		r.Get("/select/{serverid}", app.ServerSelect)
 		r.Get("/listprom/{serverid}", app.ListPromotion)
-
+		r.Get("/liblist/{serverid}", app.GetLibList)
 		r.Get("/help/ptable", app.PromotionTableHelp)
 		r.Get("/help/utstable", app.UserTokenTableHelp)
 
@@ -450,6 +451,7 @@ func (app *application) ServerAdd(w http.ResponseWriter, r *http.Request) {
 		ConnectionsIdle:   20,
 		ConnectionMaxAge:  600,
 		ConnectionIdleAge: 3600,
+		LibList:           make([]string, 20),
 	}
 	app.render(w, r, http.StatusOK, "server_add.tmpl", data)
 
@@ -500,6 +502,8 @@ func (app *application) ServerAddPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	//fmt.Println(">>>> server lib >>", server.LibList)
+
 	server.CheckField(validator.NotBlank(server.Name), "name", "This field cannot be blank")
 
 	server.CheckField(validator.NotBlank(server.IP), "ip", "This field cannot be blank")
@@ -545,8 +549,10 @@ func (app *application) ServerAddPost(w http.ResponseWriter, r *http.Request) {
 
 	go func() {
 		defer concurrent.Recoverer("Server ADD log")
-		logEvent := GetSystemLogEvent(app.getCurrentUserID(r), "Server added", fmt.Sprintf("Server %s,IP %s", server.Name, r.RemoteAddr), false)
+		logEvent := GetSystemLogEvent(app.getCurrentUserID(r), "Server Created", fmt.Sprintf("%s,IP %s", server.Name, r.RemoteAddr), false)
 		logEvent.ImpactedServerId = server.ID
+		logEvent.AfterUpdate = server.LogImage()
+
 		app.SystemLoggerChan <- logEvent
 
 	}()
@@ -575,6 +581,10 @@ func (app *application) ServerUpdate(w http.ResponseWriter, r *http.Request) {
 
 	data.Form = server
 
+	if len(server.LibList) == 0 {
+		server.LibList = make([]string, 20)
+	}
+	data.Server = server
 	app.render(w, r, http.StatusOK, "server_update.tmpl", data)
 
 }
@@ -621,7 +631,7 @@ func (app *application) ServerUpdatePost(w http.ResponseWriter, r *http.Request)
 
 	originalServer, err := app.servers.Get(server.ID)
 	if err != nil {
-		app.sessionManager.Put(r.Context(), "error", fmt.Sprintf("003 Invalid serverT"))
+		app.sessionManager.Put(r.Context(), "error", fmt.Sprintf("003 Invalid server"))
 		app.goBack(w, r, http.StatusBadRequest)
 		return
 	}
@@ -661,6 +671,18 @@ func (app *application) ServerUpdatePost(w http.ResponseWriter, r *http.Request)
 		app.serverError500(w, r, err)
 		return
 	}
+
+	go func() {
+		defer concurrent.Recoverer("SERVERMODIFIED")
+		defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
+		logEvent := GetSystemLogEvent(app.getCurrentUserID(r), "Server Modified", fmt.Sprintf(" %s,IP %s", server.Name, r.RemoteAddr), false)
+		logEvent.ImpactedServerId = server.ID
+		logEvent.BeforeUpdate = originalServer.LogImage()
+		logEvent.AfterUpdate = server.LogImage()
+		app.SystemLoggerChan <- logEvent
+
+	}()
+
 	app.sessionManager.Put(r.Context(), "flash", fmt.Sprintf("Server %s updated sucessfully", server.Name))
 
 	http.Redirect(w, r, "/servers", http.StatusSeeOther)
@@ -708,5 +730,26 @@ func (app *application) SyncUserTokens(w http.ResponseWriter, r *http.Request) {
 	app.sessionManager.Put(r.Context(), "flash", "User token sync Completed.")
 
 	app.goBack(w, r, http.StatusSeeOther)
+
+}
+
+// ------------------------------------------------------
+// run promotions
+// ------------------------------------------------------
+func (app *application) GetLibList(w http.ResponseWriter, r *http.Request) {
+
+	serverID := chi.URLParam(r, "serverid")
+
+	server, err := app.servers.Get(serverID)
+	if err != nil {
+
+		//log.Println("ServerDeleteConfirm  002 >>>>>>", err.Error())
+		app.sessionManager.Put(r.Context(), "error", fmt.Sprintf("Error: %s", err.Error()))
+		app.goBack(w, r, http.StatusSeeOther)
+		return
+	}
+	libList, _ := server.GetLibList()
+
+	app.renderAnyWithoutBase(w, r, http.StatusOK, "server_lib_list.tmpl", map[string][]string{"liblist": libList})
 
 }

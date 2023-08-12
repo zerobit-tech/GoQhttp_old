@@ -44,6 +44,9 @@ func (m *ServerModel) Insert(u *ibmiServer.Server) (string, error) {
 // -----------------------------------------------------------------
 // We'll use the Insert method to add a new record to the "users" table.
 func (m *ServerModel) Update(u *ibmiServer.Server, clearCache bool) error {
+
+	u.ManageLibList()
+	
 	err := m.DB.Update(func(tx *bolt.Tx) error {
 		bucket, err := tx.CreateBucketIfNotExists(m.getTableName())
 		if err != nil {

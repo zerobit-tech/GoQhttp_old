@@ -58,7 +58,7 @@ type templateData struct {
 
 	LogEntries       []string
 	SystemLogEntries []SystemLogEvent
-	SystemLogEntry      SystemLogEvent
+	SystemLogEntry   SystemLogEvent
 
 	LicenseEntries []*lic.LicenseFile
 
@@ -84,8 +84,10 @@ type templateData struct {
 
 	LoginMessage []string
 
-	SpTemplates []string
+	SpTemplates    []string
 	NextPageNumber int
+
+	ParamPlacements []string
 }
 
 func ListComparisonOperators() []string {
@@ -157,6 +159,31 @@ func (app *application) setTemplateDefaults(r *http.Request, templateData *templ
 	// 	templateData.CurrentServer = currentServer
 	// }
 
+}
+
+// -----------------------------------------------------------------
+//
+// -----------------------------------------------------------------
+func (app *application) renderAnyWithoutBase(w http.ResponseWriter, r *http.Request, status int, page string, data any) {
+	ts, ok := app.templateCache[page]
+	if !ok {
+		return
+	}
+	// Initialize a new buffer.
+	buf := new(bytes.Buffer)
+
+	// Write the template to the buffer, instead of straight to the
+	// http.ResponseWriter. If there's an error, call our serverError() helper
+	// and then return.
+	ts.Execute(buf, data)
+
+	// If the template is written to the buffer without any errors, we are safe
+	// to go ahead and write the HTTP status code to http.ResponseWriter.
+	w.WriteHeader(status)
+	// Write the contents of the buffer to the http.ResponseWriter. Note: this
+	// is another time where we pass our http.ResponseWriter to a function that
+	// takes an io.Writer.
+	buf.WriteTo(w)
 }
 
 // -----------------------------------------------------------------

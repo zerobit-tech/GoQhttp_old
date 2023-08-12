@@ -74,19 +74,18 @@
       {{if .StoredProc}}
       {{if .StoredProc.ID}}
           {{template "spoptions" .}}
-         
           {{end}}
-
- 
-     
       {{end}}
-
-
-
  <!--  sp options end-->
 
 
-
+<!--  sp options -->
+{{if .Server}}
+{{if .Server.ID}}
+    {{template "serveroptions" .}}
+    {{end}}
+{{end}}
+<!--  Server options-->
       
 
 

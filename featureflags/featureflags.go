@@ -12,6 +12,8 @@ type Features struct {
 	AdminEmail          string
 	AdminPassword       string
 	AllowHtmlTemplates  bool
+	AllowParamPlacement bool
+	AllowLibList        bool
 }
 
 // --------------------------------------------------------------
@@ -39,6 +41,8 @@ func AllowALL() *Features {
 		LoginMessages:       make([]string, 0),
 		AdminEmail:          "",
 		AdminPassword:       "",
+		AllowParamPlacement: true,
+		AllowLibList:        true,
 	}
 }
 
@@ -65,6 +69,9 @@ func Demo() *Features {
 func Pub400() *Features {
 
 	return &Features{
+		AllowParamPlacement: true,
+		AllowLibList:        false,
+
 		Dashboard:           true,
 		AllowPromotion:      false,
 		AllowTokenSync:      false,

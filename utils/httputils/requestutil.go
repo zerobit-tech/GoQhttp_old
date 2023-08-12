@@ -56,16 +56,16 @@ func FormToJson(r *http.Request) (map[string]any, error) {
 	}
 
 	for k, v := range r.Form {
-
+		kU := strings.ToUpper(k)
 		length := len(v)
 
 		switch length {
 		case 0:
-			asJson[k] = ""
+			asJson[kU] = ""
 		case 1:
-			asJson[k] = v[0]
+			asJson[kU] = v[0]
 		default:
-			asJson[k] = v
+			asJson[kU] = v
 		}
 
 	}

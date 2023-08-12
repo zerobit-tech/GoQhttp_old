@@ -105,6 +105,7 @@ func (s *Server) PrepareToSave(ctx context.Context, sp *storedProc.StoredProc) e
 //
 // ------------------------------------------------------------
 func (s *Server) GetConnectionString() string {
+	// https://www.ibm.com/docs/en/i/7.4?topic=details-connection-string-keywords
 
 	connectionString := ""
 
@@ -128,7 +129,9 @@ func (s *Server) getIPConnectionString() string {
 	}
 	pwd := s.GetPassword()
 
-	return fmt.Sprintf("DRIVER=%s;SYSTEM=%s; UID=%s;PWD=%s;DBQ=*USRLIBL;UNICODESQL=1;XDYNAMIC=1;EXTCOLINFO=0;PKG=A/QHTTP,2,0,0,1,512;PROTOCOL=TCPIP;NAM=1;CMT=0;SSL=%d;ALLOWUNSCHAR=1", driver, s.IP, s.GetUserName(), pwd, ssl)
+	libList := s.GetConnetionLibList()
+
+	return fmt.Sprintf("DRIVER=%s;SYSTEM=%s;UID=%s;PWD=%s;DBQ=%s;UNICODESQL=1;XDYNAMIC=1;EXTCOLINFO=0;PKG=A/QHTTP,2,0,0,1,512;PROTOCOL=TCPIP;NAM=1;CMT=0;SSL=%d;ALLOWUNSCHAR=1", driver, s.IP, s.GetUserName(), pwd, libList, ssl)
 
 }
 
@@ -150,7 +153,9 @@ func (s *Server) getDNSConnectionString() string {
 		pwdString = fmt.Sprintf("PWD=%s;", pwd)
 	}
 
-	return fmt.Sprintf("%s%s%sDBQ=*USRLIBL;UNICODESQL=1;XDYNAMIC=1;EXTCOLINFO=0;CMT=0;ALLOWUNSCHAR=1", dnsName, userString, pwdString)
+	libList := s.GetConnetionLibList()
+
+	return fmt.Sprintf("%s%s%sDBQ=%s;UNICODESQL=1;XDYNAMIC=1;EXTCOLINFO=0;CMT=0;ALLOWUNSCHAR=1;NAM=1", dnsName, userString, pwdString, libList)
 }
 
 // ------------------------------------------------------------
@@ -346,7 +351,7 @@ func (s *Server) ListPromotion(withupdate bool) ([]*storedProc.PromotionRecord, 
 	promotionRecords := make([]*storedProc.PromotionRecord, 0)
 	if strings.TrimSpace(s.ConfigFile) != "" && strings.TrimSpace(s.ConfigFileLib) != "" {
 
-		sqlToUse := fmt.Sprintf("select rrn(a), upper(trim(ifnull(operation,''))) , upper(trim(ifnull(endpoint,''))), trim(ifnull(storedproc,'')), trim(ifnull(storedproclib,'')), upper(trim(ifnull(httpmethod,''))), upper(trim(ifnull(usespecificname,''))), upper(trim(ifnull(usewithoutauth,''))) , upper(trim(ifnull(paramalias,''))) from %s.%s a where ifnull(status,'')=''", s.ConfigFileLib, s.ConfigFile)
+		sqlToUse := fmt.Sprintf("select rrn(a), upper(trim(ifnull(operation,''))) , upper(trim(ifnull(endpoint,''))), trim(ifnull(storedproc,'')), trim(ifnull(storedproclib,'')), upper(trim(ifnull(httpmethod,''))), upper(trim(ifnull(usespecificname,''))), upper(trim(ifnull(usewithoutauth,''))) , upper(trim(ifnull(paramalias,''))) , upper(trim(ifnull(paramplacement,'')))from %s.%s a where ifnull(status,'')=''", s.ConfigFileLib, s.ConfigFile)
 
 		conn, err := s.GetSingleConnection()
 		if err != nil {
@@ -378,6 +383,7 @@ func (s *Server) ListPromotion(withupdate bool) ([]*storedProc.PromotionRecord, 
 				&rcd.UseSpecificName,
 				&rcd.UseWithoutAuth,
 				&rcd.ParamAlias,
+				&rcd.ParamPlacement,
 			)
 			if err != nil {
 				rcd.Status = "E"
@@ -402,6 +408,7 @@ func (s *Server) ListPromotion(withupdate bool) ([]*storedProc.PromotionRecord, 
 			}
 
 			rcd.BreakParamAlias()
+			rcd.BreakParamPlacements()
 			promotionRecords = append(promotionRecords, rcd)
 		}
 	}
@@ -522,4 +529,42 @@ func (s *Server) UpdateStatusUserTokenTable(p storedProc.UserTokenSyncRecord) {
 	if err != nil {
 		log.Println("Error updateing User token file.... ", err.Error())
 	}
+}
+
+// ------------------------------------------------------------
+//
+// ------------------------------------------------------------
+func (s *Server) GetLibList() ([]string, error) {
+
+	libList := make([]string, 0)
+
+	sqlToUse := "SELECT SYSTEM_SCHEMA_NAME FROM QSYS2.LIBRARY_LIST_INFO order by ORDINAL_POSITION"
+
+	conn, err := s.GetSingleConnection()
+	if err != nil {
+
+		return libList, err
+	}
+	defer conn.Close()
+
+	rows, err := conn.Query(sqlToUse)
+
+	if err != nil {
+
+		return libList, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		rcd := ""
+		err := rows.Scan(&rcd)
+		if err != nil {
+			return libList, err
+		} else {
+			libList = append(libList,rcd)
+		}
+
+	}
+
+	return libList, nil
 }

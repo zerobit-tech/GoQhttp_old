@@ -35,7 +35,7 @@ func (app *application) renderSPTemplate(w http.ResponseWriter, r *http.Request)
 
 	templateName := fmt.Sprintf("%s.html", chi.URLParam(r, "name"))
 
-	app.spRender(w, r, http.StatusOK, templateName, nil)
+	app.spRender(w, r, http.StatusOK, templateName, nil, nil)
 
 }
 
@@ -65,7 +65,7 @@ func (app *application) LoadSPTemplates() {
 // -----------------------------------------------------------------
 //
 // -----------------------------------------------------------------
-func (app *application) spRender(w http.ResponseWriter, r *http.Request, status int, page string, data any) {
+func (app *application) spRender(w http.ResponseWriter, r *http.Request, status int, page string, data any, headers http.Header) {
 
 	// Write the template to the buffer, instead of straight to the
 	// http.ResponseWriter. If there's an error, call our serverError() helper
@@ -79,6 +79,11 @@ func (app *application) spRender(w http.ResponseWriter, r *http.Request, status 
 	}
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+
+	for key, value := range headers {
+		w.Header()[key] = value
+	}
+
 	// If the template is written to the buffer without any errors, we are safe
 	// to go ahead and write the HTTP status code to http.ResponseWriter.
 	w.WriteHeader(status)

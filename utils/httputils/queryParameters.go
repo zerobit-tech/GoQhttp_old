@@ -36,7 +36,7 @@ func QueryParamToMap(urlString string) (map[string]any, error) {
 	}
 
 	for k, v := range q {
-
+		k := strings.ToUpper(k)
 		switch len(v) {
 		case 0:
 			asRequestJson[k] = ""

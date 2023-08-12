@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"runtime/debug"
 	"strings"
 
 	"github.com/go-chi/chi/v5"
@@ -51,8 +52,11 @@ func (app *application) StoredProcHandlers(router *chi.Mux) {
 		r.Get("/logs/{spId}", app.SpLogs)
 
 		r.Get("/paramalias/{spId}", app.SpParamAlias)
-
 		r.Post("/saveparamalias", app.SPsaveparamalias)
+
+		r.Get("/paramplacement/{spId}", app.SpParamPos)
+		r.Post("/saveparamplacement", app.SpSaveParamPos)
+
 		r.Get("/help", app.SPHelp)
 
 	})
@@ -147,7 +151,7 @@ func (app *application) SPView(w http.ResponseWriter, r *http.Request) {
 	}
 	data.StoredProc = sP
 	data.Servers = app.servers.List()
-	data.SPCallLog, _ = app.spCallLogModel.Get(sP.ID)
+	//data.SPCallLog, _ = app.spCallLogModel.Get(sP.ID)
 	app.render(w, r, http.StatusOK, "sp_view.tmpl", data)
 
 }
@@ -286,6 +290,7 @@ func (app *application) SPAddPost(w http.ResponseWriter, r *http.Request) {
 
 	go func() {
 		defer concurrent.Recoverer("SPMODIFIED")
+		defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
 		logEvent := GetSystemLogEvent(app.getCurrentUserID(r), logAction, fmt.Sprintf(" %s %s,IP %s", sP.EndPointName, sP.HttpMethod, r.RemoteAddr), false)
 		logEvent.ImpactedEndpointId = id
 		logEvent.BeforeUpdate = logBeforeImage
@@ -376,6 +381,7 @@ func (app *application) SPUpdate(w http.ResponseWriter, r *http.Request) {
 
 	data.Form = sP
 	data.Servers = app.servers.List()
+	data.StoredProc = sP
 
 	app.render(w, r, http.StatusOK, "sp_add.tmpl", data)
 
@@ -436,9 +442,7 @@ func (app *application) SPsaveparamalias(w http.ResponseWriter, r *http.Request)
 		app.goBack(w, r, http.StatusSeeOther)
 		return
 	}
-	fmt.Sprintln(sP)
 
-	fmt.Println("formToMap(r)>>>>", formToMap(r))
 	//	app.storedProcs.Save(sP)
 	aliasMap := formToMap(r)
 
@@ -447,7 +451,7 @@ func (app *application) SPsaveparamalias(w http.ResponseWriter, r *http.Request)
 		alias, found := aliasMap[strings.ToUpper(p.Name)]
 		if found {
 			aliasString, ok := alias.(string)
-			if ok && p.Alias != aliasString {
+			if ok && p.Alias != aliasString && p.Placement != "PATH" {
 				p.Alias = strings.TrimSpace(strings.ToUpper(aliasString))
 				changed = true
 				app.invalidateEndPointCache()
@@ -464,6 +468,7 @@ func (app *application) SPsaveparamalias(w http.ResponseWriter, r *http.Request)
 			return
 		}
 
+		sP.AssignAliasForPathPlacement()
 		app.storedProcs.Save(sP)
 		app.sessionManager.Put(r.Context(), "flash", "Done")
 
@@ -582,6 +587,81 @@ func (app *application) ReloadSpTemplate(w http.ResponseWriter, r *http.Request)
 	app.LoadSPTemplates()
 
 	app.sessionManager.Put(r.Context(), "flash", "Done")
+
+	app.goBack(w, r, http.StatusSeeOther)
+
+}
+
+// ------------------------------------------------------
+// Server details
+// ------------------------------------------------------
+func (app *application) SpParamPos(w http.ResponseWriter, r *http.Request) {
+
+	if !app.features.AllowParamPlacement {
+		app.goBack(w, r, http.StatusNotFound)
+		return
+	}
+
+	data := app.newTemplateData(r)
+
+	spId := chi.URLParam(r, "spId")
+
+	sP, err := app.storedProcs.Get(spId)
+	if err != nil {
+		app.serverError500(w, r, err)
+		return
+	}
+	data.StoredProc = sP
+	data.ParamPlacements = sP.AvailableParamterPostions()
+	app.render(w, r, http.StatusOK, "sp_param_placement.tmpl", data)
+
+}
+
+// ------------------------------------------------------
+//
+// ------------------------------------------------------
+func (app *application) SpSaveParamPos(w http.ResponseWriter, r *http.Request) {
+
+	if !app.features.AllowParamPlacement {
+		app.goBack(w, r, http.StatusNotFound)
+		return
+	}
+
+	spId := r.FormValue("id")
+
+	sP, err := app.storedProcs.Get(spId)
+	if err != nil {
+		app.sessionManager.Put(r.Context(), "error", fmt.Sprintf("Error  : %s", err.Error()))
+		app.goBack(w, r, http.StatusSeeOther)
+		return
+	}
+
+	//	app.storedProcs.Save(sP)
+	formMap := formToMap(r)
+
+	changed := false
+	for _, p := range sP.Parameters {
+		placement, found := formMap[strings.ToUpper(p.Name)]
+		if found {
+			placementString, ok := placement.(string)
+			if ok && p.Placement != placementString {
+				p.Placement = strings.TrimSpace(strings.ToUpper(placementString))
+
+				changed = true
+				app.invalidateEndPointCache()
+
+			}
+		}
+	}
+
+	if changed {
+		sP.AssignAliasForPathPlacement()
+		app.storedProcs.Save(sP)
+		app.sessionManager.Put(r.Context(), "flash", "Done")
+	} else {
+		app.sessionManager.Put(r.Context(), "flash", "Nothing changed")
+
+	}
 
 	app.goBack(w, r, http.StatusSeeOther)
 

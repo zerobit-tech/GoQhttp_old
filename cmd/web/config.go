@@ -127,7 +127,7 @@ func baseAppConfig(params cliparams.Parameters, db *bolt.DB, userdb *bolt.DB, lo
 	//shutDownctx, startShutdown := context.WithCancel(context.Background())
 	//---------------------------------------  final app config ----------------------------
 	app := &application{
-		version:  "1.2.0",
+		version:  "1.3.0",
 		errorLog: errorLog,
 		infoLog:  infoLog,
 

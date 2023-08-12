@@ -56,9 +56,43 @@ type Server struct {
 	UserTokenFileLib string `json:"usertokenfilelib" db:"usertokenfilelib" form:"usertokenfilelib"`
 	UserTokenFile    string `json:"usertokenfile" db:"usertokenfile" form:"usertokenfile"`
 
+	LibList []string `json:"liblist" db:"liblist" form:"liblist"`
+
 	LastAutoPromoteDate string `json:"lastautopromotecheck" db:"lastautopromotecheck" form:"lastautopromotecheck"`
 
 	validator.Validator `json:"-" db:"-" form:"-"`
+}
+
+// ------------------------------------------------------------
+//
+// ------------------------------------------------------------
+func (s *Server) LogImage() string {
+	imageMap := make(map[string]any)
+	imageMap["Name"] = s.Name
+	imageMap["IP"] = s.IP
+	imageMap["UserName"] = s.UserName
+
+	imageMap["ConnectionsOpen"] = s.ConnectionsOpen
+	imageMap["ConnectionsIdle"] = s.ConnectionsIdle
+	imageMap["ConnectionMaxAge"] = s.ConnectionMaxAge
+	imageMap["ConnectionIdleAge"] = s.ConnectionIdleAge
+
+	imageMap["ConfigFileLib"] = s.ConfigFileLib
+	imageMap["ConfigFile"] = s.ConfigFile
+
+	imageMap["AutoPromotePrefix"] = s.AutoPromotePrefix
+
+	imageMap["UserTokenFileLib"] = s.UserTokenFileLib
+	imageMap["UserTokenFile"] = s.UserTokenFile
+
+	imageMap["LibList"] = s.LibList
+
+	j, err := json.MarshalIndent(imageMap, " ", " ")
+	if err == nil {
+		return string(j)
+	}
+
+	return err.Error()
 }
 
 // -----------------------------------------------------------------
@@ -97,7 +131,57 @@ func (s *Server) hasSPUpdated(ctx context.Context, sp *storedProc.StoredProc) bo
 
 // -----------------------------------------------------------------
 //
+//	https://www.ibm.com/docs/en/i/7.4?topic=details-connection-string-keywords
+//	Connection String: DBQ
+//
 // -----------------------------------------------------------------
+func (s *Server) GetConnetionLibList() string {
+	libList := "*USRLIBL"
+	severLibL := s.GetLibListString()
+	if severLibL != "" {
+		libList = "," + severLibL + ",*USRLIBL" // DBQ=,mylib,mylib2,mylib3;NAM=1 is specified, then CURRENT SCHEMA special register is set to *LIBL and the library list would be MYLIB, MYLIB2, and MYLIB3.
+	}
+	return libList
+}
+
+// -----------------------------------------------------------------
+//
+// -----------------------------------------------------------------
+func (s *Server) GetLibListString() string {
+	if len(s.LibList) <= 0 {
+		return ""
+	}
+
+	libList := make([]string, 0)
+
+	for _, lib := range s.LibList {
+		if strings.TrimSpace(lib) != "" {
+			libList = append(libList, strings.ToUpper(lib))
+		}
+	}
+	libListString := strings.Join(libList, ",")
+
+	return libListString
+
+}
+
+// -----------------------------------------------------------------
+//
+// -----------------------------------------------------------------
+func (s *Server) ManageLibList() {
+	libList := make([]string, 20)
+	iCounter := 0
+	for _, lib := range s.LibList {
+		if strings.TrimSpace(lib) != "" {
+			libList[iCounter] = strings.ToUpper(lib)
+			iCounter += 1
+		}
+	}
+
+	s.LibList = libList
+
+}
+
 // -----------------------------------------------------------------
 //
 // -----------------------------------------------------------------
@@ -143,7 +227,7 @@ func (s *Server) prepareCallStatement(sp *storedProc.StoredProc, givenParams map
 	finalCallStatement := sp.CallStatement
 
 	for _, p := range sp.Parameters {
-		paramNameToUse := p.GetNameToUse()
+		paramNameToUse := p.GetNameToUse(false)
 
 		switch p.Mode {
 		case "IN":
@@ -171,7 +255,7 @@ func (s *Server) prepareCallStatement(sp *storedProc.StoredProc, givenParams map
 			finalCallStatement = strings.ReplaceAll(finalCallStatement, stringToReplace, "?")
 
 		case "INOUT":
-			spResponseFormat[p.GetNameToUse()] = p.Datatype
+			spResponseFormat[p.GetNameToUse(true)] = p.Datatype
 
 			valueToUse, found := givenParams[paramNameToUse]
 			if !found {
@@ -200,7 +284,7 @@ func (s *Server) prepareCallStatement(sp *storedProc.StoredProc, givenParams map
 			inOutParamMapToSPParam[p.Name] = p
 
 		case "OUT":
-			spResponseFormat[p.GetNameToUse()] = p.Datatype
+			spResponseFormat[p.GetNameToUse(true)] = p.Datatype
 			out := getParameterofType(p)
 			inoutParamVariables[p.Name] = out
 			inoutParams = append(inoutParams, sql.Out{Dest: inoutParamVariables[p.Name]})
@@ -257,7 +341,7 @@ func (s *Server) call(ctx context.Context, callID string, sp *storedProc.StoredP
 	for kXX, v := range preparedCallStatements.InOutParamVariables {
 		p, found := preparedCallStatements.InOutParamMapToSPParam[kXX]
 
-		keyToUse := p.GetNameToUse()
+		keyToUse := p.GetNameToUse(true)
 
 		if found {
 
@@ -376,7 +460,7 @@ func (s *Server) SeversCall(ctx context.Context, sp *storedProc.StoredProc, prep
 	if err != nil {
 		return err
 	}
-
+		 
 	resultsets := make(map[string][]map[string]any, 0)
 	ctx = context.WithValue(ctx, go_ibm_db.LOAD_SP_RESULT_SETS, resultsets)
 	ctx = context.WithValue(ctx, go_ibm_db.DUMMY_SP_CALL, dummyCall)
@@ -502,9 +586,12 @@ func (s *Server) getParameters(ctx context.Context, sp *storedProc.StoredProc) e
 		for _, op := range originalParams {
 			if p.Name == op.Name {
 				p.Alias = op.Alias
+				p.Placement = op.Placement
 			}
 		}
 	}
+
+	sp.AssignAliasForPathPlacement()
 
 	return nil
 

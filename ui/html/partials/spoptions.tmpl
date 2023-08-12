@@ -43,6 +43,20 @@
  {{end}}
 
 
+ {{if $.Features.AllowParamPlacement}}
+ <li class="c-sidebar-nav-item">
+     <a class="c-sidebar-nav-link" href='/sp/paramplacement/{{.StoredProc.ID}}' >
+          
+           <svg class="c-icon mfe-2">
+             <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-swap-vertical"></use>
+         </svg>
+ 
+         Param Placement</a>
+  </li>
+  {{end}}
+
+
+
  <li class="c-sidebar-nav-item">
       
 

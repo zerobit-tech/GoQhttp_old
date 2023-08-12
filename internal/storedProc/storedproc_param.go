@@ -29,19 +29,26 @@ type StoredProcParamter struct {
 	DropStatement      string
 	GivenValue         string
 	OutValue           string
-	validForCall       bool `json:"-" db:"-" form:"-"`
+	Placement          string // query  path body
+	validForCall       bool   `json:"-" db:"-" form:"-"`
 }
 
 // -----------------------------------------------------------------
 //
 // -----------------------------------------------------------------
-func (p *StoredProcParamter) GetNameToUse() string {
+func (p *StoredProcParamter) GetNameToUse(ignoreSpecials bool) string {
 	paramNameToUse := p.Name
 
 	if p.Alias != "" {
-		paramNameToUse = p.Alias
+		if ignoreSpecials && strings.HasPrefix(p.Alias, "*") {
+			// Nothing here
+		} else {
+
+			paramNameToUse = p.Alias
+		}
 
 	}
+
 	return paramNameToUse
 }
 

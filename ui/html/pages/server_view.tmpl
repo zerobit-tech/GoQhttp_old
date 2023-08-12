@@ -3,220 +3,234 @@ Server detail
 {{end}}
 
 {{define "content"}}
- 
+
 
 <div class="row p-2">
-    <div class="col">
-      <div class="card ">
-        <div class="card-header">
-          <p class="h5">Server Details 
+  <div class="col">
+    <div class="card " style="height: 100%;">
+      <div class="card-header">
+        <p class="h5">Server Details </p>
 
-             {{if .CurrentUser.IsSuperUser}}
-                         <a class="btn btn-ghost-info float-right" href="/servers/clearcache/{{.Server.ID}}">Clear Cache</a>
-                         {{if .Features.AllowPromotion}}
-                         <a hx-boost="true" hx-push-url="true"  class="btn btn-ghost-info float-right" href="/servers/listprom/{{.Server.ID}}">Promotions</a>
-                         {{end}}
-                         {{if .Features.AllowTokenSync}}
-                         <a class="btn btn-ghost-info float-right" href="/servers/syncusertoken/{{.Server.ID}}">Sync User tokens</a>
-                         {{end}}
+      </div>
 
+
+      <div class="card-body">
+        <table class="table table-bordered table-striped">
+          <tbody>
+
+
+            <tr>
+              <td>Server Name</td>
+              <td>{{.Server.Name}}</td>
+            </tr>
+
+            <tr>
+              <td>Server IP</td>
+              <td>{{.Server.IP}}</td>
+            </tr>
+
+            <tr>
+              <td>Server Port</td>
+              <td>{{.Server.Port}}</td>
+            </tr>
+
+
+
+            <tr>
+              <td>User Name</td>
+              <td>{{.Server.UserName}}</td>
+            </tr>
+
+
+
+            <tr>
+              <td>Max open Connections</td>
+              <td>{{.Server.MaxOpenConns}}</td>
+            </tr>
+
+            <tr>
+              <td>Max Idle Connections</td>
+              <td>{{.Server.MaxIdleConns}}</td>
+            </tr>
+
+            <tr>
+              <td>Connection max age</td>
+              <td>{{.Server.ConnMaxLifetime}}</td>
+            </tr>
+
+            <tr>
+              <td>Connection idle age</td>
+              <td>{{.Server.ConnMaxIdleTime}}</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <a hx-boost="true" hx-push-url="true" class="btn btn-primary " href="/servers">Back to Server list</a>
+
+
+      </div>
+    </div>
+  </div>
+  {{if $.Features.AllowLibList}} 
+  <div class="col">
+    <div class="card " style="height: 100%;">
+      <div class="card-header">
+        <p class="h5">Given Lib List</p>
+      </div>
+      <div class="card-body">
+          <ol id="aliblist">
+            {{range .Server.LibList}}
+            <li>{{.}}</li>
             {{end}}
 
-            <a class="btn btn-ghost-info float-right" href="/postman/s/{{.Server.ID}}">Postman collection</a>
-
-          </p>
-         
-        </div>
-  
-   
-        <div class="card-body">
-<table  class="table table-bordered table-striped">
-    <tbody>
-      
-
-        <tr>
-            <td>Server Name</td>
-            <td>{{.Server.Name}}</td>
-        </tr>
-
-        <tr>
-            <td>Server IP</td>
-            <td>{{.Server.IP}}</td>
-        </tr>
-     
-        <tr>
-            <td>Server Port</td>
-            <td>{{.Server.Port}}</td>
-        </tr>
-
-   
-
-        <tr>
-            <td>User Name</td>
-            <td>{{.Server.UserName}}</td>
-        </tr>
-
+          </ol>
  
 
-       <tr>
-            <td>Max open Connections</td>
-            <td>{{.Server.MaxOpenConns}}</td>
-        </tr>
 
-        <tr>
-            <td>Max Idle Connections</td>
-            <td>{{.Server.MaxIdleConns}}</td>
-        </tr>
+      </div>
+    </div>
+  </div>
+  {{end}}
 
-        <tr>
-            <td>Connection max age</td>
-            <td>{{.Server.ConnMaxLifetime}}</td>
-        </tr>
 
-        <tr>
-            <td>Connection idle age</td>
-            <td>{{.Server.ConnMaxIdleTime}}</td>
-        </tr>
-    </tbody>
-</table>
 
-<a hx-boost="true" hx-push-url="true"  class="btn btn-primary " href="/servers">Back to Server list</a>
 
- 
-</div>
-</div>
-</div>
-
- 
+  <div class="col">
+    <div class="card " style="height: 100%;">
+      <div class="card-header">
+        <p class="h5">Job Lib List</p>
+      </div>
+      <div class="card-body"  hx-get="/servers/liblist/{{.Server.ID}}" hx-trigger="load delay:100ms">
+        <p>Loading...</p>
+      </div>
+    </div>
+  </div>
 
 </div>
 
 <div class="row p-2">
-    <div class="col">
-      <div class="card ">
-        <div class="card-header">
-          <p class="h5">Endpoints 
-            <a class="btn btn-ghost-info float-right" href="/sp/add">+Add</a>
-  
-          </p>
-         
-        </div>
-  
-   
-        <div class="card-body">
-  <table id="splist"    class="table   table-borderless table-responsive-sm table-striped    ">
-    <thead class="thead-dark">
-      <tr>
-        <th>EndPoint name</th>
-        <th>Method</th>
-        <th>Name</th>
-        <th>Lib</th>
-        <th>Options</th>
-      </tr>
-    </thead>
-    <tbody>
-      {{if .StoredProcs}}
-      {{range .StoredProcs}}
-      <tr>
-        <td>{{.EndPointName}}</td>
-        <td>{{.HttpMethod}}</td>
-        <td>{{.Name}}</td>
+  <div class="col">
+    <div class="card ">
+      <div class="card-header">
+        <p class="h5">Endpoints
+          <a class="btn btn-ghost-info float-right" href="/sp/add">+Add</a>
 
-        <td>{{.Lib}}</td>
-         <td nowrap>
-          <a class="btn btn-ghost-info" href='/sp/{{.ID}}'>
-          
-            View</a>
-  
-          <a class="btn btn-ghost-info" 
-          data-toggle="tooltip" data-placement="bottom" title="Edit" 
-          href='/sp/update/{{.ID}}'>
-            <svg class="c-icon mfe-2">
-              <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-pencil"></use>
-          </svg></a>
-          <a class="btn btn-ghost-danger" 
-          data-toggle="tooltip" data-placement="bottom" title="Delete" 
-          href='/sp/delete/{{.ID}}'>
-            <svg class="c-icon mfe-2">
-              <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-trash"></use>
-          </svg></a>
-  
-        </td>
-  
-      </tr>
-      {{end}}
-  
-      {{else}}
-       {{end}}
-    </tbody>
-  </table>
-   
-  </div>
-  </div>
-  </div>
-  </div>
-<div class="row p-2">
-    <div class="col">
-      <div class="card ">
-        <div class="card-header">
-          <p class="h5">Users <a class="btn btn-ghost-info float-right" href="/users/add">+Add</a></p>
-        </div>
-        <div class="card-body">
-          <table id="rbackrolelist"
-            class="table   table-borderless table-responsive-sm table-striped    ">
-            <thead class="thead-dark">
-  
+        </p>
+
+      </div>
+
+
+      <div class="card-body">
+        <table id="splist" class="table   table-borderless table-responsive-sm table-striped    ">
+          <thead class="thead-dark">
             <tr>
-                <th>Email</th>
-                <th>Name</th>
-                <th>Created</th>
-                <th>Super User</th>
-                <th>Staff</th>
+              <th>EndPoint name</th>
+              <th>Method</th>
+              <th>Name</th>
+              <th>Lib</th>
+              <th>Options</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{if .StoredProcs}}
+            {{range .StoredProcs}}
+            <tr>
+              <td>{{.EndPointName}}</td>
+              <td>{{.HttpMethod}}</td>
+              <td>{{.Name}}</td>
 
-                <th>Verified</th>
- 
-                <th>Options </th>
+              <td>{{.Lib}}</td>
+              <td nowrap>
+                <a class="btn btn-ghost-info" href='/sp/{{.ID}}'>
+
+                  View</a>
+
+                <a class="btn btn-ghost-info" data-toggle="tooltip" data-placement="bottom" title="Edit"
+                  href='/sp/update/{{.ID}}'>
+                  <svg class="c-icon mfe-2">
+                    <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-pencil"></use>
+                  </svg></a>
+                <a class="btn btn-ghost-danger" data-toggle="tooltip" data-placement="bottom" title="Delete"
+                  href='/sp/delete/{{.ID}}'>
+                  <svg class="c-icon mfe-2">
+                    <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-trash"></use>
+                  </svg></a>
+
+              </td>
 
             </tr>
-        </thead>
-        <tbody>
+            {{end}}
+
+            {{else}}
+            {{end}}
+          </tbody>
+        </table>
+
+      </div>
+    </div>
+  </div>
+</div>
+<div class="row p-2">
+  <div class="col">
+    <div class="card ">
+      <div class="card-header">
+        <p class="h5">Users <a class="btn btn-ghost-info float-right" href="/users/add">+Add</a></p>
+      </div>
+      <div class="card-body">
+        <table id="rbackrolelist" class="table   table-borderless table-responsive-sm table-striped    ">
+          <thead class="thead-dark">
+
+            <tr>
+              <th>Email</th>
+              <th>Name</th>
+              <th>Created</th>
+              <th>Super User</th>
+              <th>Staff</th>
+
+              <th>Verified</th>
+
+              <th>Options </th>
+
+            </tr>
+          </thead>
+          <tbody>
             {{if .Users}}
 
             {{range .Users}}
             <tr>
-                <td>{{.Email}}   </td>
+              <td>{{.Email}} </td>
 
-                <td>{{.Name}} </td>
-                <td>{{.Created }} </td>
-                <td>{{.IsSuperUser | yesNo}} </td>
-                <td>{{.IsStaff | yesNo}} </td>
+              <td>{{.Name}} </td>
+              <td>{{.Created }} </td>
+              <td>{{.IsSuperUser | yesNo}} </td>
+              <td>{{.IsStaff | yesNo}} </td>
 
-                <td>{{.HasVerified | yesNo}} </td>
-                 
+              <td>{{.HasVerified | yesNo}} </td>
 
-                <td>
 
-                    <a class="btn btn-ghost-info  " href='/users/edit/{{.ID}}'>   
-                        <svg class="c-icon">
-                        <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-pencil"></use>
-                    </svg>
-                  </a>
-                  {{if $.CurrentUser.IsSuperUser}}
-                    <a class="btn btn-danger" href='/users/delete/{{.ID}}'>Delete</a>
-                     
-                  {{end}}
+              <td>
 
-                </td>
+                <a class="btn btn-ghost-info  " href='/users/edit/{{.ID}}'>
+                  <svg class="c-icon">
+                    <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-pencil"></use>
+                  </svg>
+                </a>
+                {{if $.CurrentUser.IsSuperUser}}
+                <a class="btn btn-danger" href='/users/delete/{{.ID}}'>Delete</a>
+
+                {{end}}
+
+              </td>
 
             </tr>
             {{end}}
             {{end}}
-        </tbody>
-    </table>
+          </tbody>
+        </table>
 
-</div>
-</div>
-</div>
+      </div>
+    </div>
+  </div>
 </div>
 {{end}}
 
@@ -227,22 +241,23 @@ Server detail
 <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.13.1/js/jquery.dataTables.js"></script>
 
 <script>
-  
-    $(document).ready( function () {
-      $('#splist').DataTable(
-        {"pageLength": 100,
-              "language": {
-                "emptyTable": "No results found"
-              }
-          }
-      );
 
-      $('#rbackrolelist').DataTable({
-            "pageLength": 100,
-            "language": {
-                "emptyTable": "No records."
-            }
-        });
-  } );
+  $(document).ready(function () {
+    $('#splist').DataTable(
+      {
+        "pageLength": 100,
+        "language": {
+          "emptyTable": "No results found"
+        }
+      }
+    );
+
+    $('#rbackrolelist').DataTable({
+      "pageLength": 100,
+      "language": {
+        "emptyTable": "No records."
+      }
+    });
+  });
 </script>
 {{end}}

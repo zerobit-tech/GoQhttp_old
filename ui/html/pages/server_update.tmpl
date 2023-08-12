@@ -1,27 +1,26 @@
-
 {{define "title"}}
 Add new Server
 {{end}}
 
 
 {{define "content"}}
- 
-<div class="row p-2">
-    <div class="col-6">
-        <div class="card ">
-            <div class="card-header">
-                <p class="h5">
-                    {{if .Form.ID}} {{.Form.Name}}  : Edit  {{else}} Add {{end}} Server</p>
-            </div>
-            <div class="card-body">
-<form action="/servers/update" method="POST">
 
-    
-         <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
-        <input name="id"   type="hidden" value="{{.Form.ID}}"></input>
-        <input name="name"   type="hidden" value="{{.Form.Name}}"></input>
- 
-        <!-- <div class="form-group">
+<form action="/servers/update" method="POST">
+    <div class="row p-2">
+        <div class="col-6">
+            <div class="card " style="height: 100%;">
+                <div class="card-header">
+                    <p class="h5">
+                        {{if .Form.ID}} {{.Form.Name}} : Edit {{else}} Add {{end}} Server</p>
+                </div>
+                <div class="card-body">
+
+
+                    <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+                    <input name="id" type="hidden" value="{{.Form.ID}}"></input>
+                    <input name="name" type="hidden" value="{{.Form.Name}}"></input>
+
+                    <!-- <div class="form-group">
             <label for="servername">Server Name</label>
             <input id="servername" class="form-control {{with .Form.FieldErrors.name}} is-invalid {{end}}" type="text"
                 name="name" aria-describedby="servernamehelp" placeholder="Server name" value='{{.Form.Name}}'
@@ -37,203 +36,258 @@ Add new Server
  
         </div> -->
 
-        <div class="form-group">
-            <label for="serverip">Server IP or DSN</label>
+                    <div class="form-group">
+                        <label for="serverip">Server IP or DSN</label>
 
-            <input id="serverip" value='{{.Form.IP}}'
-                class="form-control  {{with .Form.FieldErrors.ip}} is-invalid {{end}}" type="text" name="ip"
-                required></input>
-                <small id="serverpasswordh" class="form-text text-muted">
-                    To use DSN use: *DSN:{dsn_name}
-                </small>
-            {{with .Form.FieldErrors.ip}}
-            <div class='invalid-feedback'>{{.}}</div>
-            {{end}}
-        </div>
-
-
-        <div class="form-group">
-            <label for="serverport">Server Port</label>
-
-            <input id="serverport" value='{{.Form.Port}}'
-                class="form-control  {{with .Form.FieldErrors.port}} is-invalid {{end}}" type="text"
-                name="port" ></input>
-            {{with .Form.FieldErrors.port}}
-            <div class='invalid-feedback'>{{.}}</div>
-            {{end}}
-        </div>
-       
-       
- 
-     
+                        <input id="serverip" value='{{.Form.IP}}'
+                            class="form-control  {{with .Form.FieldErrors.ip}} is-invalid {{end}}" type="text" name="ip"
+                            required></input>
+                        <small id="serverpasswordh" class="form-text text-muted">
+                            To use DSN use: *DSN:{dsn_name}
+                        </small>
+                        {{with .Form.FieldErrors.ip}}
+                        <div class='invalid-feedback'>{{.}}</div>
+                        {{end}}
+                    </div>
 
 
-        <div class="form-group">
-            <label for="serveruser">Server User</label>
+                    <div class="form-group">
+                        <label for="serverport">Server Port</label>
 
-            <input id="serveruser" value='{{.Form.UserName}}' type="text"
-                class="form-control  {{with .Form.FieldErrors.user_name}} is-invalid {{end}}" name="user_name" required></input>
-                <small id="serverusernameh" class="form-text text-muted">*ENV=Use from env variable in format {SERVERNAME}_USER<br />
-                    *DSN=Use UserID specified in DSN config. Not valid if using Server IP for connection<br />
-
-
-                </small>
-
-            {{with .Form.FieldErrors.user_name}}
-            <div class='invalid-feedback'>{{.}}</div>
-            {{end}}
-        </div>
+                        <input id="serverport" value='{{.Form.Port}}'
+                            class="form-control  {{with .Form.FieldErrors.port}} is-invalid {{end}}" type="text"
+                            name="port"></input>
+                        {{with .Form.FieldErrors.port}}
+                        <div class='invalid-feedback'>{{.}}</div>
+                        {{end}}
+                    </div>
 
 
-        <div class="form-group">
-            <label for="serverpassword">Server Password</label>
-
-            <input id="serverpassword" value='{{.Form.Password}}' type="password"
-                class="form-control  {{with .Form.FieldErrors.password}} is-invalid {{end}}" name="password"></input>
-                <small id="serverpasswordh" class="form-text text-muted">
-                    Leave it blank if dont want to update password<br />
-                    *ENV=Use from env variable in format {SERVERNAME}_PASSWORD<br />
-                    *DSN=Use Password specified in DSN config. Not valid if using Server IP for connection<br />
-                </small>
-                 
-
-            {{with .Form.FieldErrors.password}}
-            <div class='invalid-feedback'>{{.}}</div>
-            {{end}}
-        </div>
-
-        
-        <br>
-        <br>
-        <div class="form-group">
-            <label for="connectioncount">Max Open connections</label>
-
-            <input id="connectioncount" aria-describedby="connectioncounth"  value='{{.Form.ConnectionsOpen}}' type="number" class="form-control" min="1"
-                max="100" name="connections"></input>
-
-                <small id="connectioncounth" class="form-text text-muted">Default:2. More info <a href="https://go.dev/doc/database/manage-connections">here</a></small>
-
-        </div>
-
-        <div class="form-group">
-            <label for="idleconnections">Max Idle connections</label>
-
-            <input id="idleconnections" aria-describedby="idleconnectionsh"  value='{{.Form.ConnectionsIdle}}' type="number" class="form-control" min="1"
-                max="100" name="idleconnections"></input>
-                <small id="idleconnectionsh" class="form-text text-muted">Default:2. More info <a href="https://go.dev/doc/database/manage-connections">here</a></small>
-
-        </div>
 
 
-        <div class="form-group">
-            <label for="cage">Connection max age (seconds)</label>
-
-            <input id="cage" aria-describedby="cageh"  value='{{.Form.ConnectionMaxAge}}' type="number" class="form-control" min="1"
-                max="100000" name="cage"></input>
-                <small id="cage" class="form-text text-muted">Default:10 seconds. More info <a href="https://go.dev/doc/database/manage-connections">here</a></small>
-
-        </div>
-
-        <div class="form-group">
-            <label for="icage">Connection idle age (seconds)</label>
-
-            <input id="icage" aria-describedby="icageh"  value='{{.Form.ConnectionIdleAge}}' type="number" class="form-control" min="1"
-                max="100000" name="icage"></input>
-                <small id="icage" class="form-text text-muted">Default:10 seconds. More info <a href="https://go.dev/doc/database/manage-connections">here</a></small>
-
-        </div>
-
-        <br>
-
-        {{if .Features.AllowPromotion}}
-        <br>
 
 
-            <div class="form-group">
-                <label for="configfilelib">Auto promotion Prefix</label>
-    
-                <input id="autopromoteprefix" aria-describedby="autopromoteprefixh"  value='{{.Form.AutoPromotePrefix}}' 
-                type="text" class="form-control"  
-                      name="autopromoteprefix"></input>
-    
-                    <small id="autopromoteprefixh" class="form-text text-muted">Auto promote Stores Procs with specific name {Auto promotion Prefix}_{Http method}_{endpoint name}. Like API_POST_SOMEENDPOINT</small>
-    
+                    <div class="form-group">
+                        <label for="serveruser">Server User</label>
+
+                        <input id="serveruser" value='{{.Form.UserName}}' type="text"
+                            class="form-control  {{with .Form.FieldErrors.user_name}} is-invalid {{end}}"
+                            name="user_name" required></input>
+                        <small id="serverusernameh" class="form-text text-muted">*ENV=Use from env variable in format
+                            {SERVERNAME}_USER<br />
+                            *DSN=Use UserID specified in DSN config. Not valid if using Server IP for connection<br />
+
+
+                        </small>
+
+                        {{with .Form.FieldErrors.user_name}}
+                        <div class='invalid-feedback'>{{.}}</div>
+                        {{end}}
+                    </div>
+
+
+                    <div class="form-group">
+                        <label for="serverpassword">Server Password</label>
+
+                        <input id="serverpassword" value='{{.Form.Password}}' type="password"
+                            class="form-control  {{with .Form.FieldErrors.password}} is-invalid {{end}}"
+                            name="password"></input>
+                        <small id="serverpasswordh" class="form-text text-muted">
+                            Leave it blank if dont want to update password<br />
+                            *ENV=Use from env variable in format {SERVERNAME}_PASSWORD<br />
+                            *DSN=Use Password specified in DSN config. Not valid if using Server IP for connection<br />
+                        </small>
+
+
+                        {{with .Form.FieldErrors.password}}
+                        <div class='invalid-feedback'>{{.}}</div>
+                        {{end}}
+                    </div>
+
+
+                    <br>
+                    <br>
+                    <div class="form-group">
+                        <label for="connectioncount">Max Open connections</label>
+
+                        <input id="connectioncount" aria-describedby="connectioncounth"
+                            value='{{.Form.ConnectionsOpen}}' type="number" class="form-control" min="1" max="100"
+                            name="connections"></input>
+
+                        <small id="connectioncounth" class="form-text text-muted">Default:2. More info <a
+                                href="https://go.dev/doc/database/manage-connections">here</a></small>
+
+                    </div>
+
+                    <div class="form-group">
+                        <label for="idleconnections">Max Idle connections</label>
+
+                        <input id="idleconnections" aria-describedby="idleconnectionsh"
+                            value='{{.Form.ConnectionsIdle}}' type="number" class="form-control" min="1" max="100"
+                            name="idleconnections"></input>
+                        <small id="idleconnectionsh" class="form-text text-muted">Default:2. More info <a
+                                href="https://go.dev/doc/database/manage-connections">here</a></small>
+
+                    </div>
+
+
+                    <div class="form-group">
+                        <label for="cage">Connection max age (seconds)</label>
+
+                        <input id="cage" aria-describedby="cageh" value='{{.Form.ConnectionMaxAge}}' type="number"
+                            class="form-control" min="1" max="100000" name="cage"></input>
+                        <small id="cage" class="form-text text-muted">Default:10 seconds. More info <a
+                                href="https://go.dev/doc/database/manage-connections">here</a></small>
+
+                    </div>
+
+                    <div class="form-group">
+                        <label for="icage">Connection idle age (seconds)</label>
+
+                        <input id="icage" aria-describedby="icageh" value='{{.Form.ConnectionIdleAge}}' type="number"
+                            class="form-control" min="1" max="100000" name="icage"></input>
+                        <small id="icage" class="form-text text-muted">Default:10 seconds. More info <a
+                                href="https://go.dev/doc/database/manage-connections">here</a></small>
+
+                    </div>
+
+                    <br>
+
+                    {{if .Features.AllowPromotion}}
+                    <br>
+
+
+                    <div class="form-group">
+                        <label for="configfilelib">Auto promotion Prefix</label>
+
+                        <input id="autopromoteprefix" aria-describedby="autopromoteprefixh"
+                            value='{{.Form.AutoPromotePrefix}}' type="text" class="form-control"
+                            name="autopromoteprefix"></input>
+
+                        <small id="autopromoteprefixh" class="form-text text-muted">Auto promote Stores Procs with
+                            specific name {Auto promotion Prefix}_{Http method}_{endpoint name}. Like
+                            API_POST_SOMEENDPOINT</small>
+
+                    </div>
+
+                    <div class="form-group">
+                        <label for="configfile">Promotion Table</label>
+
+                        <input id="configfile" aria-describedby="configfileh" value='{{.Form.ConfigFile}}' type="text"
+                            class="form-control" name="configfile"></input>
+
+                        <small id="configfileh" class="form-text text-muted">Table to track for promoted endpoints.Click
+                            <a href="/servers/help/ptable">here</a> for table structure.</small>
+
+                    </div>
+
+                    <div class="form-group">
+                        <label for="configfilelib">Promotion Table schema</label>
+
+                        <input id="configfilelib" aria-describedby="configfilelibh" value='{{.Form.ConfigFileLib}}'
+                            type="text" class="form-control" name="configfilelib"></input>
+
+                        <small id="configfilelibh" class="form-text text-muted">Library or SQL Schema <br>
+                        </small>
+
+                    </div>
+
+
+
+                    <br>
+                    {{end}}
+
+                    {{if .Features.AllowTokenSync}}
+                    <br>
+
+                    <div class="form-group">
+                        <label for="usertokenfile">User Token Table</label>
+
+                        <input id="usertokenfile" aria-describedby="usertokenfileh" value='{{.Form.UserTokenFile}}'
+                            type="text" class="form-control" name="usertokenfile"></input>
+
+                        <small id="usertokenfileh" class="form-text text-muted">Table to sync user tokens. Does not
+                            create new users. Click <a href="/servers/help/utstable">here</a> for table
+                            structure.</small>
+
+                    </div>
+
+                    <div class="form-group">
+                        <label for="usertokenfilelib">User token Table schema</label>
+
+                        <input id="usertokenfilelib" aria-describedby="usertokenfilelibh"
+                            value='{{.Form.UserTokenFileLib}}' type="text" class="form-control"
+                            name="usertokenfilelib"></input>
+
+                        <small id="usertokenfilelibh" class="form-text text-muted">Library or SQL Schema <br>
+                        </small>
+
+                    </div>
+
+                    <br>
+                    {{end}}
+
+
+                    <br>
+
+                    <div class="form-check">
+                        <input value='true' {{if .Form.Ssl}} checked {{end}} type="checkbox" class="form-check-input"
+                            name="ssl" id="exampleCheck1">
+                        <label class="form-check-label" for="exampleCheck1">SSL (Mostly not required for ODBC)</label>
+                    </div>
+
+                    <br>
+                    <br>
+
+                    <button type="submit" class="btn btn-primary">Submit</button>
+
+
+                </div>
             </div>
-
-   <div class="form-group">
-            <label for="configfile">Promotion Table</label>
-
-            <input id="configfile" aria-describedby="configfileh"  value='{{.Form.ConfigFile}}' 
-            type="text" class="form-control"  
-                  name="configfile"></input>
-
-                  <small id="configfileh" class="form-text text-muted">Table to track for promoted endpoints.Click <a href="/servers/help/ptable">here</a> for table structure.</small>
-
         </div>
 
-        <div class="form-group">
-            <label for="configfilelib">Promotion Table schema</label>
 
-            <input id="configfilelib" aria-describedby="configfilelibh"  value='{{.Form.ConfigFileLib}}' 
-            type="text" class="form-control"  
-                  name="configfilelib"></input>
 
-                <small id="configfilelibh" class="form-text text-muted">Library or SQL Schema <br> 
-                </small>
 
+        {{if $.Features.AllowLibList}} 
+        <div class="col-6">
+
+
+            <div class="card " style="height: 100%;">
+                <div class="card-header">
+                    <p class="h5">
+                        Lib List</p>
+                        <small id="liblisthelp" class="form-text text-muted">
+                            Library list would be MYLIB1,MYLIB2,MYLIB3, ... ,{existing user portion of the library list}. <br>
+                        </small>
+                </div>
+                <div class="card-body">
+                    <ol>
+                    {{range $i,$val := $.Form.LibList}}
+                    <li>
+                        
+              
+                    
+                        <div class="form-group">
+                             
+    
+                            <input id="lib{{$i}}"  value='{{$val}}' type="text"
+                                class="form-control" name="liblist"></input>
+                            </div>
+    
+             
+    
+                    
+                    </li>
+
+                    {{end}}
+                </ol>
+                </div>
+            </div>
         </div>
-   
-
-        
-        <br>
-        {{end}}
-
-        {{if .Features.AllowTokenSync}}
-        <br>
-
-        <div class="form-group">
-            <label for="usertokenfile">User Token Table</label>
-
-            <input id="usertokenfile" aria-describedby="usertokenfileh"  value='{{.Form.UserTokenFile}}' 
-            type="text" class="form-control"  
-                  name="usertokenfile"></input>
-
-                <small id="usertokenfileh" class="form-text text-muted">Table to sync user tokens. Does not create new users. Click <a href="/servers/help/utstable">here</a> for table structure.</small>
-
-        </div>
-
-        <div class="form-group">
-            <label for="usertokenfilelib">User token Table schema</label>
-
-            <input id="usertokenfilelib" aria-describedby="usertokenfilelibh"  value='{{.Form.UserTokenFileLib}}' 
-            type="text" class="form-control"  
-                  name="usertokenfilelib"></input>
-
-                <small id="usertokenfilelibh" class="form-text text-muted">Library or SQL Schema <br> 
-                </small>
-
-        </div>
-        
-        <br>
         {{end}}
 
 
-        <br>
-
-        <div class="form-check">
-            <input value='true' {{if .Form.Ssl}} checked {{end}} type="checkbox" class="form-check-input" name="ssl" id="exampleCheck1">
-            <label class="form-check-label" for="exampleCheck1">SSL (Mostly not required for ODBC)</label>
-        </div>
-      
-        <br>
-        <br>
-
-    <button type="submit" class="btn btn-primary">Submit</button>
-
-
+    </div>
 </form>
-</div>
-</div>
-</div>
-</div>
 {{end}}

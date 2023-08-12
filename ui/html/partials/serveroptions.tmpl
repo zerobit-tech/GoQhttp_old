@@ -1,0 +1,78 @@
+{{define "serveroptions"}}
+
+<li class="c-sidebar-nav-title">Server:
+</li>
+<li class="c-sidebar-nav-item">
+  <a class="c-sidebar-nav-link" href='/servers/{{.Server.ID}}'>{{.Server.Name}}</a>
+</li>
+
+
+{{if $.CurrentUser.IsSuperUser}}
+<li class="c-sidebar-nav-item">
+  <a class="c-sidebar-nav-link" href='/servers/update/{{.Server.ID}}'>
+    <svg class="c-icon mfe-2">
+      <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-pencil"></use>
+    </svg>Edit</a>
+</li>
+
+
+<li class="c-sidebar-nav-item">
+  <a class="c-sidebar-nav-link" href='/servers/delete/{{.Server.ID}}'>
+    <svg class="c-icon mfe-2">
+      <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-trash"></use>
+    </svg>
+    Delete</a>
+</li>
+
+
+
+<li class="c-sidebar-nav-item">
+  <a class="c-sidebar-nav-link" href='/servers/clearcache/{{.Server.ID}}'>
+    <svg class="c-icon mfe-2">
+      <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-reload"></use>
+    </svg>Invalidate Cache</a>
+</li>
+
+
+
+{{if .Features.AllowPromotion}}
+<li class="c-sidebar-nav-item">
+  <a class="c-sidebar-nav-link" href='/servers/listprom/{{.Server.ID}}'>
+    <svg class="c-icon mfe-2">
+      <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-arrow-top"></use>
+    </svg>Promotions</a>
+</li>
+{{end}}
+
+{{if .Features.AllowTokenSync}}
+<li class="c-sidebar-nav-item">
+  <a class="c-sidebar-nav-link" href='/servers/syncusertoken/{{.Server.ID}}'>
+    <svg class="c-icon mfe-2">
+      <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-sync"></use>
+    </svg>Sync User tokens</a>
+</li>
+{{end}}
+
+<li class="c-sidebar-nav-divider"></li>
+
+{{end}}
+
+
+<li class="c-sidebar-nav-item">
+  <a class="c-sidebar-nav-link" href='/postman/s/{{.Server.ID}}'>
+    <svg class="c-icon mfe-2">
+      <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-arrow-bottom"></use>
+    </svg>Postman collection</a>
+</li>
+
+
+
+<li class="c-sidebar-nav-divider"></li>
+
+
+
+
+
+<hr>
+
+{{end}}
