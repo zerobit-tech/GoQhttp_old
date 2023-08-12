@@ -60,6 +60,7 @@ type Server struct {
 
 	LastAutoPromoteDate string `json:"lastautopromotecheck" db:"lastautopromotecheck" form:"lastautopromotecheck"`
 
+	Namespace string `json:"namespace" db:"namespace" form:"namespace"`
 	validator.Validator `json:"-" db:"-" form:"-"`
 }
 

@@ -452,6 +452,7 @@ func (app *application) ServerAdd(w http.ResponseWriter, r *http.Request) {
 		ConnectionMaxAge:  600,
 		ConnectionIdleAge: 3600,
 		LibList:           make([]string, 20),
+		Namespace:         "V1",
 	}
 	app.render(w, r, http.StatusOK, "server_add.tmpl", data)
 

@@ -11,7 +11,7 @@ Servers
         <p class="h5">Servers 
 
           {{if .CurrentUser.IsSuperUser}}
-          <a id="addserverbtn" hx-boost="true" hx-push-url="true"  class="btn btn-ghost-info float-right" href="/servers/add">+Add</a>
+          <a id="addserverbtn"  hx-push-url="true"  class="btn btn-ghost-info float-right" href="/servers/add">+Add</a>
           {{end}}
         </p>
        
@@ -60,11 +60,11 @@ Servers
 
             <td>
                  
-                  <a hx-boost="true" hx-push-url="true"  class="btn btn-ghost-info" href='/servers/{{.ID}}'  >View</a> 
+                  <a  hx-push-url="true"  class="btn btn-ghost-info" href='/servers/{{.ID}}'  >View</a> 
                   {{if $.CurrentUser.IsSuperUser}}
                     
                   
-                  <a hx-boost="true" hx-push-url="true"  class="btn btn-ghost-info" 
+                  <a  hx-push-url="true"  class="btn btn-ghost-info" 
                      data-toggle="tooltip" data-placement="bottom" title="Edit" 
                      href='/servers/update/{{.ID}}'  >   <svg class="c-icon mfe-2">
                       <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-pencil"></use>
@@ -77,7 +77,7 @@ Servers
                    <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-arrow-bottom"></use>
                </svg></a>
                   
-                  <a class="btn btn-ghost-danger"  hx-boost="true" hx-push-url="true" 
+                  <a class="btn btn-ghost-danger"   hx-push-url="true" 
                      data-toggle="tooltip" data-placement="bottom" title="Delete" 
                      href='/servers/delete/{{.ID}}'  >   
                       <svg class="c-icon mfe-2">

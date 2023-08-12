@@ -46,13 +46,17 @@ func (m *ServerModel) Insert(u *ibmiServer.Server) (string, error) {
 func (m *ServerModel) Update(u *ibmiServer.Server, clearCache bool) error {
 
 	u.ManageLibList()
-	
+
 	err := m.DB.Update(func(tx *bolt.Tx) error {
 		bucket, err := tx.CreateBucketIfNotExists(m.getTableName())
 		if err != nil {
 			return err
 		}
 		u.Name = strings.ToUpper(strings.TrimSpace(u.Name))
+		if strings.TrimSpace(u.Namespace) == "" {
+			u.Namespace = "V1"
+		}
+		u.Namespace = strings.ToUpper(u.Namespace)
 
 		if !u.OnHold {
 			u.OnHoldMessage = ""
