@@ -132,19 +132,15 @@ func (p *StoredProcParamter) ConvertOUTVarToType(v *any) (any, error) {
 // -----------------------------------------------------------------
 func (p *StoredProcParamter) ConvertToType(v any) (any, error) {
 
-	var TimeFormat string = "15:04:05"
-	var DateFormat string = "2006-01-02"
-	var TimestampFormat string = "2006-01-02 15:04:05.000000"
-
 	switch p.Datatype {
 	case "TIME":
-		return time.Parse(TimeFormat, stringutils.AsString(v))
+		return time.Parse(stringutils.TimeFormat, stringutils.AsString(v))
 
 	case "DATE":
-		return time.Parse(DateFormat, stringutils.AsString(v))
+		return time.Parse(stringutils.DateFormat, stringutils.AsString(v))
 
 	case "TIMESTAMP":
-		return time.Parse(TimestampFormat, stringutils.AsString(v))
+		return time.Parse(stringutils.TimestampFormat, stringutils.AsString(v))
 
 	case "SMALLINT", "INTEGER", "BIGINT", "ROWID":
 		if v == nil {

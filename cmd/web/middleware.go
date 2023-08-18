@@ -20,6 +20,7 @@ import (
 	"github.com/onlysumitg/GoQhttp/lic"
 	"github.com/onlysumitg/GoQhttp/logger"
 	"github.com/onlysumitg/GoQhttp/utils/concurrent"
+	"github.com/onlysumitg/GoQhttp/utils/stringutils"
 )
 
 // ------------------------------------------------------
@@ -30,11 +31,6 @@ type ContextKey string
 const REQUEST_PROCESSING_DATA ContextKey = "REQUEST_PROCESSING_DATA"
 
 const LIC_INFO ContextKey = "LIC_INFO"
-
-var TimeFormat string = "15:04:05"
-var DateFormat string = "2006-01-02"
-var TimestampFormat string = "2006-01-02 15:04:05.000000"
-var TimestampFormat2 string = "2006-01-02 15:04:05"
 
 // ------------------------------------------------------
 //
@@ -318,7 +314,7 @@ func (app *application) TimeTook(next http.Handler) http.Handler {
 
 			durationPasses := time.Since(t1)
 			graphStruc.Responsetime = durationPasses.Milliseconds()
-			graphStruc.Calltime = time.Now().Local().Format(TimestampFormat)
+			graphStruc.Calltime = time.Now().Local().Format(stringutils.TimestampFormat)
 
 			logEH := logger.GetLogEvent("INFO", requestId, fmt.Sprintf("ResponseTime:%s", durationPasses), false)
 
@@ -354,13 +350,13 @@ func (app *application) TimeTook(next http.Handler) http.Handler {
 func GetGraphStruct(ctx context.Context) *GraphStruc {
 
 	if ctx == nil {
-		return &GraphStruc{Calltime: time.Now().Local().Format(TimestampFormat)}
+		return &GraphStruc{Calltime: time.Now().Local().Format(stringutils.TimestampFormat)}
 	}
 	graphStruc, ok := ctx.Value(REQUEST_PROCESSING_DATA).(*GraphStruc)
 	if ok {
 		return graphStruc
 	}
-	return &GraphStruc{Calltime: time.Now().Local().Format(TimestampFormat)}
+	return &GraphStruc{Calltime: time.Now().Local().Format(stringutils.TimestampFormat)}
 }
 
 //	------------------------------------------------------

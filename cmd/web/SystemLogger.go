@@ -14,6 +14,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/onlysumitg/GoQhttp/logger"
 	"github.com/onlysumitg/GoQhttp/utils/concurrent"
+	"github.com/onlysumitg/GoQhttp/utils/stringutils"
 
 	bolt "go.etcd.io/bbolt"
 )
@@ -48,7 +49,7 @@ type SystemLogEvent struct {
 
 func (l *SystemLogEvent) String() string {
 
-	return fmt.Sprintf("%s\t%s\t%s", l.EventTime.Format(TimestampFormat), l.Type, l.Message)
+	return fmt.Sprintf("%s\t%s\t%s", l.EventTime.Format(stringutils.TimestampFormat), l.Type, l.Message)
 
 }
 

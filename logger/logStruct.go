@@ -6,20 +6,15 @@ import (
 	"time"
 
 	"github.com/onlysumitg/GoQhttp/utils/concurrent"
+	"github.com/onlysumitg/GoQhttp/utils/stringutils"
 
 	bolt "go.etcd.io/bbolt"
 )
-
-var TimeFormat string = "15:04:05"
-var DateFormat string = "2006-01-02"
-var TimestampFormat string = "2006-01-02 15:04:05.000000"
-var TimestampFormat2 string = "2006-01-02 15:04:05"
 
 // var InfoLog *log.Logger = log.New(os.Stderr, "INFO \t", log.Ldate|log.Ltime)
 // var ErrorLog *log.Logger = log.New(os.Stderr, "ERROR\t", log.Ldate|log.Ltime)
 // var RequestLog *log.Logger = log.New(os.Stderr, "Request\t", log.Ldate|log.Ltime)
 // var ResponseLog *log.Logger = log.New(os.Stderr, "Response\t", log.Ldate|log.Ltime)
-
 
 // TODO move to app level
 
@@ -42,7 +37,7 @@ type LogEvent struct {
 
 func (l *LogEvent) String() string {
 
-	return fmt.Sprintf("%s\t%s\t%s", l.EventTime.Format(TimestampFormat), l.Type, l.Message)
+	return fmt.Sprintf("%s\t%s\t%s", l.EventTime.Format(stringutils.TimestampFormat), l.Type, l.Message)
 
 }
 
