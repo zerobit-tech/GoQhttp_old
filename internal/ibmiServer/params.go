@@ -6,7 +6,6 @@ import (
 
 	"github.com/onlysumitg/GoQhttp/go_ibm_db"
 	"github.com/onlysumitg/GoQhttp/internal/storedProc"
-	"github.com/onlysumitg/GoQhttp/utils/stringutils"
 )
 
 // -----------------------------------------------------------------
@@ -64,60 +63,4 @@ func getParameterofType(p *storedProc.StoredProcParamter) *any {
 	}
 
 	return &x
-}
-
-// -----------------------------------------------------------------
-//
-// -----------------------------------------------------------------
-func parameterIsString(p *storedProc.StoredProcParamter) bool {
-	_, found := go_ibm_db.SPParamStringTypes[p.Datatype]
-
-	//_, found2 := go_ibm_db.SPParamDateTypes[p.Datatype]
-
-	return found //|| found2
-}
-
-// -----------------------------------------------------------------
-//
-// -----------------------------------------------------------------
-func parameterIsNumeric(p *storedProc.StoredProcParamter) bool {
-	_, found := go_ibm_db.SPParamNumericTypes[p.Datatype]
-	return found
-}
-
-// -----------------------------------------------------------------
-//
-// -----------------------------------------------------------------
-func parameterIsInt(p *storedProc.StoredProcParamter) bool {
-	_, found := go_ibm_db.SPParamIntegerTypes[p.Datatype]
-	return found
-}
-
-// -----------------------------------------------------------------
-//
-// -----------------------------------------------------------------
-func parameterNeedQuote(p *storedProc.StoredProcParamter, value string) bool {
-	if go_ibm_db.IsSepecialRegister(value) {
-		return false
-	}
-
-	if value == "NULL" {
-		return false
-	}
-	return true
-}
-
-// -----------------------------------------------------------------
-//
-// -----------------------------------------------------------------
-func parameterHasValidValue(p *storedProc.StoredProcParamter, val any) bool {
-
-	if parameterIsInt(p) {
-		return stringutils.IsNumericWithOutDecimal(stringutils.AsString(val))
-	}
-
-	if parameterIsNumeric(p) {
-		return stringutils.IsNumeric(stringutils.AsString(val))
-	}
-	return true
 }

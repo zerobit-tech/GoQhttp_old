@@ -239,13 +239,18 @@ func (s *Server) prepareCallStatement(sp *storedProc.StoredProc, givenParams map
 			} else {
 				//p.GivenValue = asString(valueToUse)
 
+
+
 			}
-			if !parameterHasValidValue(p, valueToUse) {
+
+			// parameter validation !!
+
+			if !p.HasValidValue(valueToUse) {
 				return nil, fmt.Errorf("%s: invalid value", p.Name)
 			}
 
 			stringToReplace := ""
-			if parameterNeedQuote(p, stringutils.AsString(valueToUse)) {
+			if p.NeedQuote(stringutils.AsString(valueToUse)) {
 				stringToReplace = fmt.Sprintf("{:%s}", p.Name)
 			} else {
 				stringToReplace = fmt.Sprintf("'{:%s}'", p.Name)
@@ -269,7 +274,7 @@ func (s *Server) prepareCallStatement(sp *storedProc.StoredProc, givenParams map
 				//p.GivenValue = asString(valueToUse)
 
 			}
-			if !parameterHasValidValue(p, valueToUse) {
+			if !p.HasValidValue(valueToUse) {
 				return nil, fmt.Errorf("%s: invalid value", paramNameToUse)
 			}
 
@@ -346,7 +351,7 @@ func (s *Server) call(ctx context.Context, callID string, sp *storedProc.StoredP
 
 		if found {
 
-			if parameterIsString(p) || reflect.ValueOf(v).Kind() == reflect.String {
+			if p.IsString() || reflect.ValueOf(v).Kind() == reflect.String {
 
 				b, ok := (*v).([]byte)
 				if ok {
@@ -386,7 +391,7 @@ func (s *Server) call(ctx context.Context, callID string, sp *storedProc.StoredP
 
 			}
 
-			if p.Mode == "OUT" && keyToUse == "QHTTP_STATUS_CODE" && parameterIsInt(p) {
+			if p.Mode == "OUT" && keyToUse == "QHTTP_STATUS_CODE" && p.IsInt() {
 				intval, ok := 0, false
 
 				switch reflect.ValueOf(*v).Kind() {

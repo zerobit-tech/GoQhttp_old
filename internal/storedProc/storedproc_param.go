@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/onlysumitg/GoQhttp/go_ibm_db"
 	"github.com/onlysumitg/GoQhttp/utils/floatutils"
 	"github.com/onlysumitg/GoQhttp/utils/stringutils"
 )
@@ -159,4 +160,80 @@ func (p *StoredProcParamter) ConvertToType(v any) (any, error) {
 	}
 
 	return v, nil
+}
+
+// -----------------------------------------------------------------
+//
+// -----------------------------------------------------------------
+func (p *StoredProcParamter) IsString() bool {
+	_, found := go_ibm_db.SPParamStringTypes[p.Datatype]
+
+	//_, found2 := go_ibm_db.SPParamDateTypes[p.Datatype]
+
+	return found //|| found2
+}
+
+// -----------------------------------------------------------------
+//
+// -----------------------------------------------------------------
+func (p *StoredProcParamter) IsNumeric() bool {
+	_, found := go_ibm_db.SPParamNumericTypes[p.Datatype]
+	return found
+}
+
+// -----------------------------------------------------------------
+//
+// -----------------------------------------------------------------
+func (p *StoredProcParamter) IsInt() bool {
+	_, found := go_ibm_db.SPParamIntegerTypes[p.Datatype]
+	return found
+}
+
+// -----------------------------------------------------------------
+//
+// -----------------------------------------------------------------
+func (p *StoredProcParamter) NeedQuote(value string) bool {
+	if go_ibm_db.IsSepecialRegister(value) {
+		return false
+	}
+
+	if value == "NULL" {
+		return false
+	}
+	return true
+}
+
+// -----------------------------------------------------------------
+//
+//	To add more validation  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+//
+// -----------------------------------------------------------------
+func (p *StoredProcParamter) HasValidValue(val any) bool {
+
+	if p.IsString() {
+		v := stringutils.AsString(val)
+		if len(v) > p.MaxLength {
+			return false
+		}
+	}
+
+	if p.IsInt() {
+		return stringutils.IsNumericWithOutDecimal(stringutils.AsString(val))
+	}
+
+	if p.IsNumeric() {
+		return stringutils.IsNumeric(stringutils.AsString(val))
+	}
+
+	switch strings.ToUpper(p.Datatype) {
+	case "TIME":
+		return stringutils.IsValidTime(stringutils.AsString(val))
+
+	case "DATE":
+		return stringutils.IsValidDate(stringutils.AsString(val))
+
+	case "TIMESTAMP":
+		return stringutils.IsValidTimeStamp(stringutils.AsString(val))
+	}
+	return true
 }

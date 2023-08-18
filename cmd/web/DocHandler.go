@@ -24,6 +24,8 @@ func (app *application) DocHandlers(router *chi.Mux) {
 		r.Get("/faq", app.docFAQ)
 		r.Get("/prtable", app.docPromotionTable)
 		r.Get("/uttable", app.docUserTokenTable)
+		r.Get("/datetime", app.docDateTimeFormat)
+
 	})
 
 }
@@ -80,5 +82,16 @@ func (app *application) docUserTokenTable(w http.ResponseWriter, r *http.Request
 	data := app.newTemplateData(r)
 
 	app.render(w, r, http.StatusOK, "doc_user_token_table.tmpl", data)
+
+}
+
+// ------------------------------------------------------
+//
+// ------------------------------------------------------
+func (app *application) docDateTimeFormat(w http.ResponseWriter, r *http.Request) {
+
+	data := app.newTemplateData(r)
+
+	app.render(w, r, http.StatusOK, "doc_date_time_formats.tmpl", data)
 
 }

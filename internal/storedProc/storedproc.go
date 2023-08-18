@@ -379,7 +379,7 @@ func (s *StoredProc) SetNameSpace() {
 }
 
 // ------------------------------------------------------------
-// BuildMockUrl(s)
+//
 // ------------------------------------------------------------
 func (s *StoredProc) GetNamespace() string {
 	s.SetNameSpace()

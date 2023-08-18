@@ -1,0 +1,79 @@
+{{define "title"}}
+Date time formats
+{{end}}
+
+{{define "content"}}
+ 
+<div class="row p-2">
+  <div class="col">
+    <div class="card ">
+      <div class="card-header">
+        <p class="h5">Date time formats
+
+        </p>
+       
+      </div>
+
+ 
+      <div class="card-body">
+        <p>
+          QHttp uses ISO formats for DATE, TIME and TIMESTAMPS
+        </p>
+
+ 
+        
+
+
+    <table id="promotionlist"           class="table   table-borderless table-responsive-sm table-striped    ">
+      <thead class="thead-dark">
+        <tr>
+            <th>Data Type</th> 
+            <th>Format</th>
+            <th>Details</th>      
+
+        </tr>
+          </thead>
+          <tbody>
+           
+        <tr>
+            <td>DATE</td>
+            <td>ISO YYYY-MM-DD </td>
+            <td>Example: 2023-08-18</td>
+        </tr>
+
+      
+        <tr>
+          <td>TIME</td>
+          <td>ISO 24H format HH:MM:SS </td>
+          <td>Example: 16:00:59</td>
+      </tr>
+
+
+      <tr>
+        <td>TIMESTAMP</td>
+        <td>ISO <br /> 
+          With Microseconds: YYYY-MM-DD HH:MM:SS.mmmmmm
+          <br />
+          Without Microseconds: YYYY-MM-DD HH:MM:SS
+
+        </td>
+        <td>Example: 2023-08-18 04:00:12.123456  or 2023-08-18 04:00:12 </td>
+    </tr>
+ 
+
+
+ 
+ 
+
+ 
+
+          </tbody>
+        </table>
+      </div>
+  </div>
+</div>
+</div>
+    {{end}}
+
+
+ 
