@@ -1,0 +1,164 @@
+{{define "title"}}
+Documents
+{{end}}
+
+{{define "content"}}
+
+
+<div class="row p-2">
+    <div class="col">
+        <div class="card ">
+             
+
+
+            <div class="card-body">
+                <div class="row justify-content-center mt-4">
+                    <div class="col-xl-5 col-lg-8">
+                        <div class="text-center">
+                            <h3>Frequently Asked Questions?</h3>
+                            <p class="text-muted">Feel free to email us at qhttp@zerobit.tech for any additional
+                                questions.</p>
+                            <div>
+
+                            </div>
+                        </div>
+                    </div>
+                    <!-- end col -->
+                </div>
+                <!-- end row -->
+                <div class="row justify-content-center mt-5">
+
+                    <div class="col-lg-9">
+                        <div class="tab-content pt-3" id="pills-tabContent">
+                            <div class="tab-pane fade active show" id="pills-genarel" role="tabpanel"
+                                aria-labelledby="pills-genarel-tab">
+                                <div class="row g-4 mt-2">
+
+
+                                    <div class="row">
+                                        <div class="col">
+                                            <h5>Is there a limit on number of endpoints?</h5>
+                                            <p class="text-muted">No, Qhttp does not enforce any limitations on number of endpoints or number of servers.</p>
+                                            <br /><br />
+                                        </div>
+                                    </div>
+
+                         
+
+                                    <div class="row">
+                                        <div class="col">
+                                            <h5>How does QHttp handle log database size?</h5>
+                                            <p class="text-muted">QHttp has the capability to autonomously eliminate outdated log entries, a process contingent on the configuration specified by the "MAX_LOG_ENTRIES_FOR_ONE_ENDPOINT" Environment variable.</p>
+                                            <br /><br />
+                                        </div>
+                                    </div>
+
+
+
+                                    <div class="row">
+                                        <div class="col">
+                                            <h5>How can I take backup of my endpoints?</h5>
+                                            <p class="text-muted">A recommended approach is to create a backup of the "./db" directory. Alternatively, the option to institute version control, utilizing platforms such as Git or SVN, is also available for safeguarding this particular folder. </p>
+                                            <br /><br />
+                                        </div>
+                                    </div>
+
+
+
+                                    <div class="row">
+                                        <div class="col">
+                                            <h5>How to disable the server pings?</h5>
+                                            <p class="text-muted">To deactivate server pings, it is advised to establish an Environment variable named "PING_SERVER_EVERY" with a value of "0".</p>
+                                            <br /><br />
+                                        </div>
+                                    </div>
+
+
+
+
+                                    <div class="row">
+                                        <div class="col">
+                                            <h5>How QHttp manage TLS certificates?</h5>
+                                            <p class="text-muted">
+                                                QHttp has three way to manage TLS certificates:
+                                            <ol>
+                                                <li>Embedded Certificate: QHttp is furnished with an internal self-signed certificate. While suitable for less critical environments, it is important to note that this embedded certificate is not recommended for deployment within a production setting.<br /> </li>
+                                                <li>Let'sEncrypt Certificate Integration: QHttp offers seamless integration with Let'sEncrypt. Activation of this feature can be achieved by configuring the "USELETSENCRYPT" Environment variable. However, it's essential to acknowledge that enabling "USELETSENCRYPT" necessitates the availability of port 80 for Let'sEncrypt challenge passage.<br /> </li>
+
+                                                <li>
+                                                    Custom Certificate: For the utilization of your proprietary certificate, it is recommended to place the certificate files in the "./cert" directory. The file names must precisely match as follows: "qhttp.crt" for the certificate and "qhttp.key" for the corresponding private key. More details <a
+                                                        href="https://smallstep.com/docs/step-ca/index.html"> here </a>
+                                                </li>
+                                            </ol>
+
+                                            </p><br /><br />
+                                        </div>
+                                    </div>
+                                    <br />
+
+
+                                    <div class="row">
+                                        <div class="col">
+                                            <h5>What is LetsEncrypt?</h5>
+                                            <p class="text-muted">Let’s Encrypt represents a complimentary, automated, and openly accessible certificate authority (CA), established with the intention of serving the interests of the general public. Further information can be explored at the following link: https://letsencrypt.org.</p><br /><br />
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col">
+                                            <h5>Can QHttp be installed on IBM I?</h5>
+                                            <p class="text-muted">Not right now. We are working on a IBM I version. It should be out in next few weeks. </p><br /><br />
+                                        </div>
+                                    </div>
+
+
+                                    <div class="row">
+                                        <div class="col">
+                                            <h5>What kind of server is required for QHttp?</h5>
+                                            <p class="text-muted">
+                                                QHttp works on Windoes or Linux system. Recommanded configuration is Quad core processor with minimum 8GB RAM.
+                                                The system needs IBM I Odbc drivers. Check <a href="https://www.ibm.com/support/pages/odbc-driver-ibm-i-access-client-solutions">this link</a> for more details on ODBC drivers    
+                                            </p><br /><br />
+                                        </div>
+                                    </div>
+
+
+                                    <div class="row">
+                                        <div class="col">
+                                            <h5>What ports I need to open on IBM I for ODBC connection?</h5>
+                                            <p class="text-muted">
+                                                In most cases, you dont need to open an port if QHttp is within your network.
+                                                But if QHttp is installed on out of network (like on a cloud), you might need to open port 449, 8470 ,9470 8475 , 9475, 8476 and 9476.
+                                                Please check with your network admin.
+
+                                            </p><br /><br />
+                                        </div>
+                                    </div>
+
+
+
+
+                                    <div class="row">
+                                        <div class="col">
+                                            <h5>Does QHttp support static DSN?</h5>
+                                            <p class="text-muted">
+                                               Yes, QHttp supports both statis and dynamic DSNs. Please check the help text when adding a new server.
+
+                                            </p><br /><br />
+                                        </div>
+                                    </div>
+
+
+                                </div>
+                            </div>
+
+
+                        </div>
+                    </div>
+                </div>
+                <!-- end row -->
+            </div>
+        </div>
+    </div>
+</div>
+{{end}}

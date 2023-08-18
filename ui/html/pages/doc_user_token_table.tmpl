@@ -1,10 +1,9 @@
 {{define "title"}}
-Server Help
+User token table
 {{end}}
 
 {{define "content"}}
-<br />
-
+ 
 <div class="row p-2">
   <div class="col">
     <div class="card ">
@@ -17,6 +16,11 @@ Server Help
 
  
       <div class="card-body">
+        <p>The User Token Table provides a structured mechanism for the purposeful management of user tokens within the operational confines of the IBM I server environment. In scenarios where a user's email address is duly registered within this table, the standard procedure of QHttp abstaining from the autonomous creation of tokens comes into effect, thereby establishing a dependency on the User Token Table for the precise task of token generation.
+
+        </p>
+
+        <p>This functionality assumes significance when there exists a deliberate intention to supersede the default token generation algorithm. A pertinent instance is the incorporation of JSON Web Tokens (JWTs), which can be seamlessly employed through this mechanism. </p>
 
         <ol>
           <li>Following table contains the list of required fields.</li>
@@ -63,7 +67,7 @@ Server Help
 
 <tr>
   <td>StatusMessage</td>
-  <td>String </td>
+  <td>String/ Char(100) </td>
   <td>Message to explain the status<td>
 </tr>
 

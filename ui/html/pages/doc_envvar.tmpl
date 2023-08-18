@@ -1,0 +1,108 @@
+{{define "title"}}
+Doc: Envvar
+{{end}}
+
+{{define "content"}}
+ 
+
+<div class="row p-2">
+  <div class="col">
+    <div class="card ">
+      <div class="card-header">
+        <p class="h5">Environment variables
+
+        </p>
+
+      </div>
+
+
+      <div class="card-body">
+
+
+
+        <table id="envvarlist" class="table   table-borderless table-responsive-sm table-striped    ">
+          <thead class="thead-dark">
+            <tr>
+              <th>Environment variables</th>
+              <th>Default value</th>
+              <th>Details</th>
+
+            </tr>
+          </thead>
+          <tbody>
+
+            <tr>
+              <td>PORT</td>
+              <td>4081</td>
+              <td>Default Port to run the QHttp</td>
+            </tr>
+
+            <tr>
+              <td>DOMAIN</td>
+              <td>localhost</td>
+              <td>Domain name for QHttp server. </td>
+            </tr>
+            <tr>
+              <td>USELETSENCRYPT</td>
+              <td>N</td>
+              <td>Use LetsEncrypt for TLS certificate. If set to Y, QHttp will need port 80 to pass LetsEncrypt
+                challange.</td>
+            </tr>
+
+
+            <tr>
+              <td>ALLOWEDORIGINS</td>
+              <td>https://*,http://*</td>
+              <td>CORS.A list of coma seperated list of allowed origins.</td>
+            </tr>
+            <tr>
+              <td>MAX_GRAPH_ENTRIES</td>
+              <td>1000</td>
+              <td>Number of latest log enties used for dashboard graph.</td>
+            </tr>
+            <tr>
+              <td>MAX_LOG_ENTRIES_FOR_ONE_ENDPOINT</td>
+              <td>1000</td>
+              <td>Maximum allowed entries per endpoint. System will purge the old entries automatically.</td>
+            </tr>
+
+            <tr>
+              <td>REQUESTS_PER_HOUR_BY_IP</td>
+              <td>1000</td>
+              <td>Rate Limit per IP. 1000 requests/hour</td>
+            </tr>
+
+            <tr>
+              <td>REQUESTS_PER_HOUR_BY_USER</td>
+              <td>1000</td>
+              <td>Rate Limit per user1000 requests/hour</td>
+            </tr>
+
+            <tr>
+              <td>PING_SERVER_EVERY</td>
+              <td>20s</td>
+              <td>Ping servers every 20seconds to validate the connection. Set it to 0 to disable the ping.</td>
+            </tr>
+
+
+            <tr>
+              <td>ALLOWHTMLTEMPLATES</td>
+              <td>N</td>
+              <td>Allow HTML templates.</td>
+            </tr>
+
+
+            <tr>
+              <td>DEBUG</td>
+              <td>N</td>
+              <td>Run the app in debug mode. Valid values are TRUE YES Y</td>
+            </tr>
+
+
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{{end}}

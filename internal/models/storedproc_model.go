@@ -30,6 +30,8 @@ func (m *StoredProcModel) Save(u *storedProc.StoredProc) (string, error) {
 		}
 		u.Name = strings.ToUpper(strings.TrimSpace(u.Name))
 
+		u.SetNameSpace()
+
 		// generate new ID if id is blank else use the old one to update
 		if u.ID == "" {
 			u.ID = u.Slug() //uuid.NewString()
@@ -123,7 +125,7 @@ func (m *StoredProcModel) Duplicate(u *storedProc.StoredProc) bool {
 	exists := false
 	for _, sp := range m.List() {
 
-		if sp.ID != u.ID && strings.EqualFold(sp.EndPointName, u.EndPointName) && strings.EqualFold(sp.HttpMethod, u.HttpMethod) {
+		if sp.ID != u.ID && strings.EqualFold(sp.EndPointName, u.EndPointName) && strings.EqualFold(sp.HttpMethod, u.HttpMethod) && strings.EqualFold(sp.GetNamespace(), u.GetNamespace()) {
 			exists = true
 			break
 		}

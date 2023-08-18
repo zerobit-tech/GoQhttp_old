@@ -84,8 +84,6 @@ func (app *application) ServerHandlers(router *chi.Mux) {
 		r.Get("/select/{serverid}", app.ServerSelect)
 		r.Get("/listprom/{serverid}", app.ListPromotion)
 		r.Get("/liblist/{serverid}", app.GetLibList)
-		r.Get("/help/ptable", app.PromotionTableHelp)
-		r.Get("/help/utstable", app.UserTokenTableHelp)
 
 		superadmingroup := r.Group(nil)
 		superadmingroup.Use(app.RequireSuperAdmin)
@@ -105,39 +103,6 @@ func (app *application) ServerHandlers(router *chi.Mux) {
 		superadmingroup.Get("/syncusertoken/{serverid}", app.SyncUserTokens)
 
 	})
-
-}
-
-// ------------------------------------------------------
-//
-// ------------------------------------------------------
-func (app *application) PromotionTableHelp(w http.ResponseWriter, r *http.Request) {
-
-	if !app.features.AllowPromotion {
-		//app.sessionManager.Put(r.Context(), "error", fmt.Sprintf("Error: %s", err.Error()))
-		app.goBack(w, r, http.StatusNotFound)
-		return
-	}
-
-	data := app.newTemplateData(r)
-
-	app.render(w, r, http.StatusOK, "server_help_promotion_table.tmpl", data)
-
-}
-
-// ------------------------------------------------------
-//
-// ------------------------------------------------------
-func (app *application) UserTokenTableHelp(w http.ResponseWriter, r *http.Request) {
-
-	if !app.features.AllowTokenSync {
-		app.goBack(w, r, http.StatusNotFound)
-		return
-	}
-
-	data := app.newTemplateData(r)
-
-	app.render(w, r, http.StatusOK, "server_help_user_token_sync_table.tmpl", data)
 
 }
 
@@ -452,7 +417,7 @@ func (app *application) ServerAdd(w http.ResponseWriter, r *http.Request) {
 		ConnectionMaxAge:  600,
 		ConnectionIdleAge: 3600,
 		LibList:           make([]string, 20),
-		Namespace:         "V1",
+		//Namespace:         "V1",
 	}
 	app.render(w, r, http.StatusOK, "server_add.tmpl", data)
 
@@ -529,6 +494,7 @@ func (app *application) ServerAddPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	server.Password, _ = stringutils.Encrypt(server.Password, server.GetSecretKey())
+
 	id, err := app.servers.Insert(&server)
 	if err != nil {
 		app.serverError500(w, r, err)

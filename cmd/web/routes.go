@@ -136,7 +136,7 @@ func (app *application) routes() *chi.Mux {
 		AllowedOrigins: allowedOriginList, // []string{"https://*", "http://*"},
 
 		// AllowOriginFunc:  func(r *http.Request, origin string) bool { return true },
-		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedMethods: []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		AllowedHeaders: []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
 
 		ExposedHeaders: []string{"Link"},
@@ -177,5 +177,7 @@ func (app *application) routes() *chi.Mux {
 	app.SPtemplateHandler(router)
 
 	app.SystemLogHandlers(router)
+
+	app.DocHandlers(router)
 	return router // standard.Then(router)
 }

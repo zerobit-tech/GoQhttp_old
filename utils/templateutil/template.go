@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"html/template"
 	"io/fs"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -78,10 +79,13 @@ func loadPages(cache map[string]*template.Template, pages []string) error {
 		// Use ParseFS() instead of ParseFiles() to parse the template files
 		// from the ui.Files embedded filesystem.
 		ts, err := template.New(name).Funcs(functions).ParseFS(fsys, patterns...)
-		if err != nil {
-			return err
+
+		// in case of error just skip the template
+		if err == nil {
+			cache[name] = ts
+		} else {
+			log.Println("Template: ", name, " failed. Due to:", err)
 		}
-		cache[name] = ts
 
 	}
 	return nil

@@ -53,10 +53,12 @@ func (m *ServerModel) Update(u *ibmiServer.Server, clearCache bool) error {
 			return err
 		}
 		u.Name = strings.ToUpper(strings.TrimSpace(u.Name))
-		if strings.TrimSpace(u.Namespace) == "" {
-			u.Namespace = "V1"
-		}
-		u.Namespace = strings.ToUpper(u.Namespace)
+		// if strings.TrimSpace(u.Namespace) == "" {
+		// 	u.Namespace = "V1"
+		// }
+		// u.Namespace = strings.ToUpper(u.Namespace)
+
+		// u.Namespace = stringutils.RemoveSpecialChars(stringutils.RemoveMultipleSpaces(u.Namespace))
 
 		if !u.OnHold {
 			u.OnHoldMessage = ""

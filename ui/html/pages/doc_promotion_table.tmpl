@@ -1,9 +1,9 @@
 {{define "title"}}
-Server Help
+Promotion table
 {{end}}
 
 {{define "content"}}
-<br />
+ 
 
 <div class="row p-2">
   <div class="col">
@@ -17,6 +17,10 @@ Server Help
 
  
       <div class="card-body">
+        <p>
+          The Promotion Table serves as a pivotal mechanism for effectuating the promotion of your endpoints between distinct environments. Within this framework, you possess the capability to establish entries within the promotion table itself, subsequently facilitating the seamless promotion of data. Qhttp, in turn, undertakes the task of meticulously processing this data, thereby effecting the creation, modification, or removal of endpoints as dictated by the entries within the promotion table.
+
+        </p>
 
         <ol>
           <li>Following table contains the list of required fields.</li>
@@ -84,6 +88,13 @@ Server Help
   <td>usewithoutauth</td>
   <td>String / Char(1)</td>
   <td>Y or N: is this an unauthorized endpoint? </td>
+</tr>
+
+
+<tr>
+  <td>namespace</td>
+  <td>String / Char(100)</td>
+  <td>Namespace for the endpoint. Default = V1</td>
 </tr>
 
 <tr>

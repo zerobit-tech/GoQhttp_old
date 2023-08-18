@@ -14,21 +14,23 @@ func (app *application) invalidateEndPointCache() {
 	app.invalidEndPointCache = true
 }
 
-func (app *application) GetEndPoint(endpoint string) (*storedProc.StoredProc, error) {
-	endPoint, found := app.endPointCache[endpoint]
+func (app *application) GetEndPoint(namespace, endpointName, httpmethod string) (*storedProc.StoredProc, error) {
+	endPointKey := fmt.Sprintf("%s_%s_%s", strings.ToUpper(namespace), strings.ToUpper(endpointName), strings.ToUpper(httpmethod))
+
+	endPoint, found := app.endPointCache[endPointKey]
 	if !found || app.invalidEndPointCache {
 		app.endPointCache = make(map[string]*storedProc.StoredProc)
 		app.endPointMutex.Lock()
 		for _, sp := range app.storedProcs.List() {
-			app.endPointCache[fmt.Sprintf("%s_%s", strings.ToUpper(sp.EndPointName), strings.ToUpper(sp.HttpMethod))] = sp
+			app.endPointCache[fmt.Sprintf("%s_%s_%s", strings.ToUpper(sp.Namespace), strings.ToUpper(sp.EndPointName), strings.ToUpper(sp.HttpMethod))] = sp
 		}
-		endPoint, found = app.endPointCache[endpoint]
+		endPoint, found = app.endPointCache[endPointKey]
 		app.invalidEndPointCache = false
 		app.endPointMutex.Unlock()
 
 		if !found {
 
-			return nil, fmt.Errorf("Not Found: %s", strings.ReplaceAll(endpoint, "_", " "))
+			return nil, fmt.Errorf("Not Found: %s", strings.ReplaceAll(endPointKey, "_", " "))
 		}
 
 	}

@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-func XmlToMap(r io.Reader) (map[string]any) {
+func XmlToMap(r io.Reader) map[string]any {
 	// result
 	//m := make(map[string]string)
 	// the current value stack
@@ -24,7 +24,7 @@ func XmlToMap(r io.Reader) (map[string]any) {
 	masterkey := "$"
 	for token, err := p.Token(); err == nil; token, err = p.Token() {
 
-		fmt.Println("------------------------", elementCountMap, "\n\n")
+		//fmt.Println("------------------------", elementCountMap, "\n\n")
 
 		//fmt.Println("token", token)
 

@@ -223,12 +223,16 @@ func (app *application) SPAddPost(w http.ResponseWriter, r *http.Request) {
 
 	sP.CheckField(validator.NotBlank(sP.Name), "name", "This field cannot be blank")
 	sP.CheckField(validator.NotBlank(sP.Lib), "lib", "This field cannot be blank")
-	sP.CheckField(!app.storedProcs.Duplicate(&sP), "endpointname", "Endpoint with name and method already exists")
+	//sP.CheckField(!app.storedProcs.Duplicate(&sP), "endpointname", "Endpoint with name and method already exists")
 	sP.CheckField(validator.NotBlank(sP.DefaultServerId), "serverid", "This field cannot be blank")
+
+	sP.SetNameSpace()
+
 	if sP.Valid() {
+
 		sP.EndPointName = stringutils.RemoveSpecialChars(stringutils.RemoveMultipleSpaces(sP.EndPointName))
 
-		sP.CheckField(!app.storedProcs.Duplicate(&sP), "endpointname", "Endpoint with name and method already exists")
+		sP.CheckField(!app.storedProcs.Duplicate(&sP), "endpointname", "Endpoint with name and method already exists in this namespace.")
 	}
 	// assign default server
 
@@ -280,6 +284,7 @@ func (app *application) SPAddPost(w http.ResponseWriter, r *http.Request) {
 		logAction = "Endpoint Modified"
 	}
 
+	// finally save
 	id, err := app.storedProcs.Save(&sP)
 	if err != nil {
 		app.serverError500(w, r, err)

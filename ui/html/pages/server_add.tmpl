@@ -118,20 +118,7 @@ Add new Server
                         {{end}}
                     </div>
 
-                    <div class="form-group">
-                        <label for="namespace">Namespace</label>
-                        <input id="namespace" value='{{.Form.Namespace}}' type="text"
-                            class="form-control  {{with .Form.FieldErrors.namespace}} is-invalid {{end}}"
-                            name="namespace"  >
-                        </input>
-                        <small id="namespaceh" class="form-text text-muted">
-                            {{$.HostUrl}}/api/{namespace}. Default value: v1. <br/>
-                            This will be default for all the endpoints for this server
-                        </small>
-                        {{with .Form.FieldErrors.namespace}}
-                        <div class='invalid-feedback'>{{.}}</div>
-                        {{end}}
-                    </div>
+       
 
 
                     <br>
@@ -203,7 +190,7 @@ Add new Server
                             class="form-control" name="configfile"></input>
 
                         <small id="configfileh" class="form-text text-muted">Table to track for promoted endpoints.Click
-                            <a href="/servers/help/ptable">here</a> for table structure.</small>
+                            <a href="/docs/prtable">here</a> for table structure.</small>
 
                     </div>
 
@@ -232,7 +219,7 @@ Add new Server
                             type="text" class="form-control" name="usertokenfile"></input>
 
                         <small id="usertokenfileh" class="form-text text-muted">Table to sync user tokens. Does not
-                            create new users. Click <a href="/servers/help/utstable">here</a> for table
+                            create new users. Click <a href="/docs/uttable">here</a> for table
                             structure.</small>
 
                     </div>

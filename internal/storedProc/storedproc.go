@@ -8,6 +8,7 @@ import (
 	"github.com/gosimple/slug"
 	"github.com/onlysumitg/GoQhttp/internal/validator"
 	"github.com/onlysumitg/GoQhttp/logger"
+	"github.com/onlysumitg/GoQhttp/utils/stringutils"
 )
 
 // type LogByType struct {
@@ -63,6 +64,7 @@ type StoredProc struct {
 	Promotionsql string `json:"promotionsql" db:"promotionsql" form:"-"`
 
 	HtmlTemplate string `json:"htmltemplate" db:"htmltemplate" form:"htmltemplate"`
+	Namespace    string `json:"namespace" db:"namespace" form:"namespace"`
 }
 
 // ------------------------------------------------------------
@@ -93,6 +95,7 @@ func (s *StoredProc) LogImage() string {
 	imageMap["DefaultServerId"] = s.DefaultServer.ID
 
 	imageMap["AllowWithoutAuth"] = s.AllowWithoutAuth
+	imageMap["Namespace"] = s.Namespace
 
 	j, err := json.MarshalIndent(imageMap, " ", " ")
 	if err == nil {
@@ -106,7 +109,7 @@ func (s *StoredProc) LogImage() string {
 //
 // ------------------------------------------------------------
 func (s *StoredProc) Slug() string {
-	return slug.Make(s.EndPointName + "_" + s.HttpMethod)
+	return slug.Make(s.Namespace + "_" + s.EndPointName + "_" + s.HttpMethod)
 
 }
 
@@ -132,6 +135,10 @@ func (s *StoredProc) AssignAliasForPathPlacement() {
 		if p1.Placement == "PATH" {
 			p1.Alias = fmt.Sprintf("*PATH_%d", pathCounter)
 			pathCounter += 1
+		} else {
+			if strings.HasPrefix(p1.Alias, "*PATH_") {
+				p1.Alias = ""
+			}
 		}
 	}
 }
@@ -258,6 +265,10 @@ outerloop:
 // ------------------------------------------------------------
 func (s *StoredProc) BuildMockUrl() {
 
+	if strings.TrimSpace(s.Namespace) == "" {
+		s.Namespace = "V1"
+	}
+
 	switch s.HttpMethod {
 	case "GET", "DELETE":
 		s.BuildMockUrlGET()
@@ -303,8 +314,8 @@ outerloop:
 
 	}
 
-	s.MockUrl = fmt.Sprintf("api/%s%s%s", s.EndPointName, pathParamString, queryParamString)
-	s.MockUrlWithoutAuth = fmt.Sprintf("uapi/%s%s%s", s.EndPointName, pathParamString, queryParamString)
+	s.MockUrl = fmt.Sprintf("api/%s/%s%s%s", s.Namespace, s.EndPointName, pathParamString, queryParamString)
+	s.MockUrlWithoutAuth = fmt.Sprintf("uapi/%s/%s%s%s", s.Namespace, s.EndPointName, pathParamString, queryParamString)
 }
 
 // ------------------------------------------------------------
@@ -350,6 +361,27 @@ outerloop:
 		s.InputPayload = string(jsonPayload)
 	}
 
-	s.MockUrl = fmt.Sprintf("api/%s%s%s", s.EndPointName, pathParamString, queryParamString)
-	s.MockUrlWithoutAuth = fmt.Sprintf("uapi/%s%s%s", s.EndPointName, pathParamString, queryParamString)
+	s.MockUrl = fmt.Sprintf("api/%s/%s%s%s", s.Namespace, s.EndPointName, pathParamString, queryParamString)
+	s.MockUrlWithoutAuth = fmt.Sprintf("uapi/%s/%s%s%s", s.Namespace, s.EndPointName, pathParamString, queryParamString)
+}
+
+// ------------------------------------------------------------
+// set name space value
+// ------------------------------------------------------------
+func (s *StoredProc) SetNameSpace() {
+	s.Namespace = strings.TrimSpace(s.Namespace)
+	if strings.TrimSpace(s.Namespace) == "" {
+		s.Namespace = "v1"
+	}
+
+	s.Namespace = stringutils.RemoveSpecialChars(stringutils.RemoveMultipleSpaces(s.Namespace))
+	s.Namespace = strings.ToLower(strings.TrimSpace(s.Namespace))
+}
+
+// ------------------------------------------------------------
+// BuildMockUrl(s)
+// ------------------------------------------------------------
+func (s *StoredProc) GetNamespace() string {
+	s.SetNameSpace()
+	return s.Namespace
 }

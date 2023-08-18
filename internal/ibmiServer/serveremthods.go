@@ -10,7 +10,6 @@ import (
 
 	"github.com/onlysumitg/GoQhttp/env"
 	"github.com/onlysumitg/GoQhttp/internal/dbserver"
-	"github.com/onlysumitg/GoQhttp/internal/storedProc"
 	"github.com/onlysumitg/GoQhttp/utils/concurrent"
 )
 
@@ -133,30 +132,4 @@ func (s *Server) GetSingleConnection() (*sql.DB, error) {
 // ------------------------------------------------------------
 func (s *Server) GetMux() *sync.Mutex {
 	return &s.Mux
-}
-
-// ------------------------------------------------------------
-//
-// ------------------------------------------------------------
-func (s *Server) PromotionRecordToStoredProc(p storedProc.PromotionRecord) *storedProc.StoredProc {
-	sp := &storedProc.StoredProc{
-		EndPointName: p.Endpoint,
-		HttpMethod:   p.Httpmethod,
-		Name:         p.Storedproc,
-		Lib:          p.Storedproclib,
-	}
-	if p.UseSpecificName == "Y" {
-		sp.UseSpecificName = true
-	}
-
-	if p.UseWithoutAuth == "Y" {
-		sp.AllowWithoutAuth = true
-	}
-	srcd := &storedProc.ServerRecord{
-		ID:   s.ID,
-		Name: s.Name,
-	}
-	sp.DefaultServer = srcd
-
-	return sp
 }

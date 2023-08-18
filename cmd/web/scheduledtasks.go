@@ -141,6 +141,14 @@ func (app *application) ProcessPromotionRecord(s *ibmiServer.Server, pr *storedP
 
 						}
 					}
+
+					for _, pPlacement := range pr.ParamPlacementRcds {
+						if strings.EqualFold(p.Name, pPlacement.Name) {
+							p.Placement = strings.TrimSpace(strings.ToUpper(pPlacement.Placement))
+
+						}
+					}
+
 				}
 
 				app.storedProcs.Save(newSP)

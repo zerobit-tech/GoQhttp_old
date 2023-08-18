@@ -60,7 +60,7 @@ type Server struct {
 
 	LastAutoPromoteDate string `json:"lastautopromotecheck" db:"lastautopromotecheck" form:"lastautopromotecheck"`
 
-	Namespace string `json:"namespace" db:"namespace" form:"namespace"`
+	//Namespace string `json:"namespace" db:"namespace" form:"namespace"`
 	validator.Validator `json:"-" db:"-" form:"-"`
 }
 
@@ -461,7 +461,7 @@ func (s *Server) SeversCall(ctx context.Context, sp *storedProc.StoredProc, prep
 	if err != nil {
 		return err
 	}
-		 
+
 	resultsets := make(map[string][]map[string]any, 0)
 	ctx = context.WithValue(ctx, go_ibm_db.LOAD_SP_RESULT_SETS, resultsets)
 	ctx = context.WithValue(ctx, go_ibm_db.DUMMY_SP_CALL, dummyCall)

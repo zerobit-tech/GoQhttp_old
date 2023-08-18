@@ -103,8 +103,8 @@ func (app *application) RequireUnAuthEndPoint(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		response := &storedProc.StoredProcResponse{ReferenceId: middleware.GetReqID(r.Context())}
 
-		endpointName, _ := app.GetPathParameters(r)
-		endPoint, err := app.GetEndPoint(fmt.Sprintf("%s_%s", strings.ToUpper(endpointName), strings.ToUpper(r.Method)))
+		namespace, endpointName, _ := app.GetPathParameters(r)
+		endPoint, err := app.GetEndPoint(namespace, endpointName, r.Method)
 
 		if err != nil || !endPoint.AllowWithoutAuth {
 			response.Status = http.StatusNotFound
@@ -126,8 +126,8 @@ func (app *application) RequireTemplatedEndPoint(next http.Handler) http.Handler
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		response := &storedProc.StoredProcResponse{ReferenceId: middleware.GetReqID(r.Context())}
 
-		endpointName, _ := app.GetPathParameters(r)
-		endPoint, err := app.GetEndPoint(fmt.Sprintf("%s_%s", strings.ToUpper(endpointName), strings.ToUpper(r.Method)))
+		namespace, endpointName, _ := app.GetPathParameters(r)
+		endPoint, err := app.GetEndPoint(namespace, endpointName, r.Method)
 
 		if err != nil || endPoint.HtmlTemplate == "" {
 			response.Status = http.StatusNotFound
@@ -176,6 +176,11 @@ func (app *application) InjectRequestInfo(r *http.Request, requesyBodyFlatMap ma
 		requesyBodyFlatMap["QHTTP_CORRELATION_ID"] = xmlutils.ValueDatatype{Value: "", DataType: "STRING"}
 
 	}
+
+	namespace, endpointName, _ := app.GetPathParameters(r)
+	requesyBodyFlatMap["QHTTP_ENDPOINT_NAMESPACE"] = xmlutils.ValueDatatype{Value: namespace, DataType: "STRING"}
+	requesyBodyFlatMap["QHTTP_ENDPOINT_NAME"] = xmlutils.ValueDatatype{Value: endpointName, DataType: "STRING"}
+
 }
 
 // ------------------------------------------------------
@@ -192,8 +197,8 @@ func (app *application) InjectServerInfo(server *ibmiServer.Server, requesyBodyF
 //
 // ------------------------------------------------------
 
-func (app *application) GetPathParameters(r *http.Request) (string, []httputils.PathParam) {
-
+func (app *application) GetPathParameters(r *http.Request) (string, string, []httputils.PathParam) {
+	namespace := ""
 	endpointName := ""
 	pathParams := make([]httputils.PathParam, 0)
 
@@ -202,19 +207,21 @@ func (app *application) GetPathParameters(r *http.Request) (string, []httputils.
 		for i, p := range params {
 			switch i {
 			case 0:
-				fmt.Println("")
+				// do nothing
 			case 1:
+				namespace = p.Value.(string)
+			case 2:
 				endpointName = p.Value.(string)
 
 			default:
-				p.Name = fmt.Sprintf("*PATH_%d", i-2)
+				p.Name = fmt.Sprintf("*PATH_%d", i-3)
 				pathParams = append(pathParams, *p)
 
 			}
 		}
 	}
 
-	return strings.TrimSpace(endpointName), pathParams
+	return strings.TrimSpace(namespace), strings.TrimSpace(endpointName), pathParams
 }
 
 // ------------------------------------------------------
@@ -223,7 +230,7 @@ func (app *application) GetPathParameters(r *http.Request) (string, []httputils.
 func (app *application) GET(w http.ResponseWriter, r *http.Request) {
 	response := &storedProc.StoredProcResponse{ReferenceId: middleware.GetReqID(r.Context())}
 
-	endpointName, pathParams := app.GetPathParameters(r)
+	namespace, endpointName, pathParams := app.GetPathParameters(r)
 	//apiName := chi.URLParam(r, "apiname")
 
 	// apiName, err := httputils.QueryParamPath(queryString, "/api/")
@@ -248,7 +255,7 @@ func (app *application) GET(w http.ResponseWriter, r *http.Request) {
 
 	requestBodyFlatMap := jsonutils.JsonToFlatMapFromMap(requestJson)
 
-	app.ProcessAPICall(w, r, endpointName, pathParams, requestBodyFlatMap)
+	app.ProcessAPICall(w, r, namespace, endpointName, pathParams, requestBodyFlatMap)
 
 }
 
@@ -259,7 +266,7 @@ func (app *application) POST(w http.ResponseWriter, r *http.Request) {
 
 	response := &storedProc.StoredProcResponse{ReferenceId: middleware.GetReqID(r.Context())}
 
-	endpointName, pathParams := app.GetPathParameters(r)
+	namespace, endpointName, pathParams := app.GetPathParameters(r)
 
 	requestBodyMap := make(map[string]any)
 
@@ -316,7 +323,7 @@ func (app *application) POST(w http.ResponseWriter, r *http.Request) {
 		queryParameters[p.Name] = xmlutils.ValueDatatype{Value: p.Value, DataType: "STRING"}
 	}
 
-	app.ProcessAPICall(w, r, endpointName, pathParams, queryParameters)
+	app.ProcessAPICall(w, r, namespace, endpointName, pathParams, queryParameters)
 
 }
 
@@ -325,7 +332,7 @@ func (app *application) POST(w http.ResponseWriter, r *http.Request) {
 //	actual api call processing
 //
 // ------------------------------------------------------
-func (app *application) ProcessAPICall(w http.ResponseWriter, r *http.Request, endpointName string,
+func (app *application) ProcessAPICall(w http.ResponseWriter, r *http.Request, namespace string, endpointName string,
 	pathParams []httputils.PathParam,
 	requesyBodyFlatMap map[string]xmlutils.ValueDatatype) {
 
@@ -356,9 +363,10 @@ func (app *application) ProcessAPICall(w http.ResponseWriter, r *http.Request, e
 	}()
 
 	apiCall.Logger("INFO", fmt.Sprintf("Received call for EndPoint %s | Method %s", endpointName, strings.ToUpper(r.Method)), false)
-	endPoint, err := app.GetEndPoint(fmt.Sprintf("%s_%s", strings.ToUpper(endpointName), strings.ToUpper(r.Method)))
+	endPoint, err := app.GetEndPoint(namespace, endpointName, r.Method)
+
 	if err != nil {
-		apiCall.Logger("INFO", fmt.Sprintf("%s endpoint %s not found", r.Method, endpointName), false)
+		apiCall.Logger("INFO", fmt.Sprintf("%s endpoint %s/%s not found", r.Method, namespace, endpointName), false)
 
 		response.Status = http.StatusNotImplemented
 		response.Message = err.Error()

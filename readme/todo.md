@@ -18,6 +18,8 @@
 16 user logs
 17 endpoint change log
 
+18. parameter validation
+
 
 Issues:
 1. rename endpoint => stuck

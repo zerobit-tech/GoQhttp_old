@@ -22,6 +22,7 @@ EndPoints
 <table id="splist"    class="table   table-borderless table-responsive-sm table-striped    ">
   <thead class="thead-dark">
     <tr>
+      <th>Namespace</th>
       <th>EndPoint name</th>
       <th>Method</th>
       <th>Server</th>
@@ -34,9 +35,11 @@ EndPoints
     {{if .StoredProcs}}
     {{range .StoredProcs}}
     <tr>
+      <td>{{.Namespace}}</td>
       <td>{{.EndPointName}}</td>
       <td>{{.HttpMethod}}</td>
       <td>{{if .DefaultServer}} {{.DefaultServer.Name}} {{end}}</td>
+
       <td>{{.Lib}}/{{.Name}}</td>
       <td>{{.SpecificLib}}/{{.SpecificName}}</td>
        <td nowrap>

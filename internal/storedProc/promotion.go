@@ -43,6 +43,8 @@ type PromotionRecord struct {
 	ParamPlacement     string
 	ParamPlacementRcds []*ParamPlacementRcd
 
+	Namespace string
+
 	Status              string
 	StatusMessage       string
 	validator.Validator `json:"-" db:"-" form:"-"`
