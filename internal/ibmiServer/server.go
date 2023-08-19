@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"reflect"
 	"runtime/debug"
 	"strconv"
@@ -62,6 +63,72 @@ type Server struct {
 
 	//Namespace string `json:"namespace" db:"namespace" form:"namespace"`
 	validator.Validator `json:"-" db:"-" form:"-"`
+}
+
+// ------------------------------------------------------------
+//
+// ------------------------------------------------------------
+func (s *Server) PromoationTableQuery() []string {
+
+	tableNametoUse := s.ConfigFile
+	tableLibNametoUse := s.ConfigFileLib
+
+	if tableNametoUse == "" {
+		tableNametoUse = "{{ENTER_TABLE_NAME}}"
+	}
+
+	if tableLibNametoUse == "" {
+		tableLibNametoUse = "{{ENTER_TABLE_LIB_NAME}}"
+	}
+
+	return []string{
+		fmt.Sprintf("create or replace table %s.%s", tableLibNametoUse, tableNametoUse),
+		"(",
+		"operation char(1) NOT NULL WITH DEFAULT,",
+		"endpoint varchar(100) NOT NULL WITH DEFAULT,",
+		"namespace varchar(100) NOT NULL WITH DEFAULT,",
+		"storedproc varchar(256) NOT NULL WITH DEFAULT,",
+		"storedproclib varchar(100) NOT NULL WITH DEFAULT,",
+		"httpmethod char(10) NOT NULL WITH DEFAULT,",
+		"usespecificname char(1) NOT NULL WITH DEFAULT,",
+		"usewithoutauth char(1) NOT NULL WITH DEFAULT,",
+		"paramalias varchar(500) NOT NULL WITH DEFAULT,",
+		"paramplacement varchar(500) NOT NULL WITH DEFAULT,",
+		"status char(1) NOT NULL WITH DEFAULT,",
+		"statusmessage varchar(100) NOT NULL WITH DEFAULT",
+
+		")",
+	}
+}
+
+// ------------------------------------------------------------
+//
+// ------------------------------------------------------------
+func (s *Server) CreatePromotionTable(ctx context.Context) error {
+
+	if s.ConfigFile == "" || s.ConfigFileLib == "" {
+
+		return fmt.Errorf("Error: Promotion Table or LIB not given for %s", s.Name)
+
+	}
+
+	sqlToRun := strings.Join(s.PromoationTableQuery(), " ")
+	conn, err := s.GetSingleConnection()
+
+	if err != nil {
+		log.Println("Error CreatePromotionTable:", err.Error())
+		return err
+	}
+	_, err = conn.ExecContext(ctx, sqlToRun)
+
+	if err != nil {
+		log.Println("Error CreatePromotionTable:", err.Error(), sqlToRun)
+
+		return err
+
+	}
+
+	return nil
 }
 
 // ------------------------------------------------------------
@@ -218,7 +285,7 @@ func (s *Server) buildCallStatement(sp *storedProc.StoredProc, useNamedParams bo
 // -----------------------------------------------------------------
 //
 // -----------------------------------------------------------------
-func (s *Server) prepareCallStatement(sp *storedProc.StoredProc, givenParams map[string]any) (*storedProc.PreparedCallStatements, error) {
+func (s *Server) prepareCallStatement(sp *storedProc.StoredProc, givenParams map[string]any, regexMap map[string]string) (*storedProc.PreparedCallStatements, error) {
 
 	spResponseFormat := make(map[string]any)
 	inoutParams := make([]any, 0)
@@ -239,14 +306,12 @@ func (s *Server) prepareCallStatement(sp *storedProc.StoredProc, givenParams map
 			} else {
 				//p.GivenValue = asString(valueToUse)
 
-
-
 			}
 
 			// parameter validation !!
 
-			if !p.HasValidValue(valueToUse) {
-				return nil, fmt.Errorf("%s: invalid value", p.Name)
+			if err := p.HasValidValue(valueToUse, regexMap); err != nil {
+				return nil, err
 			}
 
 			stringToReplace := ""
@@ -274,8 +339,8 @@ func (s *Server) prepareCallStatement(sp *storedProc.StoredProc, givenParams map
 				//p.GivenValue = asString(valueToUse)
 
 			}
-			if !p.HasValidValue(valueToUse) {
-				return nil, fmt.Errorf("%s: invalid value", paramNameToUse)
+			if err := p.HasValidValue(valueToUse, regexMap); err != nil {
+				return nil, err
 			}
 
 			valueToUse, err := p.ConvertToType(valueToUse)
@@ -311,7 +376,7 @@ func (s *Server) prepareCallStatement(sp *storedProc.StoredProc, givenParams map
 // -----------------------------------------------------------------
 //
 // -----------------------------------------------------------------
-func (s *Server) call(ctx context.Context, callID string, sp *storedProc.StoredProc, givenParams map[string]any) (*storedProc.StoredProcResponse, time.Duration, error) {
+func (s *Server) call(ctx context.Context, callID string, sp *storedProc.StoredProc, givenParams map[string]any, paramRegex map[string]string) (*storedProc.StoredProcResponse, time.Duration, error) {
 	//log.Printf("%v: %v\n", "SeversCall005.002", time.Now())
 	defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
 
@@ -319,7 +384,7 @@ func (s *Server) call(ctx context.Context, callID string, sp *storedProc.StoredP
 	qhttp_status_message := ""
 
 	logEntries := make([]*logger.LogEvent, 0, 5)
-	preparedCallStatements, err := s.prepareCallStatement(sp, givenParams)
+	preparedCallStatements, err := s.prepareCallStatement(sp, givenParams, paramRegex)
 	if err != nil {
 		logEntries = append(logEntries, logger.GetLogEvent("ERROR", callID, err.Error(), false))
 		return &storedProc.StoredProcResponse{LogData: logEntries}, 0, err

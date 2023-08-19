@@ -2,6 +2,9 @@ package storedProc
 
 import (
 	"database/sql"
+	"errors"
+	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -31,7 +34,8 @@ type StoredProcParamter struct {
 	GivenValue         string
 	OutValue           string
 	Placement          string // query  path body
-	validForCall       bool   `json:"-" db:"-" form:"-"`
+	ValidatorRegex     string
+	validForCall       bool `json:"-" db:"-" form:"-"`
 }
 
 // -----------------------------------------------------------------
@@ -204,32 +208,99 @@ func (p *StoredProcParamter) NeedQuote(value string) bool {
 //	To add more validation  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 //
 // -----------------------------------------------------------------
-func (p *StoredProcParamter) HasValidValue(val any) bool {
+func (p *StoredProcParamter) HasValidValue(val any, regexMap map[string]string) error {
 
+	stringVal := stringutils.AsString(val)
 	if p.IsString() {
-		v := stringutils.AsString(val)
-		if len(v) > p.MaxLength {
-			return false
+		if len(stringVal) > p.MaxLength {
+			return fmt.Errorf("%s: Invalid length", p.GetNameToUse(true))
 		}
 	}
 
 	if p.IsInt() {
-		return stringutils.IsNumericWithOutDecimal(stringutils.AsString(val))
+		if !stringutils.IsNumericWithOutDecimal(stringVal) {
+			return fmt.Errorf("%s: Invalid integer value", p.GetNameToUse(true))
+
+		}
 	}
 
 	if p.IsNumeric() {
-		return stringutils.IsNumeric(stringutils.AsString(val))
+		if !stringutils.IsNumeric(stringVal) {
+			return fmt.Errorf("%s: Invalid numeric value", p.GetNameToUse(true))
+
+		}
 	}
 
 	switch strings.ToUpper(p.Datatype) {
 	case "TIME":
-		return stringutils.IsValidTime(stringutils.AsString(val))
+		if !stringutils.IsValidTime(stringVal) {
+			return fmt.Errorf("%s: Invalid Time", p.GetNameToUse(true))
+
+		}
 
 	case "DATE":
-		return stringutils.IsValidDate(stringutils.AsString(val))
+		if !stringutils.IsValidDate(stringVal) {
+			return fmt.Errorf("%s: Invalid Date", p.GetNameToUse(true))
+
+		}
 
 	case "TIMESTAMP":
-		return stringutils.IsValidTimeStamp(stringutils.AsString(val))
+		if !stringutils.IsValidTimeStamp(stringVal) {
+			return fmt.Errorf("%s: Invalid TimeStamp", p.GetNameToUse(true))
+
+		}
 	}
-	return true
+
+	// final regex match
+	if !p.ValidatorValueByRegex(stringVal, regexMap) {
+		return fmt.Errorf("%s: Invalid value. Validation failed for %s", p.GetNameToUse(true), p.ValidatorRegex)
+
+	}
+
+	return nil
+}
+
+// -----------------------------------------------------------------
+//
+//	To add more validation  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+//
+// -----------------------------------------------------------------
+func (p *StoredProcParamter) CheckValidatorRegex(regexMap map[string]string) error {
+
+	upperVal := p.ValidatorRegex
+
+	_, found := regexMap[upperVal]
+	if !found {
+		return fmt.Errorf("validator %s not found", upperVal)
+	}
+
+	p.ValidatorRegex = upperVal
+
+	return nil
+}
+
+// -----------------------------------------------------------------
+//
+// -----------------------------------------------------------------
+func (p *StoredProcParamter) GetValidatorRegex(regexMap map[string]string) (*regexp.Regexp, error) {
+
+	finalRegex, found := regexMap[p.ValidatorRegex]
+	if !found {
+		return nil, errors.New("no validator regex defined")
+	}
+	return regexp.Compile(finalRegex)
+}
+
+// -----------------------------------------------------------------
+//
+// -----------------------------------------------------------------
+func (p *StoredProcParamter) ValidatorValueByRegex(val string, regexMap map[string]string) bool {
+
+	re, err := p.GetValidatorRegex(regexMap)
+	if err != nil {
+		return true // Dont stop if regex does not compile
+	}
+
+	return re.MatchString(val)
+
 }

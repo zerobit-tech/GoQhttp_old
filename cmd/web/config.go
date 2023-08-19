@@ -73,6 +73,8 @@ type application struct {
 	storedProcs    *models.StoredProcModel
 	spCallLogModel *models.SPCallLogModel
 
+	paramRegexModel *models.ParamRegexModel
+
 	InProduction bool
 	hostURL      string
 	domain       string
@@ -147,6 +149,8 @@ func baseAppConfig(params cliparams.Parameters, db *bolt.DB, userdb *bolt.DB, lo
 		servers:     &models.ServerModel{DB: db},
 		storedProcs: &models.StoredProcModel{DB: db},
 
+		paramRegexModel: &models.ParamRegexModel{DB: db},
+
 		spCallLogModel:             &models.SPCallLogModel{DB: logdb, DataChan: make(chan models.SPCallLogEntry)},
 		useHttps:                   true,
 		maxAllowedEndPoints:        -1,
@@ -202,6 +206,7 @@ func baseAppConfig(params cliparams.Parameters, db *bolt.DB, userdb *bolt.DB, lo
 	//go models.SaveLogs(app.LogDB)
 	go logger.StartLogging(app.LogDB)
 
+	go app.LoadDefaultParamValidatorRegex()
 	//app.CreateHttpPathPermissions()
 	return app
 

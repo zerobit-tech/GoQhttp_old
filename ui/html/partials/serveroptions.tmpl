@@ -36,6 +36,14 @@
 
 
 {{if .Features.AllowPromotion}}
+
+<li class="c-sidebar-nav-item">
+  <a class="c-sidebar-nav-link" href='/servers/promotiontable/{{.Server.ID}}'>
+    <svg class="c-icon mfe-2">
+      <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-notes"></use>
+    </svg>Promotion Table</a>
+</li>
+
 <li class="c-sidebar-nav-item">
   <a class="c-sidebar-nav-link" href='/servers/listprom/{{.Server.ID}}'>
     <svg class="c-icon mfe-2">
@@ -73,6 +81,7 @@
 
 
 
-<hr>
+<li class="c-sidebar-nav-title">----------------</li>
+
 
 {{end}}

@@ -88,6 +88,13 @@ func (app *application) getUserName(id string) string {
 // -----------------------------------------------------------------
 //
 // -----------------------------------------------------------------
+func (app *application) indexBy1(id int) int {
+	return id + 1
+}
+
+// -----------------------------------------------------------------
+//
+// -----------------------------------------------------------------
 // Initialize a template.FuncMap object and store it in a global variable. This is essentially
 // a string-keyed map which acts as a lookup between the names of our custom template
 // functions and the functions themselves.
@@ -101,6 +108,7 @@ func (app *application) getFunctionMap() template.FuncMap {
 		"httpCodeText":   httpCodeText,
 		"servername":     app.getServerName,
 		"username":       app.getUserName,
+		"indexby1":       app.indexBy1,
 	}
 
 	return functions

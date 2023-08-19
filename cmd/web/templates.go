@@ -72,8 +72,9 @@ type templateData struct {
 	RbacRolePermissionsIncluded []string
 	RbacRolePermissionsExcluded []string
 
-	Users       []*models.User
-	User        *models.User
+	Users []*models.User
+	User  *models.User
+
 	CurrentUser *models.User
 
 	TestMode bool
@@ -88,6 +89,11 @@ type templateData struct {
 	NextPageNumber int
 
 	ParamPlacements []string
+
+	//PredefinedRegex []string
+
+	ParamRegexs []*models.ParamRegex
+	ParamRegex  *models.ParamRegex
 }
 
 func ListComparisonOperators() []string {

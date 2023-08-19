@@ -424,7 +424,7 @@ func (app *application) ProcessAPICall(w http.ResponseWriter, r *http.Request, n
 	apiCall.Logger("INFO", fmt.Sprintf("Calling SP %s (specific %s) on server %s", apiCall.CurrentSP.Name, apiCall.CurrentSP.SpecificName, server.Name), false)
 
 	// call the SP
-	apiCall.Response, apiCall.SPCallDuration, apiCall.Err = server.APICall(r.Context(), apiCall.ID, endPoint, apiCall.RequestFlatMap)
+	apiCall.Response, apiCall.SPCallDuration, apiCall.Err = server.APICall(r.Context(), apiCall.ID, endPoint, apiCall.RequestFlatMap, app.GetParamValidatorRegex())
 	//log.Printf("%v: %v\n", "SeversCall006", time.Now())
 
 	if apiCall.Err == nil {

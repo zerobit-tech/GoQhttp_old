@@ -1,0 +1,37 @@
+{{define "title"}}
+Server Promotion table
+{{end}}
+
+{{define "content"}}
+ 
+<div class="row p-2">
+  <div class="col">
+    <div class="card ">
+      <div class="card-header">
+        <p class="h5">{{.Server.Name}} Promotion table
+          {{if .Server.ConfigFile}}
+          {{if .Server.ConfigFileLib}}
+          <a class="btn btn-ghost-info float-right" href="/servers/crtpromotiontable/{{.Server.ID}} ">Execute this query</a></p>
+        
+          {{end}}
+          {{end}}
+        </p>
+       
+      </div>
+
+ 
+      <div class="card-body">
+        <p>
+        {{range .Server.PromoationTableQuery}}
+        {{.}}<br />
+        {{end}}
+      </p>
+ 
+      </div>
+  </div>
+</div>
+</div>
+    {{end}}
+
+
+ 

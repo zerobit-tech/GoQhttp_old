@@ -179,5 +179,7 @@ func (app *application) routes() *chi.Mux {
 	app.SystemLogHandlers(router)
 
 	app.DocHandlers(router)
+
+	app.ParamRegexHandlers(router)
 	return router // standard.Then(router)
 }

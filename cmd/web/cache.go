@@ -2,18 +2,28 @@ package main
 
 import (
 	"fmt"
+	"regexp"
+	"runtime/debug"
 	"strings"
 	"time"
 
 	"github.com/onlysumitg/GoQhttp/internal/ibmiServer"
+	"github.com/onlysumitg/GoQhttp/internal/models"
 	"github.com/onlysumitg/GoQhttp/internal/storedProc"
 	"github.com/onlysumitg/GoQhttp/utils/concurrent"
+	"github.com/onlysumitg/GoQhttp/utils/regexutil"
 )
 
+// ------------------------------------------------------
+//
+// ------------------------------------------------------
 func (app *application) invalidateEndPointCache() {
 	app.invalidEndPointCache = true
 }
 
+// ------------------------------------------------------
+//
+// ------------------------------------------------------
 func (app *application) GetEndPoint(namespace, endpointName, httpmethod string) (*storedProc.StoredProc, error) {
 	endPointKey := fmt.Sprintf("%s_%s_%s", strings.ToUpper(namespace), strings.ToUpper(endpointName), strings.ToUpper(httpmethod))
 
@@ -39,14 +49,23 @@ func (app *application) GetEndPoint(namespace, endpointName, httpmethod string) 
 
 }
 
+// ------------------------------------------------------
+//
+// ------------------------------------------------------
 var serverLastCall concurrent.MapInterface = concurrent.NewSuperEfficientSyncMap(0)
 
+// ------------------------------------------------------
+//
+// ------------------------------------------------------
 func (app *application) AddServerLastCall(serverId string) {
 
 	serverLastCall.Store(serverId, time.Now())
 
 }
 
+// ------------------------------------------------------
+//
+// ------------------------------------------------------
 func (app *application) ShouldPingServer(s *ibmiServer.Server) bool {
 
 	lastCall, found := serverLastCall.Load(s.ID)
@@ -65,4 +84,39 @@ func (app *application) ShouldPingServer(s *ibmiServer.Server) bool {
 	//fmt.Println("time.Since(lastCallTime)", time.Since(lastCallTime), "::", idleDuration)
 	return (time.Since(lastCallTime) >= idleDuration)
 
+}
+
+// ------------------------------------------------------
+//
+// ------------------------------------------------------
+func (app *application) GetParamValidatorRegex() map[string]string {
+	return app.paramRegexModel.Map()
+}
+
+// ------------------------------------------------------
+//
+// ------------------------------------------------------
+func (app *application) LoadDefaultParamValidatorRegex() {
+
+	defer concurrent.Recoverer("LoadDefaultParamValidatorRegex")
+	defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
+
+	for k, v := range regexutil.Regex {
+		key := strings.ToUpper(k)
+		_, err := regexp.Compile(v)
+		if err == nil {
+
+			_, err2 := app.paramRegexModel.Get(key)
+			if err2 != nil { // if not found ==> add it
+				rp := &models.ParamRegex{
+					Name:  key,
+					Regex: v,
+				}
+				app.paramRegexModel.Save(rp)
+
+			}
+
+		}
+
+	}
 }

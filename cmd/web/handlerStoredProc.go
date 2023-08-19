@@ -57,6 +57,9 @@ func (app *application) StoredProcHandlers(router *chi.Mux) {
 		r.Get("/paramplacement/{spId}", app.SpParamPos)
 		r.Post("/saveparamplacement", app.SpSaveParamPos)
 
+		r.Get("/paramvalid/{spId}", app.spParamValidator)
+		r.Post("/saveparamvalid", app.spsaveparamValidator)
+
 		r.Get("/help", app.SPHelp)
 
 	})
@@ -411,7 +414,7 @@ func (app *application) SPCall(w http.ResponseWriter, r *http.Request) {
 		dServer, err := app.servers.Get(sP.DefaultServer.ID)
 		if err == nil {
 
-			_, err = dServer.DummyCall(sP, formToMap(r))
+			_, err = dServer.DummyCall(sP, formToMap(r), app.GetParamValidatorRegex())
 
 		}
 	} else {
@@ -459,7 +462,6 @@ func (app *application) SPsaveparamalias(w http.ResponseWriter, r *http.Request)
 			if ok && p.Alias != aliasString && p.Placement != "PATH" {
 				p.Alias = strings.TrimSpace(strings.ToUpper(aliasString))
 				changed = true
-				app.invalidateEndPointCache()
 
 			}
 		}
@@ -472,6 +474,7 @@ func (app *application) SPsaveparamalias(w http.ResponseWriter, r *http.Request)
 			app.goBack(w, r, http.StatusSeeOther)
 			return
 		}
+		app.invalidateEndPointCache()
 
 		sP.AssignAliasForPathPlacement()
 		app.storedProcs.Save(sP)
@@ -653,16 +656,93 @@ func (app *application) SpSaveParamPos(w http.ResponseWriter, r *http.Request) {
 				p.Placement = strings.TrimSpace(strings.ToUpper(placementString))
 
 				changed = true
-				app.invalidateEndPointCache()
 
 			}
 		}
 	}
 
 	if changed {
+		app.invalidateEndPointCache()
+
 		sP.AssignAliasForPathPlacement()
 		app.storedProcs.Save(sP)
 		app.sessionManager.Put(r.Context(), "flash", "Done")
+	} else {
+		app.sessionManager.Put(r.Context(), "flash", "Nothing changed")
+
+	}
+
+	app.goBack(w, r, http.StatusSeeOther)
+
+}
+
+// ------------------------------------------------------
+// Server details
+// ------------------------------------------------------
+func (app *application) spParamValidator(w http.ResponseWriter, r *http.Request) {
+
+	data := app.newTemplateData(r)
+
+	spId := chi.URLParam(r, "spId")
+
+	sP, err := app.storedProcs.Get(spId)
+	if err != nil {
+		app.serverError500(w, r, err)
+		return
+	}
+	data.StoredProc = sP
+
+	data.ParamRegexs = app.paramRegexModel.List()
+	app.render(w, r, http.StatusOK, "sp_param_validator.tmpl", data)
+
+}
+
+// ------------------------------------------------------
+//
+// ------------------------------------------------------
+func (app *application) spsaveparamValidator(w http.ResponseWriter, r *http.Request) {
+
+	spId := r.FormValue("id")
+
+	sP, err := app.storedProcs.Get(spId)
+	if err != nil {
+		app.sessionManager.Put(r.Context(), "error", fmt.Sprintf("Error  : %s", err.Error()))
+		app.goBack(w, r, http.StatusSeeOther)
+		return
+	}
+
+	//	app.storedProcs.Save(sP)
+	maped := formToMap(r)
+
+	changed := false
+	for _, p := range sP.Parameters {
+		validator, found := maped[strings.ToUpper(p.Name)]
+		if found {
+			validatorString, ok := validator.(string)
+			if ok && p.ValidatorRegex != validatorString {
+
+				p.ValidatorRegex = validatorString
+
+				if p.ValidatorRegex != "" {
+					err := p.CheckValidatorRegex(app.paramRegexModel.Map())
+					if err != nil {
+						app.sessionManager.Put(r.Context(), "error", fmt.Sprintf("Error  : %s", err.Error()))
+						app.goBack(w, r, http.StatusSeeOther)
+						return
+					}
+				}
+
+				changed = true
+
+			}
+		}
+	}
+
+	if changed {
+		app.invalidateEndPointCache()
+		app.storedProcs.Save(sP)
+		app.sessionManager.Put(r.Context(), "flash", "Done")
+
 	} else {
 		app.sessionManager.Put(r.Context(), "flash", "Nothing changed")
 

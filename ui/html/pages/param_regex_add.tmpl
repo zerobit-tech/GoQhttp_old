@@ -1,0 +1,89 @@
+{{define "title"}}
+{{if .Form.Name}} Edit {{else}} Add {{end}} Regex
+{{end}}
+
+{{define "content"}}
+<div class="row p-2">
+    <div class="col-xl-6">
+        <div class="card ">
+            <div class="card-header">
+                <p class="h5"> {{if .Form.Name}} Edit Regex: {{.Form.Name}}  {{else}} Add Regex {{end}}  
+
+                </p>
+
+            </div>
+            <div class="card-body">
+
+                <div class="row">
+                    <div class="col">
+
+                        <form action="/pramregex/{{if .Form.Name}}edit/{{.Form.Name}}{{else}}add{{end}}" method='POST'>
+                            <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+                         
+                            {{if  .Form.Name}}
+
+                            <input type='hidden' name='name' value='{{.Form.Name}}' required>
+                            {{else}}
+                            <div class="form-group">
+                                <label>Name:</label>
+
+                                <input class="form-control {{with .Form.FieldErrors.name}} is-invalid {{end}}"
+                                    type='text' name='name' value='{{.Form.Name}}' required>
+                                {{with .Form.FieldErrors.name}}
+                                <div class='invalid-feedback'>{{.}}</div>
+                                {{end}}
+
+                            </div>
+                            {{end}}
+                            <div class="form-group">
+                                <label>Regex:</label>
+
+                                <input class="form-control {{with .Form.FieldErrors.regex}} is-invalid {{end}}"
+                                    type='text' name='regex' value='{{.Form.Regex}}' required>
+                                {{with .Form.FieldErrors.regex}}
+                                <div class='invalid-feedback'>{{.}}</div>
+                                {{end}}
+
+                            </div>
+                    
+                       
+                            
+                           
+         
+
+                            <br> <br>
+                            <button type="submit" class="btn btn-info"> <svg class="c-icon">
+                                    <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-check-alt">
+                                    </use>
+                                </svg>
+                                Submit</button>
+                        </form>
+                    </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+              
+               
+                </div>
+            </div>
+        </div>
+    </div>
+   
+
+</div>
+{{end}}
+
+
+ 

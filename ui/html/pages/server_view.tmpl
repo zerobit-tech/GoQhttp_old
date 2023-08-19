@@ -78,14 +78,32 @@ Server detail
         <p class="h5">Given Lib List</p>
       </div>
       <div class="card-body">
-          <ol id="aliblist">
-            {{range .Server.LibList}}
-            <li>{{.}}</li>
-            {{end}}
 
-          </ol>
- 
+        <table id="givenliblist"           class="table   table-borderless table-responsive-sm table-striped    ">
+          <thead class="thead-dark">
+             <tr>
+                <th>Lib</th>
+               
+               
+             </tr>
+           </thead>
+       
+           <tbody>
+       
+             {{range $libseq, $libname := .Server.LibList}}
+             {{if $libname}}
+             <tr>
+                      <td>  {{ $libseq|indexby1 }}. {{$libname}}</td>
+                     
+             </tr>   
+             {{end}}      
+             {{end}}
+           </tbody>
+           
+       </table>
 
+       
+         
 
       </div>
     </div>

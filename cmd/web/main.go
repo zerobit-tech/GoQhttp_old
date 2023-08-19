@@ -13,6 +13,7 @@ import (
 	"github.com/onlysumitg/GoQhttp/env"
 	"github.com/onlysumitg/GoQhttp/internal/models"
 	"github.com/onlysumitg/GoQhttp/utils/concurrent"
+	"github.com/onlysumitg/GoQhttp/utils/stringutils"
 	bolt "go.etcd.io/bbolt"
 	"golang.org/x/crypto/acme/autocert"
 )
@@ -31,7 +32,9 @@ func main() {
 		// }
 	})
 
+	today := time.Now().Local().Format(stringutils.ISODateFormat0)
 	log.Println("Initializing....")
+
 	createInitialFolders()
 
 	//--------------------------------------- Setup CLI paramters ----------------------------
@@ -58,14 +61,14 @@ func main() {
 	}
 	defer userdb.Close()
 	// --------------------------------------- Setup database ----------------------------
-	logdb, err := bolt.Open("db/log.db", 0600, nil)
+	logdb, err := bolt.Open(fmt.Sprintf("db/log_%s.db", today), 0600, nil)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer logdb.Close()
 
 	// --------------------------------------- Setup database ----------------------------
-	systemlogdb, err := bolt.Open("db/systemlog.db", 0600, nil)
+	systemlogdb, err := bolt.Open(fmt.Sprintf("db/systemlog_%s.db", today), 0600, nil)
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -1,0 +1,87 @@
+{{define "title"}}
+Parameter Validators
+{{end}}
+
+{{define "content"}}
+
+<div class="row p-2">
+    <div class="col">
+      <div class="card ">
+        <div class="card-header">
+          <p class="h5">Parameter Validators <a class="btn btn-ghost-info float-right" href="/pramregex/add">+Add</a></p>
+        </div>
+        <div class="card-body">
+          <table id="rbackrolelist"
+            class="table   table-borderless table-responsive-sm table-striped    ">
+            <thead class="thead-dark">
+  
+            <tr>
+                 <th>Name</th>
+                <th>Regex</th>
+                
+ 
+                <th>Options </th>
+
+            </tr>
+        </thead>
+        <tbody>
+            {{if .ParamRegexs}}
+
+            {{range .ParamRegexs}}
+            <tr>
+                <td>{{.Name}}   </td>
+
+                <td>{{.Regex}} </td>
+           
+                 
+
+                <td>
+
+                    <a class="btn btn-ghost-info  " href='/pramregex/edit/{{.Name}}'>   
+                        <svg class="c-icon">
+                        <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-pencil"></use>
+                    </svg>
+                  </a>
+                      
+
+       
+
+ 
+
+              <a class="btn btn-ghost-danger" 
+              data-toggle="tooltip" data-placement="bottom" title="Delete" 
+              href='/pramregex/delete/{{.Name}}'  >   
+               <svg class="c-icon mfe-2">
+               <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-trash"></use>
+           </svg></a>
+                </td>
+
+            </tr>
+            {{end}}
+            {{end}}
+        </tbody>
+    </table>
+
+</div>
+</div>
+</div>
+</div>
+{{end}}
+
+
+{{define "aftercontent"}}
+
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.1/css/jquery.dataTables.css">
+<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.13.1/js/jquery.dataTables.js"></script>
+
+<script>
+    $(document).ready(function () {
+        $('#rbackrolelist').DataTable({
+            "pageLength": 100,
+            "language": {
+                "emptyTable": "No records."
+            }
+        });
+    });
+</script>
+{{end}}

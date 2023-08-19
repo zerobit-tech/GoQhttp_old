@@ -9,8 +9,12 @@ Server Promotions
     <div class="card ">
       <div class="card-header">
         <p class="h5">{{.Server.Name}} Promotions
-          <a class="btn btn-ghost-info float-right" href="/servers/runpromotions/{{.Server.ID}}">Run</a>
 
+          {{if .Server.ConfigFile}}
+          {{if .Server.ConfigFileLib}}
+          <a class="btn btn-ghost-info float-right" href="/servers/runpromotions/{{.Server.ID}}">Run</a>
+          {{end}}
+          {{end}}
         </p>
        
       </div>

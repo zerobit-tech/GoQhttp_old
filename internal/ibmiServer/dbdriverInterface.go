@@ -211,7 +211,7 @@ func (s *Server) GetSecretKey() string {
 // -----------------------------------------------------------------
 //
 // -----------------------------------------------------------------
-func (s *Server) APICall(ctx context.Context, callID string, sp *storedProc.StoredProc, params map[string]xmlutils.ValueDatatype) (responseFormat *storedProc.StoredProcResponse, callDuration time.Duration, err error) {
+func (s *Server) APICall(ctx context.Context, callID string, sp *storedProc.StoredProc, params map[string]xmlutils.ValueDatatype, paramRegex map[string]string) (responseFormat *storedProc.StoredProcResponse, callDuration time.Duration, err error) {
 	//log.Printf("%v: %v\n", "SeversCall005.001", time.Now())
 
 	defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
@@ -237,15 +237,15 @@ func (s *Server) APICall(ctx context.Context, callID string, sp *storedProc.Stor
 	for k, v := range params {
 		givenParams[k] = v.Value
 	}
-	return s.call(ctx, callID, sp, givenParams)
+	return s.call(ctx, callID, sp, givenParams, paramRegex)
 
 }
 
 // -----------------------------------------------------------------
 //
 // -----------------------------------------------------------------
-func (s *Server) DummyCall(sp *storedProc.StoredProc, givenParams map[string]any) (*storedProc.StoredProcResponse, error) {
-	preparedCallStatements, err := s.prepareCallStatement(sp, givenParams)
+func (s *Server) DummyCall(sp *storedProc.StoredProc, givenParams map[string]any, paramRegex map[string]string) (*storedProc.StoredProcResponse, error) {
+	preparedCallStatements, err := s.prepareCallStatement(sp, givenParams, paramRegex)
 	if err != nil {
 		return nil, err
 	}
@@ -448,40 +448,4 @@ func (s *Server) UpdateStatusUserTokenTable(p storedProc.UserTokenSyncRecord) {
 	}
 }
 
-// ------------------------------------------------------------
-//
-// ------------------------------------------------------------
-func (s *Server) GetLibList() ([]string, error) {
 
-	libList := make([]string, 0)
-
-	sqlToUse := "SELECT SYSTEM_SCHEMA_NAME FROM QSYS2.LIBRARY_LIST_INFO order by ORDINAL_POSITION"
-
-	conn, err := s.GetSingleConnection()
-	if err != nil {
-
-		return libList, err
-	}
-	defer conn.Close()
-
-	rows, err := conn.Query(sqlToUse)
-
-	if err != nil {
-
-		return libList, err
-	}
-	defer rows.Close()
-
-	for rows.Next() {
-		rcd := ""
-		err := rows.Scan(&rcd)
-		if err != nil {
-			return libList, err
-		} else {
-			libList = append(libList, rcd)
-		}
-
-	}
-
-	return libList, nil
-}

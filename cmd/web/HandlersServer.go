@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"runtime/debug"
@@ -101,6 +102,9 @@ func (app *application) ServerHandlers(router *chi.Mux) {
 		superadmingroup.Get("/clearcache/{serverid}", app.ClearCache)
 
 		superadmingroup.Get("/syncusertoken/{serverid}", app.SyncUserTokens)
+
+		superadmingroup.Get("/promotiontable/{serverid}", app.showPromotionTable)
+		superadmingroup.Get("/crtpromotiontable/{serverid}", app.createPromotionTable)
 
 	})
 
@@ -717,6 +721,57 @@ func (app *application) GetLibList(w http.ResponseWriter, r *http.Request) {
 	}
 	libList, _ := server.GetLibList()
 
-	app.renderAnyWithoutBase(w, r, http.StatusOK, "server_lib_list.tmpl", map[string][]string{"liblist": libList})
+	app.renderAnyWithoutBase(w, r, http.StatusOK, "server_lib_list.tmpl", map[string]any{"liblist": libList})
+
+}
+
+// ------------------------------------------------------
+// run promotions
+// ------------------------------------------------------
+func (app *application) showPromotionTable(w http.ResponseWriter, r *http.Request) {
+
+	serverID := chi.URLParam(r, "serverid")
+
+	server, err := app.servers.Get(serverID)
+	if err != nil {
+
+		//log.Println("ServerDeleteConfirm  002 >>>>>>", err.Error())
+		app.sessionManager.Put(r.Context(), "error", fmt.Sprintf("Error: %s", err.Error()))
+		app.goBack(w, r, http.StatusSeeOther)
+		return
+	}
+
+	data := app.newTemplateData(r)
+
+	data.Form = server
+
+	data.Server = server
+	app.render(w, r, http.StatusOK, "server_crt_promotion_table.tmpl", data)
+
+}
+
+// ------------------------------------------------------
+// run promotions
+// ------------------------------------------------------
+func (app *application) createPromotionTable(w http.ResponseWriter, r *http.Request) {
+
+	serverID := chi.URLParam(r, "serverid")
+
+	server, err := app.servers.Get(serverID)
+	if err != nil {
+		app.sessionManager.Put(r.Context(), "error", fmt.Sprintf("Error: %s", err.Error()))
+		app.goBack(w, r, http.StatusSeeOther)
+		return
+	}
+	err = server.CreatePromotionTable(context.TODO())
+	if err != nil {
+		app.sessionManager.Put(r.Context(), "error", fmt.Sprintf("Error: %s", err.Error()))
+
+	} else {
+
+		app.sessionManager.Put(r.Context(), "flash", "done")
+	}
+
+	app.goBack(w, r, http.StatusSeeOther)
 
 }

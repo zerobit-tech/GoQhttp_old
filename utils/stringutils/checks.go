@@ -8,6 +8,8 @@ import (
 
 var TimeFormat string = "15:04:05"
 var DateFormat string = "2006-01-02"
+var ISODateFormat0 string = "20060102"
+
 var TimestampFormat string = "2006-01-02 15:04:05.000000"
 var TimestampFormat2 string = "2006-01-02 15:04:05"
 

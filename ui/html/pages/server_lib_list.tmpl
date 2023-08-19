@@ -1,5 +1,25 @@
-<ol>
-   {{range .liblist}}
-   <li>{{.}}</li>
-   {{end}}
-</ol>
+<table id="liblist"           class="table   table-borderless table-responsive-sm table-striped    ">
+   <thead class="thead-dark">
+      <tr>
+         <th>Lib</th>
+        
+         <th>Type</th>
+      </tr>
+    </thead>
+
+    <tbody>
+
+      {{range .liblist}}
+      <tr>
+               <td> {{.Pos}}. {{.Lib}}</td>
+               <td> {{.Libtype}}</td>
+      </tr>         
+      {{end}}
+    </tbody>
+    
+</table>
+
+
+ 
+
+ 
