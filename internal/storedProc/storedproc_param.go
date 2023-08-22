@@ -288,6 +288,8 @@ func (p *StoredProcParamter) GetValidatorRegex(regexMap map[string]string) (*reg
 	if !found {
 		return nil, errors.New("no validator regex defined")
 	}
+
+ 
 	return regexp.Compile(finalRegex)
 }
 
