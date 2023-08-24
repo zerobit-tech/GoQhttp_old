@@ -15,5 +15,5 @@ echo 'Building..: '$output_name
 go build  -ldflags="-X 'main.FeatureSet=ALL'" -o ./bin/$output_name ./cmd/web
 
 
-docker build -t onlysumitg/qhttp .
-docker push onlysumitg/qhttp
+docker build -t onlysumitg/qhttp:v1.3.0 .
+docker push onlysumitg/qhttp:v1.3.0

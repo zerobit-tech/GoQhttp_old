@@ -1,6 +1,6 @@
 CREATE OR REPLACE PROCEDURE SUMITG1.HelloWorld (
                 IN Name CHAR(10) DEFAULT '',
-              
+            
          
                 OUT Message char(200)
             )
