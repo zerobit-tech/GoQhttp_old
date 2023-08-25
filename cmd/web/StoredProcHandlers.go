@@ -27,6 +27,7 @@ func (app *application) StoredProcHandlers(router *chi.Mux) {
 		//r.Use(app.CurrentServerMiddleware)
 		//r.With(paginate).Get("/", listArticles)
 		r.Get("/", app.SPList)
+		r.Get("/find", app.FindSP)
 		r.Post("/call", app.SPCall)
 		r.Get("/{spId}", app.SPView)
 
@@ -80,8 +81,45 @@ func (app *application) SPHelp(w http.ResponseWriter, r *http.Request) {
 //
 // ------------------------------------------------------
 func (app *application) SPList(w http.ResponseWriter, r *http.Request) {
+
+	serverID := r.URL.Query().Get("server")
+
+	_, err := app.servers.Get(serverID)
+	if err != nil {
+		serverID = ""
+
+	}
+
 	data := app.newTemplateData(r)
-	data.StoredProcs = app.storedProcs.List()
+	data.StoredProcs = make([]*storedProc.StoredProc, 0, 10)
+
+	storedPs := app.storedProcs.List()
+
+	if serverID != "" {
+		for _, s := range storedPs {
+			if s == nil || s.DefaultServer == nil {
+				continue
+			}
+			allowed := false
+			if s.DefaultServer.ID == serverID {
+				allowed = true
+			} else {
+
+				for _, als := range s.AllowedOnServers {
+					if als.ID == serverID {
+						allowed = true
+					}
+
+				}
+			}
+			if allowed {
+				data.StoredProcs = append(data.StoredProcs, s)
+			}
+		}
+	} else {
+		data.StoredProcs = storedPs
+	}
+
 	nextUrl := r.URL.Query().Get("next") //filters=["color", "price", "brand"]
 	data.Next = nextUrl
 	app.render(w, r, http.StatusOK, "sp_list.tmpl", data)
@@ -94,8 +132,31 @@ func (app *application) SPList(w http.ResponseWriter, r *http.Request) {
 //
 // ------------------------------------------------------
 func (app *application) SPAdd(w http.ResponseWriter, r *http.Request) {
+
+	storedP := storedProc.StoredProc{}
+
+	serverID := r.URL.Query().Get("server")
+
+	server, err := app.servers.Get(serverID)
+	if err == nil {
+		storedP.DefaultServer = &storedProc.ServerRecord{ID: server.ID}
+
+	}
+
+	libName := r.URL.Query().Get("lib")
+	storedP.Lib = libName
+	spName := r.URL.Query().Get("sp")
+	storedP.Name = spName
+
+	isSPecific := r.URL.Query().Get("spcific")
+
+	if strings.EqualFold(isSPecific, "Y") {
+
+		storedP.UseSpecificName = true
+	}
+
 	data := app.newTemplateData(r)
-	data.Form = storedProc.StoredProc{}
+	data.Form = storedP
 	data.Servers = app.servers.List()
 	app.render(w, r, http.StatusOK, "sp_add.tmpl", data)
 
@@ -749,5 +810,33 @@ func (app *application) spsaveparamValidator(w http.ResponseWriter, r *http.Requ
 	}
 
 	app.goBack(w, r, http.StatusSeeOther)
+
+}
+
+// ------------------------------------------------------
+// run promotions
+// ------------------------------------------------------
+func (app *application) FindSP(w http.ResponseWriter, r *http.Request) {
+
+	data := app.newTemplateData(r)
+	serverID := r.URL.Query().Get("serverid")
+
+	server, err := app.servers.Get(serverID)
+	if err == nil {
+
+		libName := r.URL.Query().Get("lib")
+
+		spName := r.URL.Query().Get("sp")
+		if strings.TrimSpace(spName) != "" {
+			sps, err := server.SearchSP(libName, spName)
+			if err != nil {
+				app.sessionManager.Put(r.Context(), "error", fmt.Sprintf("Error: %s", err.Error()))
+			}
+			data.StoredProcs = sps
+		}
+		data.Server = server
+	}
+	data.Servers = app.servers.List()
+	app.render(w, r, http.StatusOK, "server_search_sp.tmpl", data)
 
 }

@@ -1,4 +1,6 @@
 FROM debian:latest
+
+ARG APP_VERSION="v0.0.0"
  
 ENV PORT=4081
 EXPOSE ${PORT}
@@ -8,7 +10,7 @@ ENV USELETSENCRYPT=N
 
 # RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
 WORKDIR /app
-COPY ./bin/QHttp ./QHttp
+COPY ./bin/QHttp_${APP_VERSION} ./QHttp
 COPY ./drivers/ibm-iaccess.deb ./ibm-iaccess.deb
 
 RUN apt update && \

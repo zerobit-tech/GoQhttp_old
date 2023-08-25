@@ -85,6 +85,7 @@ func (app *application) ServerHandlers(router *chi.Mux) {
 		r.Get("/select/{serverid}", app.ServerSelect)
 		r.Get("/listprom/{serverid}", app.ListPromotion)
 		r.Get("/liblist/{serverid}", app.GetLibList)
+		//	r.Get("/findsp/{serverid}", app.FindSP)
 
 		superadmingroup := r.Group(nil)
 		superadmingroup.Use(app.RequireSuperAdmin)
@@ -170,27 +171,6 @@ func (app *application) ServerView(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	data.Server = server
-	data.StoredProcs = make([]*storedProc.StoredProc, 0, 10)
-	for _, s := range app.storedProcs.List() {
-		if s == nil || s.DefaultServer == nil {
-			continue
-		}
-		allowed := false
-		if s.DefaultServer.ID == serverID {
-			allowed = true
-		} else {
-
-			for _, als := range s.AllowedOnServers {
-				if als.ID == serverID {
-					allowed = true
-				}
-
-			}
-		}
-		if allowed {
-			data.StoredProcs = append(data.StoredProcs, s)
-		}
-	}
 
 	data.Users = make([]*models.User, 0, 10)
 

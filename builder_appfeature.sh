@@ -1,19 +1,43 @@
 #!/usr/bin/env bash
 
-output_name='QHttp_demo'
-echo 'Building..: '$output_name
-go build  -ldflags="-X 'main.FeatureSet=DEMO'" -o ./bin/$output_name ./cmd/web
+APP_VERSION='v1.3.0'
 
 
-output_name='QHttp_pub400' 
-echo 'Building..: '$output_name
-go build  -ldflags="-X 'main.FeatureSet=PUB400'" -o ./bin/$output_name ./cmd/web
+output_name='QHttp_demo_'
+
+echo 'Building..: '${output_name}${APP_VERSION}
+go build  -ldflags="-X 'main.FeatureSet=ALL'  -X 'main.Version=${APP_VERSION}'" -o ./bin/${output_name}${APP_VERSION} ./cmd/web
 
 
-output_name='QHttp' 
-echo 'Building..: '$output_name
-go build  -ldflags="-X 'main.FeatureSet=ALL'" -o ./bin/$output_name ./cmd/web
+output_name='QHttp_pub400_' 
+echo 'Building..: '${output_name}${APP_VERSION}
+go build  -ldflags="-X 'main.FeatureSet=ALL'  -X 'main.Version=${APP_VERSION}'" -o ./bin/${output_name}${APP_VERSION} ./cmd/web
 
 
-docker build -t onlysumitg/qhttp:v1.3.0 .
-docker push onlysumitg/qhttp:v1.3.0
+output_name='QHttp_' 
+echo 'Building..: '${output_name}${APP_VERSION}
+go build  -ldflags="-X 'main.FeatureSet=ALL'  -X 'main.Version=${APP_VERSION}'" -o ./bin/${output_name}${APP_VERSION}  ./cmd/web
+
+
+docker build --build-arg="APP_VERSION=${APP_VERSION}"  -t onlysumitg/qhttp:${APP_VERSION} .
+docker push onlysumitg/qhttp:${APP_VERSION}
+
+
+
+
+GOOS='windows'
+GOARCH='amd64'
+
+output_name='QHttp_win_demo_'
+echo 'Building..: '${output_name}${APP_VERSION}
+env GOOS=$GOOS GOARCH=$GOARCH go build  -ldflags="-X 'main.FeatureSet=DEMO' -X 'main.Version=${APP_VERSION}'" -o ./bin/${output_name}${APP_VERSION}.exe ./cmd/web
+
+
+# output_name='QHttp_win_pub400' 
+# echo 'Building..: '$output_name
+# env GOOS=$GOOS GOARCH=$GOARCH go build  -ldflags="-X 'main.FeatureSet=PUB400'" -o ./bin/$output_name ./cmd/web
+
+
+output_name='QHttp_win_' 
+echo 'Building..: '${output_name}${APP_VERSION}
+env GOOS=$GOOS GOARCH=$GOARCH go build  -ldflags="-X 'main.FeatureSet=ALL' -X 'main.Version=${APP_VERSION}'" -o ./bin/${output_name}${APP_VERSION}.exe ./cmd/web

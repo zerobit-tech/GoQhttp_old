@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/alexedwards/scs/v2"
+	"github.com/go-co-op/gocron"
 	"github.com/go-playground/form"
 	"github.com/onlysumitg/GoQhttp/cliparams"
 	"github.com/onlysumitg/GoQhttp/env"
@@ -108,12 +109,14 @@ type application struct {
 	features *featureflags.Features
 
 	SystemLoggerChan chan *SystemLogEvent
+
+	ServerPingScheduler *gocron.Scheduler
 }
 
 // -------------------------------------------------------------------------
 //
 // -------------------------------------------------------------------------
-func baseAppConfig(params cliparams.Parameters, db *bolt.DB, userdb *bolt.DB, logdb *bolt.DB, systemlogdb *bolt.DB) *application {
+func baseAppConfig(params cliparams.Parameters, db *bolt.DB, userdb *bolt.DB, logdb *bolt.DB, systemlogdb *bolt.DB, version string) *application {
 
 	//--------------------------------------- Setup loggers ----------------------------
 	infoLog := log.New(os.Stderr, "INFO\t", log.Ldate|log.Ltime)
@@ -129,7 +132,7 @@ func baseAppConfig(params cliparams.Parameters, db *bolt.DB, userdb *bolt.DB, lo
 	//shutDownctx, startShutdown := context.WithCancel(context.Background())
 	//---------------------------------------  final app config ----------------------------
 	app := &application{
-		version:  "1.3.0",
+		version:  version,
 		errorLog: errorLog,
 		infoLog:  infoLog,
 
@@ -216,6 +219,14 @@ func baseAppConfig(params cliparams.Parameters, db *bolt.DB, userdb *bolt.DB, lo
 //
 // -------------------------------------------------------------------------
 func (app *application) CleanupAndShutDown() {
+
+	if app.ServerPingScheduler != nil {
+		log.Println("Stoping server pings...")
+		app.ServerPingScheduler.Clear()
+		app.ServerPingScheduler.Stop()
+
+	}
+
 	log.Println("Closing channels...")
 	// if app.shutDownStart != nil {
 

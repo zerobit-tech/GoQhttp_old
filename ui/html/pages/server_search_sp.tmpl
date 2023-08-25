@@ -1,0 +1,119 @@
+{{define "title"}}
+Search Stored Proc
+{{end}}
+
+{{define "content"}}
+
+<div class="row  ">
+  <div class="col">
+    <div class="card "  style="height: 100%;" id="spfindcard">
+      <div class="card-header">
+        <p class="h5"> Search Stored Procedure
+
+
+        </p>
+
+      </div>
+
+
+      <div class="card-body">
+        <form hx-get="/sp/find" hx-target="#searchresult" hx-select="#splist" hx-indicator="#processing">
+          <div class="form-row  ">
+
+            <div class="form-group">
+           
+              <SELECT id="defaultserver" class="form-control" name="serverid">
+                {{if .Servers}}
+                {{range .Servers}}
+                <OPTION   
+                  value="{{.ID}}">
+
+                  {{.Name}}
+                </OPTION>
+                {{end}}
+                {{end}}
+              </SELECT>
+ 
+            </div>
+
+
+
+
+
+            <div class="col-auto">
+              <label class="sr-only" for="inlineFormInput">Library Name</label>
+              <input name="lib" aria-describedby="usertokenfileh" type="text" class="form-control  "
+                id="inlineFormInput" placeholder="*LIBL">
+              <small id="usertokenfileh" class="form-text text-muted">*LIBL or Library Name</small>
+            </div>
+            <div class="col-auto">
+              <label class="sr-only" for="inlineFormInput">Stored Procedure Name</label>
+              <input name="sp" aria-describedby="spnameh" type="text" class="form-control  " id="inlineFormInput"
+                placeholder="" required>
+              <small id="spnameh" class="form-text text-muted">Starting with</small>
+            </div>
+
+            <div class="col-auto">
+              <button type="submit" class="btn btn-primary  ">Search</button>
+            </div>
+          </div>
+        </form>
+
+        <hr />
+        <div class="alert alert-info" role="alert">
+
+          Lists only top 50 records ordered by created date.
+
+        </div>
+
+
+        <div id="searchresult">
+          <table id="splist" class="table   table-borderless table-responsive-sm table-striped    ">
+            <thead class="thead-dark">
+              <tr>
+
+                <th>StoredProc</th>
+                <th>Specific</th>
+                <th>Created date</th>
+                <th>Options</th>
+              </tr>
+            </thead>
+            <tbody>
+              {{if .StoredProcs}}
+              {{range .StoredProcs}}
+              <tr>
+
+
+                <td>{{.Lib}}/{{.Name}}</td>
+                <td>{{.SpecificLib}}/{{.SpecificName}}</td>
+                <td>{{.Modified}}</td>
+                <td nowrap>
+                  <a  hx-indicator="#processing"  hx-select="#spaddcard" hx-target="#spaddcol" class="btn btn-ghost-info" hx-get='/sp/add?server={{$.Server.ID}}&sp={{.SpecificName}}&lib={{.SpecificLib}}&spcific=Y'>
+
+                    Select</a>
+
+                
+
+                </td>
+
+              </tr>
+              {{end}}
+
+              {{else}}
+              <tr>
+                <td class="text-center" colspan="4">No records.</td>
+              </tr>
+
+              {{end}}
+            </tbody>
+          </table>
+
+
+        </div>
+
+
+      </div>
+    </div>
+  </div>
+</div>
+{{end}}

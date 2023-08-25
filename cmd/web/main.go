@@ -19,6 +19,7 @@ import (
 )
 
 var FeatureSet string = "ALL"
+var Version string = "v0.0.0"
 
 func main() {
 
@@ -75,7 +76,7 @@ func main() {
 	defer logdb.Close()
 
 	// --------------------------------------- Setup app config and dependency injection ----------------------------
-	app := baseAppConfig(*params, db, userdb, logdb, systemlogdb)
+	app := baseAppConfig(*params, db, userdb, logdb, systemlogdb, Version)
 	routes := app.routes()
 	app.batches()
 
@@ -270,12 +271,13 @@ func (app *application) pingServerSchedule() {
 		return
 	}
 
-	s := gocron.NewScheduler(time.Local)
+	app.ServerPingScheduler = gocron.NewScheduler(time.Local)
 
 	//s.WithDistributedLocker()
-	s.Every(pingServerEvery).Do(app.PingServers)
+	app.ServerPingScheduler.Every(pingServerEvery).Do(app.PingServers)
 	//s.SingletonMode()
-	s.StartAsync()
+
+	app.ServerPingScheduler.StartAsync()
 
 }
 
