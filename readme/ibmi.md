@@ -3,15 +3,29 @@ https://go.dev/doc/install/source
 https://github.com/skytap/rclone/blob/master/Rclone%20on%20Power.pdf
 
 =================================================================================
+export PATH=$PATH:/home/SUMITG/ibmigo/go/bin
+export GOROOT=/home/sumitg/ibmigo/go
+export PATH=$PATH:/QOpenSys/pkgs/bin
+alias gcc="/QOpenSys/pkgs/bin/gcc-10"
+
+rm -r /home/sumitg/tmp
+mkdir /home/sumitg/tmp
+
+# GOTMPDIR="/home/sumitg/tmp" go run main.go
+# GOTMPDIR="/home/sumitg/tmp" CC="/QOpenSys/pkgs/bin/gcc-10" go run main.go
 
 
-CGO_ENABLED=0 GOOS=aix GOARCH=ppc64 go build -o ibmie .
+# to disable build cache  GOFLAGS="-count=1"
+# disable proxt    export GOPROXY=direct
 
- go build -compiler gccgo -buildmode=c-archive -o i2  -gccgoflags="-lgo -maix64"  .
+GOTMPDIR="/home/sumitg/tmp" CC="/QOpenSys/pkgs/bin/gcc-10" GOFLAGS=-mod=vendor go run ./cmd/web
 
 
-CGO_ENABLED=0 GOOS=aix GOARCH=ppc64 ~/go_build/go-linux-amd64-bootstrap/bin/go build -o ./bin/ibmie ./cmd/web
 
+
+GOTMPDIR="/home/sumitg/tmp" CC="/QOpenSys/pkgs/bin/gcc-10" go build -ldflags="-X 'main.FeatureSet=ALL'  -X 'main.Version=v1.3.0'"  -mod vendor -o ./bin/QHttp_ibmi ./cmd/web
+
+=================================================================================
 
 scp -P2222 ./ibmie sumitg@pub400.com:ibmie
 

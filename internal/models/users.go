@@ -196,7 +196,7 @@ func (m *UserModel) Authenticate(email, password string) (*User, error) {
 	// no matching email exists we return the ErrInvalidCredentials error.
 	user, err := m.GetByEmail(email)
 	if err != nil {
-		return nil, err
+		return nil, ErrInvalidCredentials
 	}
 
 	// Check whether the hashed password and plain-text password provided match.
@@ -350,7 +350,7 @@ func (m *UserModel) Get(id string) (*User, error) {
 		}
 	}
 
-	return nil, errors.New("models: Not found")
+	return nil, errors.New("User ID: Not found")
 
 }
 
@@ -385,7 +385,7 @@ func (m *UserModel) GetByEmail(email string) (*User, error) {
 		}
 	}
 
-	return nil, errors.New("models: Not found")
+	return nil, errors.New("User email: Not found")
 
 }
 
@@ -401,7 +401,7 @@ func (m *UserModel) GetByUserName(username string) (*User, error) {
 		}
 	}
 
-	return nil, errors.New("models: Not found")
+	return nil, errors.New("User name: Not found")
 
 }
 
@@ -417,7 +417,7 @@ func (m *UserModel) GetByToken(token string) (*User, error) {
 		}
 	}
 
-	return nil, errors.New("models: Not found")
+	return nil, errors.New("User token: No User found")
 
 }
 
