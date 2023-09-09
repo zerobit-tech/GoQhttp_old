@@ -7,11 +7,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/onlysumitg/GoQhttp/go_ibm_db"
 	"github.com/onlysumitg/GoQhttp/internal/ibmiServer"
 	"github.com/onlysumitg/GoQhttp/internal/storedProc"
 	"github.com/onlysumitg/GoQhttp/lic"
 	"github.com/onlysumitg/GoQhttp/utils/concurrent"
+	"github.com/onlysumitg/godbc"
 )
 
 // --------------------------------
@@ -100,7 +100,7 @@ func (app *application) ProcessPromotion(s *ibmiServer.Server) {
 		}
 	}
 
-	s.LastAutoPromoteDate = time.Now().Format(go_ibm_db.TimestampFormat)
+	s.LastAutoPromoteDate = time.Now().Format(godbc.TimestampFormat)
 	//s.Password = s.GetPassword() // make sure it dont update the password
 	app.servers.Update(s, false)
 
@@ -264,5 +264,3 @@ func (app *application) ProcessSyncUserToken(s *ibmiServer.Server, tk *storedPro
 	}
 	s.UpdateStatusUserTokenTable(*tk)
 }
-
- 

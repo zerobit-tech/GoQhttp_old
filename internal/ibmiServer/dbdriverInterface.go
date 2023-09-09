@@ -12,7 +12,8 @@ import (
 	"time"
 
 	"github.com/onlysumitg/GoQhttp/env"
-	"github.com/onlysumitg/GoQhttp/go_ibm_db"
+	"github.com/onlysumitg/godbc"
+
 	"github.com/onlysumitg/GoQhttp/internal/storedProc"
 	"github.com/onlysumitg/GoQhttp/internal/validator"
 	"github.com/onlysumitg/GoQhttp/logger"
@@ -179,7 +180,7 @@ func (s *Server) GetPassword() string {
 //
 // ------------------------------------------------------------
 func (s *Server) GetConnectionType() string {
-	return "go_ibm_db" //"odbc"
+	return "godbc" //"odbc"
 }
 
 // ------------------------------------------------------------
@@ -307,7 +308,7 @@ func (s *Server) Exists(ctx context.Context, sp *storedProc.StoredProc) (bool, e
 //
 // ------------------------------------------------------------
 func (s *Server) ErrorToHttpStatus(inerr error) (int, string, string, bool) {
-	var odbcError *go_ibm_db.Error
+	var odbcError *godbc.Error
 
 	if errors.As(inerr, &odbcError) {
 
@@ -447,5 +448,3 @@ func (s *Server) UpdateStatusUserTokenTable(p storedProc.UserTokenSyncRecord) {
 		log.Println("Error updateing User token file.... ", err.Error())
 	}
 }
-
-

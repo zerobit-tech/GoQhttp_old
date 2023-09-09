@@ -14,12 +14,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/onlysumitg/GoQhttp/go_ibm_db"
 	"github.com/onlysumitg/GoQhttp/internal/storedProc"
 	"github.com/onlysumitg/GoQhttp/internal/validator"
 	"github.com/onlysumitg/GoQhttp/logger"
 	"github.com/onlysumitg/GoQhttp/utils/httputils"
 	"github.com/onlysumitg/GoQhttp/utils/stringutils"
+	"github.com/onlysumitg/godbc"
 )
 
 type Server struct {
@@ -533,8 +533,8 @@ func (s *Server) SeversCall(ctx context.Context, sp *storedProc.StoredProc, prep
 	}
 
 	resultsets := make(map[string][]map[string]any, 0)
-	ctx = context.WithValue(ctx, go_ibm_db.LOAD_SP_RESULT_SETS, resultsets)
-	ctx = context.WithValue(ctx, go_ibm_db.DUMMY_SP_CALL, dummyCall)
+	ctx = context.WithValue(ctx, godbc.LOAD_SP_RESULT_SETS, resultsets)
+	ctx = context.WithValue(ctx, godbc.DUMMY_SP_CALL, dummyCall)
 	//ctx = context.WithValue(ctx, go_ibm_db.ESCAPE_QUOTE, true)  // use strconv.Quote on result set
 
 	_, err = db.ExecContext(ctx, preparedCallStatements.FinalCallStatement, preparedCallStatements.InOutParams...)
