@@ -16,7 +16,7 @@ import (
 func (app *application) ParamRegexHandlers(router *chi.Mux) {
 	router.Route("/pramregex", func(r chi.Router) {
 		r.Use(app.sessionManager.LoadAndSave)
-
+		r.Use(app.RequireAuthentication)
 		r.Use(app.RequireSuperAdmin)
 		r.Use(CheckLicMiddleware)
 

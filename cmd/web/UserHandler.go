@@ -8,9 +8,11 @@ import (
 	"net/http"
 	"runtime/debug"
 	"strings"
+	"time"
 
 	"github.com/onlysumitg/GoQhttp/internal/validator"
 	"github.com/onlysumitg/GoQhttp/utils/concurrent"
+	"github.com/onlysumitg/GoQhttp/utils/jwtutils"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/onlysumitg/GoQhttp/internal/models"
@@ -97,7 +99,7 @@ func (app *application) RequireAuthentication(next http.Handler) http.Handler {
 		goToUrl := fmt.Sprintf("/user/login?next=%s", r.URL.RequestURI())
 
 		if !app.isAuthenticated(r, true) {
-			app.sessionManager.Put(r.Context(), "error", "Login required")
+			//	app.sessionManager.Put(r.Context(), "error", "Login required")
 
 			http.Redirect(w, r, goToUrl, http.StatusSeeOther)
 			return
@@ -114,6 +116,8 @@ func (app *application) RequireAuthentication(next http.Handler) http.Handler {
 		userId := ""
 		if err == nil {
 			userId = user.ID
+
+			app.UpdateSessionUserToketn(r, *user)
 		}
 		ctx := context.WithValue(r.Context(), models.ContextUserKey, userId)
 		// Otherwise set the "Cache-Control: no-store" header so that pages
@@ -258,10 +262,45 @@ func (app *application) isStaff(r *http.Request) bool {
 // ------------------------------------------------------
 // Return true if the current request is from an authenticated user, otherwise
 // return false.
-func (app *application) GetUser(r *http.Request) (*models.User, error) {
-	userId := app.sessionManager.GetString(r.Context(), "authenticatedUserID")
+func (app *application) RemoveSessionUser(r *http.Request) {
+	//app.sessionManager.Remove(r.Context(), "authenticatedUserID")
+	app.sessionManager.Remove(r.Context(), "authenticatedUserToken")
 
-	return app.users.Get(userId)
+}
+
+// ------------------------------------------------------
+//
+// ------------------------------------------------------
+
+func (app *application) UpdateSessionUserToketn(r *http.Request, user models.User) error {
+
+	jwtString, err := user.GetNewToken(120 * time.Minute)
+	if err != nil {
+		return err
+	}
+
+	// Add the ID of the current user to the session, so that they are now
+	// 'logged in'.
+	// app.sessionManager.Put(r.Context(), "authenticatedUserID", user.ID)
+	app.sessionManager.Put(r.Context(), "authenticatedUserToken", jwtString)
+	return nil
+}
+
+// ------------------------------------------------------
+//
+// ------------------------------------------------------
+// Return true if the current request is from an authenticated user, otherwise
+// return false.
+func (app *application) GetUser(r *http.Request) (*models.User, error) {
+	//userId := app.sessionManager.GetString(r.Context(), "authenticatedUserID")
+
+	usedIDString, err := app.getCurrentUserID(r)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return app.users.Get(usedIDString)
 
 }
 
@@ -270,15 +309,26 @@ func (app *application) GetUser(r *http.Request) (*models.User, error) {
 // ------------------------------------------------------
 // Return true if the current request is from an authenticated user, otherwise
 // return false.
-func (app *application) getCurrentUserID(r *http.Request) string {
-	userId := app.sessionManager.GetString(r.Context(), "authenticatedUserID")
+func (app *application) getCurrentUserID(r *http.Request) (string, error) {
+	userToken := app.sessionManager.GetString(r.Context(), "authenticatedUserToken")
 
-	if userId == "" {
-		return "UNKNOWN"
+	claims, err := jwtutils.Parse(userToken)
 
+	if err != nil {
+		return "UNKNOWN", err
 	}
 
-	return userId
+	usedID, found := claims["sub"]
+	if !found {
+		return "UNKNOWN", fmt.Errorf("invalid token")
+	}
+
+	usedIDString, ok := usedID.(string)
+	if !ok {
+		return "UNKNOWN", fmt.Errorf("invalid token")
+	}
+
+	return usedIDString, nil
 
 }
 
@@ -296,7 +346,7 @@ func (app *application) userSignup(w http.ResponseWriter, r *http.Request) {
 	}
 	// Remove the authenticatedUserID from the session data so that the user is
 	// 'logged out'.
-	app.sessionManager.Remove(r.Context(), "authenticatedUserID")
+	app.RemoveSessionUser(r)
 
 	data := app.newTemplateData(r)
 	data.Form = models.UserSignUpForm{}
@@ -437,9 +487,13 @@ func (app *application) userLoginPost(w http.ResponseWriter, r *http.Request) {
 		app.serverError500(w, r, err)
 		return
 	}
-	// Add the ID of the current user to the session, so that they are now
-	// 'logged in'.
-	app.sessionManager.Put(r.Context(), "authenticatedUserID", user.ID)
+
+	app.UpdateSessionUserToketn(r, *user)
+
+	if err != nil {
+		app.serverError500(w, r, err)
+		return
+	}
 
 	go func() {
 		defer concurrent.Recoverer("UserLogin log")
@@ -461,15 +515,19 @@ func (app *application) userLogoutPost(w http.ResponseWriter, r *http.Request) {
 	// Use the RenewToken() method on the current session to change the session
 	// ID again.
 
-	currentUserId := app.getCurrentUserID(r)
-	err := app.sessionManager.RenewToken(r.Context())
+	currentUserId, err := app.getCurrentUserID(r)
+	if err != nil {
+		app.serverError500(w, r, err)
+		return
+	}
+	err = app.sessionManager.RenewToken(r.Context())
 	if err != nil {
 		app.serverError500(w, r, err)
 		return
 	}
 	// Remove the authenticatedUserID from the session data so that the user is
 	// 'logged out'.
-	app.sessionManager.Remove(r.Context(), "authenticatedUserID")
+	app.RemoveSessionUser(r)
 	// Add a flash message to the session to confirm to the user that they've been
 	// logged out.
 	app.sessionManager.Put(r.Context(), "flash", "You've been logged out successfully!")
@@ -498,7 +556,7 @@ func (app *application) userVerification(w http.ResponseWriter, r *http.Request)
 	}
 	// Remove the authenticatedUserID from the session data so that the user is
 	// 'logged out'.
-	app.sessionManager.Remove(r.Context(), "authenticatedUserID")
+	app.RemoveSessionUser(r)
 
 	verificationid := chi.URLParam(r, "verificationid")
 	userid := chi.URLParam(r, "userid")
@@ -538,7 +596,7 @@ func (app *application) passwordReset(w http.ResponseWriter, r *http.Request) {
 	}
 	// Remove the authenticatedUserID from the session data so that the user is
 	// 'logged out'.
-	app.sessionManager.Remove(r.Context(), "authenticatedUserID")
+	app.RemoveSessionUser(r)
 
 	data := app.newTemplateData(r)
 	form := models.UserPasswordResetForm{}
@@ -602,7 +660,7 @@ func (app *application) userLoginTrouble(w http.ResponseWriter, r *http.Request)
 	}
 	// Remove the authenticatedUserID from the session data so that the user is
 	// 'logged out'.
-	app.sessionManager.Remove(r.Context(), "authenticatedUserID")
+	app.RemoveSessionUser(r)
 
 	data := app.newTemplateData(r)
 	form := models.UserTroubleForm{}

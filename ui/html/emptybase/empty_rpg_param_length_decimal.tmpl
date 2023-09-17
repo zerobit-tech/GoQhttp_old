@@ -1,0 +1,26 @@
+ 
+
+      {{define "content"}}
+     
+                    <div class="form-group">
+                        <label for="length">Length</label>
+                        <input id="length" class="form-control {{with .Form.FieldErrors.length}} is-invalid {{end}}"
+                            type="number" name="length" aria-describedby="lengthhelp" placeholder="Field Length"
+                            value='{{.Form.Length}}' min="1" required></input>
+
+                        {{with .Form.FieldErrors.length}}
+                        <div class='invalid-feedback'>{{.}}</div>
+                        {{end}}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="decimalpostions">Decimal Position</label>
+                        <input id="decimalpostions" class="form-control {{with .Form.FieldErrors.decimalpostions}} is-invalid {{end}}"
+                            type="number" name="decimalpostions" aria-describedby="dphelp" placeholder="Decimal position"
+                            value='{{.Form.DecimalPostions}}' min="0" ></input>
+
+                        {{with .Form.FieldErrors.decimalpostions}}
+                        <div class='invalid-feedback'>{{.}}</div>
+                        {{end}}
+                    </div>
+        {{end}}

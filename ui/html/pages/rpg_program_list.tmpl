@@ -1,0 +1,110 @@
+{{define "title"}}
+RPG Programs
+{{end}}
+
+{{define "content"}}
+ 
+<div class="row p-2">
+  <div class="col">
+    <div class="card ">
+      <div class="card-header">
+        <p class="h5">RPG Programs 
+
+           <a id="addrpgparms"  hx-push-url="true"  class="btn btn-ghost-info float-right" href="/rpgprogram/add">+Add</a>
+         </p>
+       
+      </div>
+
+ 
+      <div class="card-body">
+
+    <table id="programlist"           class="table   table-borderless table-responsive-sm table-striped    ">
+      <thead class="thead-dark">
+        <tr>
+          
+          <th>Name</th>
+          <th>Library</th>
+           
+          
+
+            <th>Options </th>
+
+        </tr>
+          </thead>
+          <tbody>
+            {{if .RpgPrograms}}
+
+        {{range .RpgPrograms}}
+        <tr>
+             <td> {{.Name}}</td>
+ 
+             <td> {{.Lib}}</td>
+ 
+            
+            
+
+            <td>
+                 
+                  <a  hx-push-url="true"  class="btn btn-ghost-info" href='/rpgprogram/{{.ID}}'  >View</a>   
+                  <a  hx-push-url="true"  class="btn btn-ghost-info" 
+                     data-toggle="tooltip" data-placement="bottom" title="Edit" 
+                     href='/rpgprogram/update/{{.ID}}'  >   <svg class="c-icon mfe-2">
+                      <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-pencil"></use>
+                  </svg></a> 
+               
+                  <a class="btn btn-ghost-danger"   hx-push-url="true" 
+                     data-toggle="tooltip" data-placement="bottom" title="Delete" 
+                     href='/rpgprogram/delete/{{.ID}}'  >   
+                      <svg class="c-icon mfe-2">
+                      <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-trash"></use>
+                  </svg></a>
+            </td>
+
+        </tr>
+        {{end}}
+        {{end}}
+          </tbody>
+        </table>
+      </div>
+  </div>
+</div>
+</div>
+    {{end}}
+
+
+{{define "aftercontent"}}
+
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.1/css/jquery.dataTables.css">
+<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.13.1/js/jquery.dataTables.js"></script>
+
+<script>
+  
+    $(document).ready( function () {
+      $('#programlist').DataTable(
+          {
+              "language": {
+                "emptyTable": "No records."
+              }
+          }
+      );
+
+
+      {{if not .RpgPrograms}}
+
+
+introJs().setOptions({
+steps: [ 
+
+{
+  title: 'For new Field!',
+element: document.querySelector('#addrpgparms'),
+intro: 'Click here to add.'
+},
+
+
+]
+}).start();
+{{end}}
+  } );
+</script>
+{{end}}

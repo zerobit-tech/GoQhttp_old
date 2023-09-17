@@ -1,0 +1,9 @@
+  *PGM or *SRVPGM:``
+  class iPgm (iBase):         IBM i XMLSERVICE call *PGM.
+  class iSrvPgm (iPgm):       IBM i XMLSERVICE call *SRVPGM.
+  class iParm (iBase):        Parameter child node for iPgm or iSrvPgm
+  class iRet (iBase):         Return structure child node for iSrvPgm
+  class iDS (iBase):          Data structure child node for iPgm, iSrvPgm,
+                              or nested iDS data structures.
+  class iData (iBase):        Data value child node for iPgm, iSrvPgm,
+                              or iDS data structures.

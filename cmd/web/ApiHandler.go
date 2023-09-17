@@ -338,6 +338,15 @@ func (app *application) ProcessAPICall(w http.ResponseWriter, r *http.Request, n
 
 	defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
 
+	endPoint, endPointNotfoundError := app.GetEndPoint(namespace, endpointName, r.Method)
+	// if endPointNotfoundError != nil {
+	// 	_, _, rpgErr := app.GetRPGEndPoint(namespace, endpointName, r.Method)
+	// 	if rpgErr == nil {
+	// 		// app.ProcessRPGAPICall(w, r, namespace, endpointName, pathParams, requesyBodyFlatMap)
+	// 		// return
+	// 	}
+	// }
+
 	requestId := middleware.GetReqID(r.Context())
 
 	response := &storedProc.StoredProcResponse{ReferenceId: requestId}
@@ -363,13 +372,11 @@ func (app *application) ProcessAPICall(w http.ResponseWriter, r *http.Request, n
 	}()
 
 	apiCall.Logger("INFO", fmt.Sprintf("Received call for EndPoint %s | Method %s", endpointName, strings.ToUpper(r.Method)), false)
-	endPoint, err := app.GetEndPoint(namespace, endpointName, r.Method)
 
-	if err != nil {
+	if endPointNotfoundError != nil {
 		apiCall.Logger("INFO", fmt.Sprintf("%s endpoint %s/%s not found", r.Method, namespace, endpointName), false)
-
 		response.Status = http.StatusNotImplemented
-		response.Message = err.Error()
+		response.Message = endPointNotfoundError.Error()
 		app.writeJSONAPI(w, response, nil)
 		return
 

@@ -1,0 +1,264 @@
+<pgm name="ZZCALL" error="fast" lib="XMLSERVICE" var="zzcall">
+    <parm io="both" var="p1">
+        <data type="1a" var="INCHARA"><![CDATA[a]]></data>
+    </parm>
+    
+    
+    <parm io="both" var="p2">
+        <data type="1a" var="INCHARB"><![CDATA[b]]></data>
+    </parm>
+
+
+    <parm io="both" var="p3">
+        <data type="7p4" var="INDEC1"><![CDATA[32.1234]]></data>
+    </parm>
+
+
+    <parm io="both" var="p4">
+        <data type="12p2" var="INDEC2"><![CDATA[33.33]]></data>
+    </parm>
+
+
+    <parm io="both" var="p5">
+        <ds var="INDS1">
+            <data type="1a" var="DSCHARA"><![CDATA[a]]></data>
+            <data type="1a" var="DSCHARB"><![CDATA[b]]></data>
+            <data type="7p4" var="DSDEC1"><![CDATA[32.1234]]></data>
+            <data type="12p2" var="DSDEC2"><![CDATA[33.33]]></data
+        ></ds>
+    </parm>
+</pgm>
+
+
+
+
+======================= 1 S==========test_pgm=========
+<pgm name="MYPGM" error="fast" var="lljqezl"/>
+======================= 1 E===================
+======================= 2 S=============test_pgm_error_on======
+<pgm name="MYPGM" error="on" var="rtoiu1nqew"/>
+======================= 2 E===================
+======================= 3 S=============test_pgm_error_off======
+<pgm name="MYPGM" error="off" var="lkjwernm"/>
+======================= 3 E===================
+======================= 4 S=============test_pgm_lib======
+<pgm name="MYPGM" error="fast" lib="MYLIB" var="rtoiu1nqew"/>
+======================= 4 E===================
+
+
+<?xml version="1.0" ?>
+<xmlservice>
+    <pgm error="fast" lib="XMLSERVICE" name="ZZCALL" var="zzcall">
+        <parm io="both" var="p1">
+            <data type="1a" var="INCHARA">C</data>
+        </parm>
+        <parm io="both" var="p2">
+            <data type="1a" var="INCHARB">D</data>
+        </parm>
+        <parm io="both" var="p3">
+            <data type="7p4" var="INDEC1">321.1234</data>
+        </parm>
+        <parm io="both" var="p4">
+            <data type="12p2" var="INDEC2">1234567890.12</data>
+        </parm>
+        <parm io="both" var="p5">
+            <ds var="INDS1">
+                <data type="1a" var="DSCHARA">E</data>
+                <data type="1a" var="DSCHARB">F</data>
+                <data type="7p4" var="DSDEC1">333.3330</data>
+                <data type="12p2" var="DSDEC2">4444444444.44</data>
+            </ds>
+        </parm>
+        <success>+++ success XMLSERVICE ZZCALL </success>
+    </pgm>
+</xmlservice>
+
+
+
+
+
+
+SAMPLE PROGRAM ON DEV740  SUMITG1/QHTTPTEST1
+
+    i1 zoned(5:0);    => 5s2
+     i2 zoned(5:0);
+     sum zoned(5:0);
+
+
+<?xml version="1.0" ?>
+<xmlservice>
+    <pgm error="fast" lib="SUMITG1" name="QHTTPTEST1" var="QHTTPTEST1">
+        <parm io="both" var="p1">
+            <data type="5s2" var="I1">10</data>
+        </parm>
+        <parm io="both" var="p2">
+            <data type="5s2" var="I2">20</data>
+        </parm>
+        <parm io="both" var="p3">
+            <data type="5s2" var="SUM">0</data>
+        </parm>
+      
+    </pgm>
+</xmlservice>
+
+==================================== call 1 =====================================
+call QXMLSERV.iPLUG512K('*na','*here *cdata','<?xml version="1.0" ?>
+<xmlservice>
+    <pgm error="fast" lib="SUMITG1" name="QHTTPTEST1" var="QHTTPTEST1">
+        <parm io="both" var="p1">
+            <data type="5s2" var="I1">10</data>
+        </parm>
+        <parm io="both" var="p2">
+            <data type="5s2" var="I2">20</data>
+        </parm>
+        <parm io="both" var="p3">
+            <data type="5s2" var="SUM">0</data>
+        </parm>
+      
+    </pgm>
+</xmlservice>',?);
+
+----------------------- return 
+  <?xml version="1.0" ?>
+ <xmlservice>    <pgm error="fast" lib="SUMITG1" name="QHTTPTEST1" var="QHTTPTEST1">
+         <parm io="both" var="p1"> <data type="5s2" var="I1">
+                 <![CDATA[10.00]]></data> </parm>
+         <parm io="both" var="p2"> <data type="5s2" var="I2">
+                 <![CDATA[20.00]]></data> </parm>
+         <parm io="both" var="p3"> <data type="5s2" var="SUM">
+                 <![CDATA[30.00]]></data> </parm>
+         <success>
+             <![CDATA[+++ success SUMITG1 QHTTPTEST1 ]]>
+         </success>
+     </pgm>
+ </xmlservice>
+
+
+ ======================= CALL 2===============================================
+
+ call QXMLSERV.iPLUG512K('*na','*here *cdata','<?xml version="1.0" ?>
+<xmlservice>
+    <pgm error="fast" lib="SUMITG1" name="QHTTPTEST1" var="QHTTPTEST1">
+        <parm io="both" var="p1">
+            <data type="5s2" var="I1">10s</data>   --- error here >>
+        </parm>
+        <parm io="both" var="p2">
+            <data type="5s2" var="I2">20</data>
+        </parm>
+        <parm io="both" var="p3">
+            <data type="5s2" var="SUM">0</data>
+        </parm>
+      
+    </pgm>
+</xmlservice>',?); 
+ ----------------- return errror
+ <?xml version="1.0" ?>
+<xmlservice>    
+<pgm error="fast" lib="SUMITG1" name="QHTTPTEST1" var="QHTTPTEST1">
+        <error>
+            <![CDATA[*** error SUMITG1 QHTTPTEST1 ]]>
+        </error>
+        <version>XML Toolkit 2.0.2-dev</version>
+        <error>
+            <errnoxml>1100017</errnoxml>
+            <xmlerrmsg>
+                <![CDATA[XML copy in data]]>
+            </xmlerrmsg>
+            <xmlhint>
+                <![CDATA[p(76)            <data type="5s2" var="I1">10s</data> ]]>
+            </xmlhint>
+        </error>
+        <error>
+            <errnoxml>1100007</errnoxml>
+            <xmlerrmsg>
+                <![CDATA[XML copy in excp]]>
+            </xmlerrmsg>
+            <xmlhint>
+                <![CDATA[p(114) <data type="5s2" var="I1"]]>
+            </xmlhint>
+        </error>
+        <error>
+            <errnoxml>1100017</errnoxml>
+            <xmlerrmsg>
+                <![CDATA[XML copy in data]]>
+            </xmlerrmsg>
+            <xmlhint>
+                <![CDATA[p(114) 10s]]>
+            </xmlhint>
+        </error>
+        <error>
+            <errnoxml>1100017</errnoxml>
+            <xmlerrmsg>
+                <![CDATA[XML copy in data]]>
+            </xmlerrmsg>
+            <xmlhint>
+                <![CDATA[p(114) F0F1F0F0F0F0F2F0]]>
+            </xmlhint>
+        </error>
+        <error>
+            <errnoxml>1100007</errnoxml>
+            <xmlerrmsg>
+                <![CDATA[XML copy in excp]]>
+            </xmlerrmsg>
+            <xmlhint>
+                <![CDATA[p(76) <parm io="both" var="p1"]]>
+            </xmlhint>
+        </error>
+        <error>
+            <errnoxml>1100017</errnoxml>
+            <xmlerrmsg>
+                <![CDATA[XML copy in data]]>
+            </xmlerrmsg>
+            <xmlhint>
+                <![CDATA[p(76)            <data type="5s2" var="I1">10s</data> ]]>
+            </xmlhint>
+        </error>
+        <error>
+            <errnoxml>1100008</errnoxml>
+            <xmlerrmsg>
+                <![CDATA[XML copy in failed]]>
+            </xmlerrmsg>
+            <xmlhint>
+                <![CDATA[<pgm error="fast" lib="SUMITG1" name="QHTTPTEST1" var="QHTT]]>
+            </xmlhint>
+        </error>
+        <error>
+            <errnoxml>1100007</errnoxml>
+            <xmlerrmsg>
+                <![CDATA[XML copy in excp]]>
+            </xmlerrmsg>
+            <xmlhint>
+                <![CDATA[p(76) <parm io="both" var="p1"]]>
+            </xmlhint>
+        </error>
+        <error>
+            <errnoxml>1100017</errnoxml>
+            <xmlerrmsg>
+                <![CDATA[XML copy in data]]>
+            </xmlerrmsg>
+            <xmlhint>
+                <![CDATA[p(76)            <data type="5s2" var="I1">10s</data> ]]>
+            </xmlhint>
+        </error>
+        <jobinfo>
+            <jobipc>*na</jobipc>
+            <jobipcskey>FFFFFFFF</jobipcskey>
+            <jobname>QZDASOINIT</jobname>
+            <jobuser>QUSER</jobuser>
+            <jobnbr>982760</jobnbr>
+            <jobsts>*ACTIVE</jobsts>
+            <curuser>SUMITG</curuser>
+            <ccsid>273</ccsid>
+            <dftccsid>273</dftccsid>
+            <paseccsid>819</paseccsid>
+            <langid>ENG</langid>
+            <cntryid>US</cntryid>
+            <sbsname>QUSRWRK</sbsname>
+            <sbslib>QSYS</sbslib>
+            <curlib>SUMITG1</curlib>
+            <syslibl>QSYS QSYS2 QHLPSYS QUSRSYS</syslibl>
+            <usrlibl>QGPL QTEMP</usrlibl>
+            <jobcpffind>see log scan, not error list</jobcpffind>
+        </jobinfo>
+    </pgm>
+</xmlservice>

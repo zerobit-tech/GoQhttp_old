@@ -1,0 +1,121 @@
+{{define "title"}}
+Endpoint
+{{end}}
+
+{{define "content"}}
+<div class="row p-2">
+    <div class="col">
+        <div class="card ">
+            <div class="card-header">
+                <p class="h5">
+                    Delete Endpoint
+              </p>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col">
+                        <table class="table   table-borderless table-responsive-sm table-striped    ">
+                            <tbody>
+                                {{if .StoredProc.AllowWithoutAuth}}
+                                <tr>
+                                    <th scope="row" class="text-danger">Allowed Without Auth</th>
+                                    <td  class="text-danger">{{.StoredProc.AllowWithoutAuth| yesNo}}</td>
+                                </tr>
+                                {{end}}
+
+                                <tr>
+                                    <th scope="row">EndPoint name</th>
+                                    <td>{{.StoredProc.EndPointName}}</td>
+                                </tr>
+
+                                <tr>
+                                    <th scope="row">Http Method</th>
+                                    <td>{{.StoredProc.HttpMethod}}</td>
+                                </tr>
+                                {{if .StoredProc.AllowWithoutAuth}}
+                                <tr>
+                                    <th class="text-danger" scope="row">URL without Auth</th>
+                                    <td class="text-danger" >{{$.HostUrl}}/{{.StoredProc.MockUrlWithoutAuth}}</td>
+                                </tr>
+                                {{end}}
+                                <tr>
+                                    <th scope="row">URL</th>
+                                    <td>{{$.HostUrl}}/{{.StoredProc.MockUrl}}</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Payload</th>
+                                    <td>
+                                        <pre>{{.StoredProc.InputPayload}}</pre>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <th scope="row">Default Server</th>
+                                    <td>{{if .StoredProc.DefaultServer}} {{.StoredProc.DefaultServer.Name}}{{end}}</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Stored Proc</th>
+                                    <td>{{.StoredProc.Name}}</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Stored Proc Lib</th>
+                                    <td>{{.StoredProc.Lib}}</td>
+                                </tr>
+
+
+                                <tr>
+                                    <th scope="row">Specific Stored Proc</th>
+                                    <td>{{.StoredProc.SpecificName}}</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Specific Stored Proc Lib</th>
+                                    <td>{{.StoredProc.SpecificLib}}</td>
+                                </tr>
+
+
+
+                                <tr>
+                                    <th scope="row">Use specific name</th>
+                                    <td>{{.StoredProc.UseSpecificName}}</td>
+                                </tr>
+
+
+                                <tr>
+                                    <th scope="row">Result sets</th>
+                                    <td>{{.StoredProc.ResultSets}}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Parameter -->
+
+
+
+
+                <form method="post" action="/sp/delete">
+                    <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+                      <input type="hidden" name="spId" value="{{.StoredProc.ID}}">
+                <button type="submit" class="btn btn-danger">Confirm</button>
+                
+                </form>
+            
+            
+            
+            </div>
+        </div>
+    </div>
+ 
+
+</div>
+
+<!-- Parameter -->
+
+ 
+ 
+
+{{end}}
+
+
+ 

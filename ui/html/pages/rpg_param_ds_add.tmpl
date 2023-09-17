@@ -1,0 +1,103 @@
+{{define "title"}}
+Add
+{{end}}
+
+
+{{define "content"}}
+<div class="row p-2">
+    <div class="col-4" id="spaddcol">
+        <div class="card " id="spaddcard" style="height: 100%;">
+            <div class="card-header">
+                <p class="h5">
+                    {{if .Form.ID}} Edit {{else}} Add {{end}} RPG Datastructure   
+
+                  
+                </p>
+            </div>
+            <div class="card-body">
+
+                <form action="/rpgparamds/{{if .Form.ID}}update/{{.Form.ID}}{{else}}add{{end}}" method="POST">
+                    <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+                    <input type="hidden" id="id" name="id" value="{{.Form.ID}}">
+
+               
+ 
+                    <div class="form-group">
+                        <label for="name">Datastructure Name</label>
+                        <input id="name" class="form-control {{with .Form.FieldErrors.name}} is-invalid {{end}}"
+                            type="text" name="name" aria-describedby="namehelp" placeholder="Name"
+                            value='{{.Form.Name}}' required></input>
+
+                        {{with .Form.FieldErrors.name}}
+                        <div class='invalid-feedback'>{{.}}</div>
+                        {{end}}
+                    </div>
+
+                 
+
+                    <div class="form-group">
+                        <label for="dsdim">Dim</label>
+                        <input id="dsdim" class="form-control {{with .Form.FieldErrors.dsdim}} is-invalid {{end}}"
+                            type="number" name="dsdim" aria-describedby="dsdimhhelp" placeholder=""
+                            value='{{.Form.DsDim}}' min="1" required></input>
+
+                        {{with .Form.FieldErrors.dsdim}}
+                        <div class='invalid-feedback'>{{.}}</div>
+                        {{end}}
+                    </div>
+                
+
+
+                    {{if .Form.DsFields}}
+                    {{range $i, $dsField :=.Form.DsFields}}
+                    <div class="form-group">
+                        <label for="dsfields">Field {{$i|indexby1}}</label>
+                        <SELECT  
+                         class="form-control" name="dsfields">
+                         <OPTION value="">Select Field</OPTION>
+                            {{if $.RpgParams}}
+                            {{range $i2, $rpgParam := $.RpgParams}}
+                            <OPTION   {{if eq $dsField $rpgParam.ID}} selected {{end}}
+                                  value="{{$rpgParam.ID}}">
+
+                                {{$rpgParam.Name}} {{if $rpgParam.IsDs}} | DS {{else}} | {{$rpgParam.DataType}} {{end}}
+                            </OPTION>
+                            {{end}}
+                            {{end}}
+
+
+                        </SELECT>
+
+                        
+                    </div>
+
+                    {{end}}
+
+                    {{end}}
+                    
+              
+ 
+
+                    <br />
+                    <button type="submit" class="btn btn-primary">Submit</button>
+
+
+                </form>
+            </div>
+
+        </div>
+    </div>
+
+
+
+
+
+
+    <!-- Search -->
+
+    <div class="col-8"  id="searchsparea">
+       
+    </div>
+</div>
+
+{{end}}

@@ -1,0 +1,103 @@
+{{define "title"}}
+Add
+{{end}}
+
+
+{{define "content"}}
+<div class="row p-2">
+    <div class="col-4" id="spaddcol">
+        <div class="card " id="spaddcard" style="height: 100%;">
+            <div class="card-header">
+                <p class="h5">
+                    {{if .Form.ID}} Edit {{else}} Add {{end}} RPG Parameter
+
+                  
+                </p>
+            </div>
+            <div class="card-body">
+
+                <form action="/rpgparam/{{if .Form.ID}}update/{{.Form.ID}}{{else}}add{{end}}" method="POST">
+                    <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+                    <input type="hidden" id="id" name="id" value="{{.Form.ID}}">
+
+               
+ 
+                    <div class="form-group">
+                        <label for="name">Parameter Name</label>
+                        <input id="name" class="form-control {{with .Form.FieldErrors.name}} is-invalid {{end}}"
+                            type="text" name="name" aria-describedby="namehelp" placeholder="Name"
+                            value='{{.Form.Name}}' required></input>
+
+                        {{with .Form.FieldErrors.name}}
+                        <div class='invalid-feedback'>{{.}}</div>
+                        {{end}}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="datatype">Data Type</label>
+                        <SELECT  hx-get="/rpgparam/dtfields"  
+                        hx-trigger="load, change"
+                        hx-target="#dtfields"
+                         hx-include="#datatype,#id" 
+                         id="datatype" class="form-control" name="datatype">
+ 
+                            {{if .RpgParamDatatypes}}
+                            {{range .RpgParamDatatypes}}
+                            <OPTION {{if $.Form.DataType}} {{if eq . $.Form.DataType}} selected {{end}}
+                                {{end}} value="{{.}}">
+
+                                {{.}}
+                            </OPTION>
+                            {{end}}
+                            {{end}}
+                        </SELECT>
+
+                        {{with .Form.FieldErrors.datatype}}
+
+                        <div class='invalid-feedback-error'>{{.}}</div>
+                        {{end}}
+                    </div>
+
+                    <div id="dtfields"></div>
+            
+
+
+                
+
+
+
+                    <div class="form-check">
+                        <input value='true' {{if .Form.IsVarying}} checked {{end}} type="checkbox"
+                            class="form-check-input" name="isvarying" id="isvarying">
+                        <label class="form-check-label" for="isvarying">Is Varying?</label>
+                    </div>
+
+
+                    <br />
+
+              
+ 
+
+                    <br />
+                    <button type="submit" class="btn btn-primary">Submit</button>
+
+
+                </form>
+            </div>
+
+        </div>
+    </div>
+
+
+
+
+
+
+    <!-- Search -->
+
+    <div class="col-8"  id="searchsparea">
+       
+    </div>
+</div>
+
+{{end}}

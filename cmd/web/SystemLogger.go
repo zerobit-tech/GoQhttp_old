@@ -61,7 +61,7 @@ func (app *application) SystemLogHandlers(router *chi.Mux) {
 	router.Route("/syslogs", func(r chi.Router) {
 		// CSRF
 		r.Use(app.sessionManager.LoadAndSave)
-
+		r.Use(app.RequireAuthentication)
 		r.Use(app.RequireSuperAdmin)
 		r.Use(noSurf)
 		r.Use(CheckLicMiddleware)

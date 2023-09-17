@@ -1,0 +1,13 @@
+ <?xml version="1.0" ?>
+ <xmlservice>    <pgm error="fast" lib="SUMITG1" name="QHTTPTEST1" var="QHTTPTEST1">
+         <parm io="both" var="p1"> <data type="5s2" var="I1">
+                 <![CDATA[10.00]]></data> </parm>
+         <parm io="both" var="p2"> <data type="5s2" var="I2">
+                 <![CDATA[20.00]]></data> </parm>
+         <parm io="both" var="p3"> <data type="5s2" var="SUM">
+                 <![CDATA[30.00]]></data> </parm>
+         <success>
+             <![CDATA[+++ success SUMITG1 QHTTPTEST1 ]]>
+         </success>
+     </pgm>
+ </xmlservice>

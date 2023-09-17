@@ -1,0 +1,145 @@
+{{define "title"}}
+RPG Paramter
+{{end}}
+
+{{define "content"}}
+
+
+<div class="row p-2">
+  <div class="col">
+    <div class="card " style="height: 100%;">
+      <div class="card-header">
+        <p class="h5">RPG Parameter detail</p>
+
+      </div>
+
+
+      <div class="card-body">
+        <table class="table table-bordered table-striped">
+          <tbody>
+
+
+            <tr>
+              <td>Name</td>
+              <td>{{.RpgParam.Name}}</td>
+            </tr>
+
+          
+            {{if not .RpgParam.IsDs}}
+            <tr>
+              <td>Data Type</td>
+              <td>{{.RpgParam.DataType}}</td>
+            </tr>
+
+
+
+            <tr>
+              <td>Length</td>
+              <td>{{.RpgParam.Length}}</td>
+            </tr>
+
+
+
+            <tr>
+              <td>Datatype</td>
+              <td>{{.RpgParam.DecimalPostions}}</td>
+            </tr>
+
+            <tr>
+              <td>Varying?</td>
+              <td>{{.RpgParam.IsVarying|yesNo}}</td>
+            </tr>
+         
+
+            {{else}}
+            <tr>
+              <td>Is Datastructure?</td>
+              <td>{{.RpgParam.IsDs|yesNo}}</td>
+            </tr>
+
+            <tr>
+              <td>Datastructure Dim</td>
+              <td>{{.RpgParam.DsDim}}</td>
+            </tr>
+            {{end}}
+
+
+          </tbody>
+        </table>
+
+ 
+
+      </div>
+    </div>
+  </div>
+ 
+
+
+
+
+  
+
+</div>
+ 
+
+
+{{if   .RpgParam.IsDs}}
+<div class="row p-2">
+  <div class="col">
+    <div class="card " style="height: 100%;">
+      <div class="card-header">
+        <p class="h5">Data Structure fields</p>
+
+      </div>
+
+
+      <div class="card-body">
+        <ol>
+          {{range $i, $fieldid := .RpgParam.DsFields}}
+          {{if $fieldid}}
+          <li>{{$fieldid|getrpgparamstring}}</li>
+          {{end}}
+          {{end}}
+        </ol>
+      </div>
+    </div>
+  </div>
+ 
+
+
+
+
+  
+
+</div>
+{{end}}
+ 
+{{end}}
+
+
+{{define "aftercontent"}}
+
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.1/css/jquery.dataTables.css">
+<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.13.1/js/jquery.dataTables.js"></script>
+
+<script>
+
+  $(document).ready(function () {
+    $('#splist').DataTable(
+      {
+        "pageLength": 100,
+        "language": {
+          "emptyTable": "No results found"
+        }
+      }
+    );
+
+    $('#rbackrolelist').DataTable({
+      "pageLength": 100,
+      "language": {
+        "emptyTable": "No records."
+      }
+    });
+  });
+</script>
+{{end}}

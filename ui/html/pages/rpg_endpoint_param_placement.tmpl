@@ -1,0 +1,91 @@
+{{define "title"}}
+Endpoint
+{{end}}
+
+{{define "content"}}
+ 
+
+<!-- Parameter -->
+
+<div class="row p-2">
+    <div class="col">
+        <form action="/sp/saveparamplacement" method="POST">
+            <div class="card ">
+                <div class="card-header">
+                    <p class="h5">
+                        Parameter Placement <button type="submit" class="btn btn-ghost-primary  float-right">Update Placement</button>
+                    </p>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col">
+
+
+                            <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+                            <input type="hidden" name="id" value="{{.StoredProc.ID}}">
+
+
+                            <table id="savedqlist"
+                                class="table   table-borderless table-responsive-sm table-striped    ">
+                                <thead class="thead-dark">
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Mode</th>
+                                        <th>Name</th>
+                                        <th>Alias</th>
+                                        <th>Data Type</th>
+                                        <th>Placement</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {{if .StoredProc.Parameters}}
+                                    {{range $param := .StoredProc.Parameters}}
+                                    <tr>
+                                        <td>{{$param.Position}}</td>
+                                        <td>{{$param.Mode}}</td>
+                                        <td>{{$param.Name}}</td>
+                                        <td>{{$param.Alias}}</td>
+                                        <td>{{$param.Datatype}}</td>
+                                     
+                                     
+
+                                        <td>
+                                            {{if ne "OUT" $param.Mode}}
+                                            <div class="form-group">
+                                                <SELECT id="{{$param.Name}}" class="form-control" name="{{$param.Name}}">
+                                                    <OPTION value="">Default</OPTION>
+                                                    {{range $pos := $.ParamPlacements}}
+                                                    <OPTION {{if eq $pos $param.Placement}} selected {{end}}  value="{{$pos}}"> {{$pos}} </OPTION>
+                                                    {{end}}
+                                                </SELECT>
+
+                                                <small id="{{$param.Name}}f" class="form-text text-muted">
+                                                    "PATH": will override the Alias
+                                                </small>
+                                            </div>
+                                            {{end}}
+                                         </td>
+
+
+
+                                    </tr>
+                                    {{end}}
+
+                                    {{else}}
+                                    {{end}}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>            
+        </form>
+    </div>
+</div>
+ 
+ 
+
+{{end}}
+
+
+ 

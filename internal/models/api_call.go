@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/onlysumitg/GoQhttp/internal/ibmiServer"
+	"github.com/onlysumitg/GoQhttp/internal/rpg"
 	"github.com/onlysumitg/GoQhttp/internal/storedProc"
 	"github.com/onlysumitg/GoQhttp/logger"
 	"github.com/onlysumitg/GoQhttp/utils/concurrent"
@@ -49,6 +50,7 @@ type ApiCall struct {
 	HttpRequest *http.Request
 
 	CurrentSP *storedProc.StoredProc
+	CurrentRPG *rpg.Program
 
 	Server *ibmiServer.Server
 

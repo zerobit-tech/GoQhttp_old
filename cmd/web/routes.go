@@ -181,5 +181,12 @@ func (app *application) routes() *chi.Mux {
 	app.DocHandlers(router)
 
 	app.ParamRegexHandlers(router)
+
+	app.RpgParamHandlers(router)
+	app.RpgParamDSHandlers(router)
+
+	app.RpgProgramHandlers(router)
+	app.RpgEndpointHandlers(router)
+
 	return router // standard.Then(router)
 }

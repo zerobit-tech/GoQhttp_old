@@ -1,0 +1,16 @@
+ 
+
+{{define "content"}}
+
+                    <div class="form-group">
+                        <label for="length">Length</label>
+                        <input id="length" class="form-control {{with .Form.FieldErrors.length}} is-invalid {{end}}"
+                            type="number" name="length" aria-describedby="lengthhelp" placeholder="Field Length"
+                            value='{{.Form.Length}}' min="1" required></input>
+
+                        {{with .Form.FieldErrors.length}}
+                        <div class='invalid-feedback'>{{.}}</div>
+                        {{end}}
+                    </div>
+
+{{end}}

@@ -37,7 +37,7 @@
             "request": "launch",
             "mode": "auto",
             
-            "program": "${workspaceRoot}/cmd/playground/",
+            "program": "${workspaceRoot}/cmd/playground/jwt",
             
       
             "env": {},

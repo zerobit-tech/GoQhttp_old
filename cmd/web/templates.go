@@ -16,6 +16,7 @@ import (
 	"github.com/onlysumitg/GoQhttp/featureflags"
 	"github.com/onlysumitg/GoQhttp/internal/ibmiServer"
 	"github.com/onlysumitg/GoQhttp/internal/models"
+	"github.com/onlysumitg/GoQhttp/internal/rpg"
 	"github.com/onlysumitg/GoQhttp/internal/storedProc"
 	"github.com/onlysumitg/GoQhttp/lic"
 	"github.com/onlysumitg/GoQhttp/ui"
@@ -94,6 +95,15 @@ type templateData struct {
 
 	ParamRegexs []*models.ParamRegex
 	ParamRegex  *models.ParamRegex
+
+	// --------------- RPG Stuff-----------------
+	RpgParamDatatypes []string
+	RpgParams         []*rpg.Param
+	RpgParam          *rpg.Param
+	RpgPrograms       []*rpg.Program
+	RpgProgram        *rpg.Program
+	RpgEndPoints      []*rpg.RpgEndPoint
+	RpgEndPoint       *rpg.RpgEndPoint
 }
 
 func ListComparisonOperators() []string {
@@ -213,6 +223,10 @@ func (app *application) render(w http.ResponseWriter, r *http.Request, status in
 		baseTemplateName = "account_base"
 	}
 
+	if strings.HasPrefix(page, "empty_") {
+		baseTemplateName = "empty_base"
+	}
+
 	if strings.HasPrefix(page, "public_") {
 		baseTemplateName = "public_base"
 	}
@@ -256,6 +270,12 @@ func (app *application) newTemplateCache() (map[string]*template.Template, error
 	}
 	app.loadPages(cache, pages)
 
+	pages, err = fs.Glob(ui.Files, "html/emptybase/*.tmpl")
+	if err != nil {
+		return nil, err
+	}
+	app.loadPages(cache, pages)
+
 	pages, err = fs.Glob(ui.Files, "html/public/*.tmpl")
 	if err != nil {
 		return nil, err
@@ -283,6 +303,7 @@ func (app *application) loadPages(cache map[string]*template.Template, pages []s
 			"html/account_base.tmpl",
 			"html/email_base.tmpl",
 			"html/public_base.tmpl",
+			"html/empty_base.tmpl",
 
 			"html/partials/*.tmpl",
 

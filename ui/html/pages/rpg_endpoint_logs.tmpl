@@ -1,0 +1,67 @@
+{{define "title"}}
+Endpoint
+{{end}}
+
+{{define "content"}}
+ 
+
+<!-- Parameter -->
+
+ 
+    <div class="row p-2">
+   
+
+    <div class="col-xl">
+        <div class="card ">
+            <div class="card-header">
+                <p class="h5">
+                    Logs
+                </p>
+            </div>
+            <div class="card-body">
+                {{with .SPCallLog}}
+                <table id="logids" class="table   table-borderless table-responsive-sm table-striped    ">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th>ID</th>
+                            <th>Created on</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{range .Logs}}
+                        <tr>
+                            <td><a href="/apilogs/{{.LogID}}">{{.LogID}}</a></td>
+                            <td> {{.CalledAt}} </td>
+
+                        </tr>
+                        {{end}}
+                    </tbody>
+                </table>
+                {{end}}
+            </div>
+        </div>
+    </div>
+</div>
+
+ 
+
+{{end}}
+
+
+{{define "aftercontent"}}
+
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.1/css/jquery.dataTables.css">
+<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.13.1/js/jquery.dataTables.js"></script>
+
+<script>
+    $(document).ready(function () {
+        $('#logids').DataTable({
+            "pageLength": 100,
+            "order": [[2, 'desc']], 
+            "language": {
+                "emptyTable": "No results found"
+            }
+        });
+    });
+</script>
+{{end}}

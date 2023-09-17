@@ -88,6 +88,7 @@ func (app *application) ServerHandlers(router *chi.Mux) {
 		//	r.Get("/findsp/{serverid}", app.FindSP)
 
 		superadmingroup := r.Group(nil)
+ 
 		superadmingroup.Use(app.RequireSuperAdmin)
 		superadmingroup.Get("/add", app.ServerAdd)
 		superadmingroup.Post("/add", app.ServerAddPost)
@@ -265,7 +266,9 @@ func (app *application) ServerDeleteConfirm(w http.ResponseWriter, r *http.Reque
 
 	go func() {
 		defer concurrent.Recoverer("Server ADD log")
-		logEvent := GetSystemLogEvent(app.getCurrentUserID(r), "Server Deleted", fmt.Sprintf("IP %s", r.RemoteAddr), false)
+		userID, _ := app.getCurrentUserID(r)
+
+		logEvent := GetSystemLogEvent(userID, "Server Deleted", fmt.Sprintf("IP %s", r.RemoteAddr), false)
 		logEvent.ImpactedServerId = serverID
 		app.SystemLoggerChan <- logEvent
 
@@ -303,7 +306,8 @@ func (app *application) RunPromotion(w http.ResponseWriter, r *http.Request) {
 
 	go func() {
 		defer concurrent.Recoverer("Manual Promotion log")
-		logEvent := GetSystemLogEvent(app.getCurrentUserID(r), "Manual Promotion", fmt.Sprintf("Server %s,IP %s", server.Name, r.RemoteAddr), false)
+		userID, _ := app.getCurrentUserID(r)
+		logEvent := GetSystemLogEvent(userID, "Manual Promotion", fmt.Sprintf("Server %s,IP %s", server.Name, r.RemoteAddr), false)
 		logEvent.ImpactedServerId = serverID
 		app.SystemLoggerChan <- logEvent
 
@@ -500,7 +504,8 @@ func (app *application) ServerAddPost(w http.ResponseWriter, r *http.Request) {
 
 	go func() {
 		defer concurrent.Recoverer("Server ADD log")
-		logEvent := GetSystemLogEvent(app.getCurrentUserID(r), "Server Created", fmt.Sprintf("%s,IP %s", server.Name, r.RemoteAddr), false)
+		userID, _ := app.getCurrentUserID(r)
+		logEvent := GetSystemLogEvent(userID, "Server Created", fmt.Sprintf("%s,IP %s", server.Name, r.RemoteAddr), false)
 		logEvent.ImpactedServerId = server.ID
 		logEvent.AfterUpdate = server.LogImage()
 
@@ -626,7 +631,9 @@ func (app *application) ServerUpdatePost(w http.ResponseWriter, r *http.Request)
 	go func() {
 		defer concurrent.Recoverer("SERVERMODIFIED")
 		defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
-		logEvent := GetSystemLogEvent(app.getCurrentUserID(r), "Server Modified", fmt.Sprintf(" %s,IP %s", server.Name, r.RemoteAddr), false)
+		userID, _ := app.getCurrentUserID(r)
+
+		logEvent := GetSystemLogEvent(userID, "Server Modified", fmt.Sprintf(" %s,IP %s", server.Name, r.RemoteAddr), false)
 		logEvent.ImpactedServerId = server.ID
 		logEvent.BeforeUpdate = originalServer.LogImage()
 		logEvent.AfterUpdate = server.LogImage()

@@ -1,0 +1,92 @@
+{{define "title"}}
+Endpoint
+{{end}}
+
+{{define "content"}}
+ 
+
+<!-- Parameter -->
+
+<div class="row p-2">
+    <div class="col">
+        <form action="/sp/saveparamalias" method="POST">
+            <div class="card ">
+                <div class="card-header">
+                    <p class="h5">
+                        Parameters Alias <button type="submit" class="btn btn-ghost-primary  float-right">Update Alias</button>
+                    </p>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col">
+
+
+                            <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+                            <input type="hidden" name="id" value="{{.StoredProc.ID}}">
+
+
+                            <table id="savedqlist"
+                                class="table   table-borderless table-responsive-sm table-striped    ">
+                                <thead class="thead-dark">
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Mode</th>
+                                        <th>Name</th>
+                                        {{if $.Features.AllowParamPlacement}} <th>Placement</th> {{end}}
+                                        <th>Data Type</th>
+                                        
+                                        <th>Default Value</th>
+                                        <th>Alias</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {{if .StoredProc.Parameters}}
+                                    {{range .StoredProc.Parameters}}
+                                    <tr>
+                                        <td>{{.Position}}</td>
+                                        <td>{{.Mode}}</td>
+                                        <td>{{.Name}}</td>
+                                        {{if $.Features.AllowParamPlacement}} <td>{{.Placement}}</td> {{end}}
+                                        <td>{{.Datatype}}</td>
+                                     
+                                        <td>{{.GetDefaultValueX}}</td>
+
+                                        <td>                                            
+                                            {{if ne "PATH" .Placement}}
+
+                                             <div class="form-group">
+                                              
+                                                <input id="{{.Name}}" class="form-control  " type="text"
+                                                    name="{{.Name}}" aria-describedby="{{.Name}}help"
+                                                    placeholder="{{.Name}}" value='{{.Alias}}'  ></input>
+
+
+                                            </div>
+                                            {{else}}
+                                            <strong>  {{.Alias}}</strong>
+                                            {{end}}
+                                         </td>
+
+
+
+                                    </tr>
+                                    {{end}}
+
+                                    {{else}}
+                                    {{end}}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>            
+        </form>
+    </div>
+</div>
+ 
+ 
+
+{{end}}
+
+
+ 

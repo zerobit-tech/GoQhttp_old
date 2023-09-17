@@ -13,7 +13,7 @@ import (
 
 	"github.com/alexedwards/scs/v2"
 	"github.com/go-co-op/gocron"
-	"github.com/go-playground/form"
+	"github.com/go-playground/form/v4"
 	"github.com/onlysumitg/GoQhttp/cliparams"
 	"github.com/onlysumitg/GoQhttp/env"
 	"github.com/onlysumitg/GoQhttp/featureflags"
@@ -22,6 +22,7 @@ import (
 	"github.com/onlysumitg/GoQhttp/internal/dbserver"
 	"github.com/onlysumitg/GoQhttp/internal/iwebsocket"
 	"github.com/onlysumitg/GoQhttp/internal/models"
+	"github.com/onlysumitg/GoQhttp/internal/rpg"
 	"github.com/onlysumitg/GoQhttp/internal/storedProc"
 	"github.com/onlysumitg/GoQhttp/logger"
 	"github.com/onlysumitg/GoQhttp/utils/concurrent"
@@ -111,6 +112,11 @@ type application struct {
 	SystemLoggerChan chan *SystemLogEvent
 
 	ServerPingScheduler *gocron.Scheduler
+
+	// ------------ RPG ------------
+	RpgParamModel    *rpg.RpgParamModel
+	RpgProgramModel  *rpg.RpgProgramModel
+	RpgEndpointModel *rpg.RpgEndpointModel
 }
 
 // -------------------------------------------------------------------------
@@ -181,6 +187,11 @@ func baseAppConfig(params cliparams.Parameters, db *bolt.DB, userdb *bolt.DB, lo
 		debugMode: env.IsInDebugMode(),
 
 		SystemLoggerChan: make(chan *SystemLogEvent),
+
+		//------------------RPG
+		RpgParamModel:    &rpg.RpgParamModel{DB: db},
+		RpgProgramModel:  &rpg.RpgProgramModel{DB: db},
+		RpgEndpointModel: &rpg.RpgEndpointModel{DB: db},
 	}
 
 	//--------------------------------------- Setup template cache ----------------------------
