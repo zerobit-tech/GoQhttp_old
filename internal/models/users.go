@@ -2,7 +2,6 @@ package models
 
 import (
 	"crypto/rand"
-	"encoding/base64"
 	"encoding/binary"
 	"encoding/hex"
 	"encoding/json"
@@ -15,6 +14,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/onlysumitg/GoQhttp/internal/validator"
 	"github.com/onlysumitg/GoQhttp/utils/concurrent"
+	"github.com/onlysumitg/GoQhttp/utils/jwtutils"
 	bolt "go.etcd.io/bbolt"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -76,6 +76,9 @@ type User struct {
 	IsStaff             bool `json:"isstaff" db:"isstaff" form:"isstaff"`
 	HasVerified         bool `json:"hasverified" db:"hasverified" form:"hasverified"`
 	MaxAllowedEndpoints int  `json:"maxallowedendpoints" db:"maxallowedendpoints" form:"maxallowedendpoints"`
+	MaxInvalidAttempts  int  `json:"maxinvalidattempts" db:"maxinvalidattempts" form:"maxinvalidattempts"`
+	InvalidAttempts     int  `json:"invalidattempts" db:"invalidattempts" form:"-"`
+	Disabled            bool `json:"disabled" db:"disabled" form:"-"`
 	//Role           string `json:"role" db:"role" form:"role"`
 	validator.Validator `json:"-" db:"-" form:"-"`
 
@@ -85,6 +88,22 @@ type User struct {
 
 	ServerId    string `json:"serverid" db:"serverid" form:"serverid"`
 	LandingPage string `json:"landingpage" db:"landingpage" form:"landingpage"`
+}
+
+// -----------------------------------------------------------------
+//
+// -----------------------------------------------------------------
+func (u *User) GetNewToken(expiaryDuration time.Duration) (string, error) {
+	jwtClaims := map[string]any{
+		"sub": u.ID,
+		//	"useremail": u.Email,
+		//	"isadmin":   u.IsSuperUser,
+		//	"isstaff":   u.IsStaff,
+	}
+
+	jwtClaims["exp"] = time.Now().UTC().Add(expiaryDuration).Unix()
+	jwtString, err := jwtutils.Get(jwtClaims)
+	return jwtString, err
 }
 
 // -----------------------------------------------------------------
@@ -249,8 +268,13 @@ func (m *UserModel) Save(u *User, updatePasword bool) error {
 	}
 
 	if u.Token == "" {
-		e := base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s%s", GenerateSecureToken(25), u.Email)))
-		u.Token = fmt.Sprintf("%s%s", e, GenerateSecureToken(25))
+
+		// 10 year token
+		token, err := u.GetNewToken(24 * 3650 * time.Hour)
+		if err != nil {
+			return err
+		}
+		u.Token = token
 	}
 
 	err := m.DB.Update(func(tx *bolt.Tx) error {
@@ -411,13 +435,41 @@ func (m *UserModel) GetByUserName(username string) (*User, error) {
 // We'll use the Exists method to check if a user exists with a specific ID.
 func (m *UserModel) GetByToken(token string) (*User, error) {
 
-	for _, u := range m.List() {
-		if strings.EqualFold(u.Token, token) {
-			return u, nil
+	claims, err := jwtutils.Parse(token)
+
+	if err != nil {
+		// check non JWT toketns
+		for _, u := range m.List() {
+			if strings.EqualFold(u.Token, token) {
+				return u, nil
+			}
 		}
+		return nil, errors.New("User token: No User found")
+
 	}
 
-	return nil, errors.New("User token: No User found")
+	usedID, found := claims["sub"]
+	if !found {
+		return nil, fmt.Errorf("invalid token")
+	}
+
+	usedIDString, ok := usedID.(string)
+	if !ok {
+		return nil, fmt.Errorf("invalid token")
+	}
+
+	user, err := m.Get(usedIDString)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if user.Token != token {
+		return nil, fmt.Errorf("invalid token")
+
+	}
+
+	return user, nil
 
 }
 

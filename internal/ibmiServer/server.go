@@ -429,6 +429,13 @@ func (s *Server) call(ctx context.Context, callID string, sp *storedProc.StoredP
 						if err == nil {
 							preparedCallStatements.ResponseFormat[keyToUse] = &jsonData
 							assignStrVal = false
+						} else {
+							jsonDataList := make([]any, 0)
+							err := json.Unmarshal(b, &jsonDataList)
+							if err == nil {
+								preparedCallStatements.ResponseFormat[keyToUse] = &jsonDataList
+								assignStrVal = false
+							}
 						}
 
 					}

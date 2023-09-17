@@ -360,7 +360,10 @@ func (app *application) SPAddPost(w http.ResponseWriter, r *http.Request) {
 	go func() {
 		defer concurrent.Recoverer("SPMODIFIED")
 		defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
-		logEvent := GetSystemLogEvent(app.getCurrentUserID(r), logAction, fmt.Sprintf(" %s %s,IP %s", sP.EndPointName, sP.HttpMethod, r.RemoteAddr), false)
+
+		userID, _ := app.getCurrentUserID(r)
+
+		logEvent := GetSystemLogEvent(userID, logAction, fmt.Sprintf(" %s %s,IP %s", sP.EndPointName, sP.HttpMethod, r.RemoteAddr), false)
 		logEvent.ImpactedEndpointId = id
 		logEvent.BeforeUpdate = logBeforeImage
 		logEvent.AfterUpdate = sP.LogImage()
@@ -422,7 +425,9 @@ func (app *application) SPDeleteConfirm(w http.ResponseWriter, r *http.Request) 
 
 	go func() {
 		defer concurrent.Recoverer("SPMODIFIED")
-		logEvent := GetSystemLogEvent(app.getCurrentUserID(r), "Endpoint Deleted", fmt.Sprintf("IP %s", r.RemoteAddr), false)
+		userID, _ := app.getCurrentUserID(r)
+
+		logEvent := GetSystemLogEvent(userID, "Endpoint Deleted", fmt.Sprintf("IP %s", r.RemoteAddr), false)
 		logEvent.ImpactedEndpointId = spId
 		app.SystemLoggerChan <- logEvent
 

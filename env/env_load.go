@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/joho/godotenv"
 )
@@ -75,4 +77,18 @@ func AllowHtmlTemplates() bool {
 	}
 
 	return false
+}
+
+// ----------------------------------------------------------------
+//
+// ----------------------------------------------------------------
+func UserSessionDuration() time.Duration {
+	i := strings.TrimSpace(strings.ToUpper(GetEnvVariable("USERSESSIONTIMEOUT", "120")))
+
+	iDurataion, err := strconv.Atoi(i)
+	if err != nil {
+		iDurataion = 120
+	}
+
+	return time.Duration(iDurataion * int(time.Minute))
 }
