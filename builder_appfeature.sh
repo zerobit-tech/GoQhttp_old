@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-APP_VERSION='v1.3.1'
+APP_VERSION='v1.3.2'
 
 
 output_name='QHttp_demo_'
