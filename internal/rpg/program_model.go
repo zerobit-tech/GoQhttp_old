@@ -161,6 +161,11 @@ func (m *RpgProgramModel) Get(id string) (*Program, error) {
 
 	if rpgprogramJSON != nil {
 		err := json.Unmarshal(rpgprogramJSON, &rpgprogram)
+
+		if err == nil {
+			m.LoadParameter(&rpgprogram)
+
+		}
 		return &rpgprogram, err
 
 	}
@@ -174,6 +179,7 @@ func (m *RpgProgramModel) Get(id string) (*Program, error) {
 // -----------------------------------------------------------------
 // We'll use the Exists method to check if a user exists with a specific ID.
 func (m *RpgProgramModel) List() []*Program {
+
 	rpgprograms := make([]*Program, 0)
 	_ = m.DB.View(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket(m.getTableName())
@@ -188,6 +194,8 @@ func (m *RpgProgramModel) List() []*Program {
 			err := json.Unmarshal(v, &rpgprogram)
 			if err == nil {
 				//rpgprogram.Load()
+				m.LoadParameter(&rpgprogram)
+
 				rpgprograms = append(rpgprograms, &rpgprogram)
 			}
 		}
@@ -195,5 +203,22 @@ func (m *RpgProgramModel) List() []*Program {
 		return nil
 	})
 	return rpgprograms
+
+}
+
+// -----------------------------------------------------------------
+//
+// -----------------------------------------------------------------
+// We'll use the Exists method to check if a user exists with a specific ID.
+func (m *RpgProgramModel) LoadParameter(p *Program) {
+	paramModel := &RpgParamModel{DB: m.DB}
+
+	for _, pgmParam := range p.Parameters {
+
+		param, err := paramModel.Get(pgmParam.FieldID)
+		if err == nil {
+			pgmParam.Param = param
+		}
+	}
 
 }

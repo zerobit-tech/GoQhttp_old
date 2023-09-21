@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/gosimple/slug"
+	"github.com/onlysumitg/GoQhttp/internal/inbuiltparam"
 	"github.com/onlysumitg/GoQhttp/internal/validator"
 	"github.com/onlysumitg/GoQhttp/logger"
 	"github.com/onlysumitg/GoQhttp/utils/stringutils"
@@ -231,7 +232,7 @@ outerloop:
 		}
 		nameToUse := p.GetNameToUse(false)
 		// dont display inbuilt param
-		for _, ibp := range InbuiltParams {
+		for _, ibp := range inbuiltparam.InbuiltParams {
 			if strings.EqualFold(ibp, nameToUse) {
 				continue outerloop
 			}
@@ -294,7 +295,7 @@ outerloop:
 		}
 
 		// dont display inbuilt param
-		for _, ibp := range InbuiltParams {
+		for _, ibp := range inbuiltparam.InbuiltParams {
 			if strings.EqualFold(ibp, nameToUse) {
 				continue outerloop
 			}
@@ -336,7 +337,7 @@ outerloop:
 		nameToUse := p.GetNameToUse(false)
 
 		// dont display inbuilt param
-		for _, ibp := range InbuiltParams {
+		for _, ibp := range inbuiltparam.InbuiltParams {
 			if strings.EqualFold(ibp, nameToUse) {
 				continue outerloop
 			}

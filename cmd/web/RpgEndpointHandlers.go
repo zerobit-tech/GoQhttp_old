@@ -145,6 +145,8 @@ func (app *application) RpgEndpointAdd(w http.ResponseWriter, r *http.Request) {
 	data := app.newTemplateData(r)
 	data.Form = storedP
 	data.Servers = app.servers.List()
+
+	data.RpgPrograms = app.RpgProgramModel.List()
 	app.render(w, r, http.StatusOK, "rpg_endpoint_add.tmpl", data)
 
 }
@@ -156,31 +158,17 @@ func (app *application) RpgEndpointRefresh(w http.ResponseWriter, r *http.Reques
 
 	spId := chi.URLParam(r, "spId")
 
-	_, err := app.RpgEndpointModel.Get(spId)
-	if err != nil {
-		app.serverError500(w, r, err)
-		return
-	}
-
-	// // check default server
-	// if sP.DefaultServerId != "" {
-	// 	dServer, err := app.servers.Get(sP.DefaultServerId)
-	// 	if err == nil {
-
-	// 		err = dServer.PrepareToSave(r.Context(), sP)
-	// 		if err == nil {
-	// 			app.RpgEndpointModel.Save(sP)
-	// 			app.sessionManager.Put(r.Context(), "flash", "Done")
-	// 		}
-	// 	}
-	// } else {
-	// 	err = errors.New("Default Server is not defined.")
-	// }
+	rpgEndPoint, err := app.RpgEndpointModel.Get(spId)
 
 	if err != nil {
 		app.sessionManager.Put(r.Context(), "error", err.Error())
 
 	}
+
+	rpgEndPoint.Refresh()
+
+	app.RpgEndpointModel.Save(rpgEndPoint)
+
 	app.invalidateEndPointCache()
 
 	app.goBack(w, r, http.StatusSeeOther)
@@ -439,6 +427,7 @@ func (app *application) RpgEndpointUpdate(w http.ResponseWriter, r *http.Request
 	data.Form = sP
 	data.Servers = app.servers.List()
 	data.RpgEndPoint = sP
+	data.RpgPrograms = app.RpgProgramModel.List()
 
 	app.render(w, r, http.StatusOK, "rpg_endpoint_add.tmpl", data)
 

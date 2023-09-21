@@ -11,18 +11,12 @@ Add
                 <p class="h5">
                     {{if .Form.ID}} Edit {{else}} Add {{end}} EndPoint
 
-                    <a id="searchbtn" 
-                    data-toggle="tooltip" data-placement="bottom" title="Search stored procedure" 
-                    hx-get="/sp/find" hx-select="#spfindcard" hx-target="#searchsparea" class="btn btn-ghost-info float-right"  >
-                        <svg class="c-icon mfe-2">
-                            <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-search"></use>
-                        </svg>
-                    </a>
+                  
                 </p>
             </div>
             <div class="card-body">
 
-                <form action="/sp/{{if .Form.ID}}update/{{.Form.ID}}{{else}}add{{end}}" method="POST">
+                <form action="/rpgendpoint/{{if .Form.ID}}update/{{.Form.ID}}{{else}}add{{end}}" method="POST">
                     <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
                     <input type="hidden" name="id" value="{{.Form.ID}}">
 
@@ -49,7 +43,21 @@ Add
                     </div>
 
                     
-    
+                    <div class="form-group">
+                        <label for="dsfields">RPG Program </label>
+                        <SELECT class="form-control" name="rpgpgmid">
+                            <option value="">Select Field</option>
+                            {{if $.RpgPrograms}}
+                            {{range $i2, $rpgPgm := $.RpgPrograms}}
+                            <option {{if eq $.Form.RpgProgram $rpgPgm.ID}} selected {{end}}
+                                value="{{$rpgPgm.ID}}">
+                                {{$rpgPgm.ID|getRpgProgramString}}
+                            </option>
+                            {{end}}
+                            {{end}}
+                        </SELECT>
+                    </div>
+
 
 
                     <div class="form-group">

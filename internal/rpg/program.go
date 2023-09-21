@@ -5,15 +5,30 @@ import (
 	"strings"
 
 	"github.com/onlysumitg/GoQhttp/internal/validator"
+	"github.com/onlysumitg/GoQhttp/utils/stringutils"
 	"github.com/onlysumitg/GoQhttp/utils/xmlutils"
 )
 
 type ProgramParams struct {
-	Seq       uint    
-	InOutType string  
-	FieldID   string  
+	Seq       uint
+	InOutType string
+	FieldID   string
+	Placement string
+	NameToUse string
+	Param     *Param `json:"-" db:"-" form:"-"`
 }
 
+// -----------------------------------------------------
+//
+// -----------------------------------------------------
+func (p *ProgramParams) getNameToUse() string {
+
+	return fmt.Sprintf("%s_%d", p.Param.Name, p.Seq)
+}
+
+// -----------------------------------------------------
+//
+// -----------------------------------------------------
 type Program struct {
 	ID                  string `json:"id" db:"id" form:"id"`
 	Name                string `json:"name" db:"name" form:"name"`
@@ -68,17 +83,20 @@ func (p *Program) ToXML(inparams map[string]xmlutils.ValueDatatype) string {
 func (p *Program) ParamStrings(inparams map[string]xmlutils.ValueDatatype) []string {
 	parms := make([]string, 0)
 
-	// for _, pr := range p.Parameters {
+	for _, pr := range p.Parameters {
 
-	// 	valX, found := inparams[strings.ToUpper(pr.Name)]
-	// 	valS := ""
-	// 	if found {
+		if pr.Param == nil {
+			continue
+		}
+		valX, found := inparams[strings.ToUpper(pr.getNameToUse())]
+		valS := ""
+		if found {
 
-	// 		valS = stringutils.AsString(valX.Value)
+			valS = stringutils.AsString(valX.Value)
 
-	// 	}
-	// 	parms = append(parms, pr.ToXml(valS))
-	// }
+		}
+		parms = append(parms, pr.Param.ToXml(pr.getNameToUse(), valS))
+	}
 
 	return parms
 }

@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"html/template"
 	"net/http"
 	"time"
@@ -100,6 +101,18 @@ func (app *application) getRpgParamString(id string) string {
 // -----------------------------------------------------------------
 //
 // -----------------------------------------------------------------
+func (app *application) getRpgProgramString(id string) string {
+	p, err := app.RpgProgramModel.Get(id)
+	if err != nil {
+		return ""
+	}
+
+	return fmt.Sprintf("%s.%s", p.Lib, p.Name)
+}
+
+// -----------------------------------------------------------------
+//
+// -----------------------------------------------------------------
 func (app *application) indexBy1(id int) int {
 	return id + 1
 }
@@ -113,15 +126,16 @@ func (app *application) indexBy1(id int) int {
 
 func (app *application) getFunctionMap() template.FuncMap {
 	var functions = template.FuncMap{
-		"humanDate":         humanDate,
-		"toJson":            toJson,
-		"yesNo":             yesNo,
-		"ispreformatted":    IsPreFormatted,
-		"httpCodeText":      httpCodeText,
-		"servername":        app.getServerName,
-		"username":          app.getUserName,
-		"indexby1":          app.indexBy1,
-		"getrpgparamstring": app.getRpgParamString,
+		"humanDate":           humanDate,
+		"toJson":              toJson,
+		"yesNo":               yesNo,
+		"ispreformatted":      IsPreFormatted,
+		"httpCodeText":        httpCodeText,
+		"servername":          app.getServerName,
+		"username":            app.getUserName,
+		"indexby1":            app.indexBy1,
+		"getrpgparamstring":   app.getRpgParamString,
+		"getRpgProgramString": app.getRpgProgramString,
 	}
 
 	return functions

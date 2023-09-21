@@ -49,8 +49,8 @@ type ApiCall struct {
 
 	HttpRequest *http.Request
 
-	CurrentSP *storedProc.StoredProc
-	CurrentRPG *rpg.Program
+	CurrentSP          *storedProc.StoredProc
+	CurrentRpgEndPoint *rpg.RpgEndPoint
 
 	Server *ibmiServer.Server
 

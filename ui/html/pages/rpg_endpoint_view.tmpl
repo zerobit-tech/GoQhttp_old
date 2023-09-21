@@ -8,12 +8,12 @@ Endpoint
         <div class="card " style="height: 100%;">
             <div class="card-header">
                 <p class="h5">
-                    EndPoint details:{{.StoredProc.EndPointName}}
+                    EndPoint details:{{.RpgEndPoint.EndPointName}}
                     <a class="btn btn-ghost-info" 
                     data-toggle="tooltip"
                     hx-indicator = "#processing"
                      data-placement="bottom" title="Reload" 
-                    href="/sp/refresh/{{.StoredProc.ID}}">
+                    href="/rpgendpoint/refresh/{{.RpgEndPoint.ID}}">
                         <svg class="c-icon mfe-2">
                             <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-reload"></use>
                         </svg>
@@ -25,36 +25,36 @@ Endpoint
                     <div class="col">
                         <table class="table   table-borderless table-responsive-sm table-striped    ">
                             <tbody>
-                                {{if .StoredProc.AllowWithoutAuth}}
+                                {{if .RpgEndPoint.AllowWithoutAuth}}
                                 <tr>
                                     <th scope="row" class="text-danger">Allowed Without Auth</th>
-                                    <td  class="text-danger">{{.StoredProc.AllowWithoutAuth| yesNo}}</td>
+                                    <td  class="text-danger">{{.RpgEndPoint.AllowWithoutAuth| yesNo}}</td>
                                 </tr>
                                 {{end}}
 
                                 <tr>
                                     <th scope="row">EndPoint name</th>
-                                    <td>{{.StoredProc.EndPointName}}</td>
+                                    <td>{{.RpgEndPoint.EndPointName}}</td>
                                 </tr>
 
                                 <tr>
                                     <th scope="row">Http Method</th>
-                                    <td>{{.StoredProc.HttpMethod}}</td>
+                                    <td>{{.RpgEndPoint.HttpMethod}}</td>
                                 </tr>
-                                {{if .StoredProc.AllowWithoutAuth}}
+                                {{if .RpgEndPoint.AllowWithoutAuth}}
                                 <tr>
                                     <th class="text-danger" scope="row">URL without Auth</th>
                                     <td class="text-danger" >
-                                        <span class="copyclip" data-clipboard-text="{{$.HostUrl}}/{{.StoredProc.MockUrlWithoutAuth}}">
-                                            {{$.HostUrl}}/{{.StoredProc.MockUrlWithoutAuth}}
+                                        <span class="copyclip" data-clipboard-text="{{$.HostUrl}}/{{.RpgEndPoint.MockUrlWithoutAuth}}">
+                                            {{$.HostUrl}}/{{.RpgEndPoint.MockUrlWithoutAuth}}
                                         </span></td>
                                 </tr>
                                 {{end}}
                                 <tr>
                                     <th scope="row">URL</th>
                                     <td>
-                                        <span class="copyclip" data-clipboard-text="{{$.HostUrl}}/{{.StoredProc.MockUrl}}">
-                                        {{$.HostUrl}}/{{.StoredProc.MockUrl}}
+                                        <span class="copyclip" data-clipboard-text="{{$.HostUrl}}/{{.RpgEndPoint.MockUrl}}">
+                                        {{$.HostUrl}}/{{.RpgEndPoint.MockUrl}}
                                     </span>
                                     
                                     </td>
@@ -62,63 +62,44 @@ Endpoint
                                 <tr>
                                     <th scope="row">Payload</th>
                                     <td>
-                                        <pre>{{.StoredProc.InputPayload}}</pre>
+                                        <pre>{{.RpgEndPoint.InputPayload}}</pre>
                                     </td>
                                 </tr>
                                 <tr>
                                     <th scope="row">Namespace</th>
-                                    <td>{{.StoredProc.Namespace}}</td>
+                                    <td>{{.RpgEndPoint.Namespace}}</td>
                                 </tr>
                                 <tr>
                                     <th scope="row">Default Server</th>
-                                    <td>{{if .StoredProc.DefaultServer}} {{.StoredProc.DefaultServer.Name}}{{end}}</td>
+                                    <td> {{.RpgEndPoint.DefaultServerId}} </td>
                                 </tr>
                                 <tr>
-                                    <th scope="row">Stored Proc</th>
-                                    <td>{{.StoredProc.Name}}</td>
+                                    <th scope="row">RPG Program</th>
+                                    <td>{{.RpgEndPoint.RpgProgram}}</td>
                                 </tr>
+                               
                                 <tr>
-                                    <th scope="row">Stored Proc Lib</th>
-                                    <td>{{.StoredProc.Lib}}</td>
-                                </tr>
-
-
-                                <tr>
-                                    <th scope="row">Specific Stored Proc</th>
-                                    <td>{{.StoredProc.SpecificName}}</td>
-                                </tr>
-                                <tr>
-                                    <th scope="row">Specific Stored Proc Lib</th>
-                                    <td>{{.StoredProc.SpecificLib}}</td>
-                                </tr>
-
-
-
-                                <tr>
-                                    <th scope="row">Use specific name</th>
-                                    <td>{{.StoredProc.UseSpecificName}}</td>
-                                </tr>
-
-
-                                <tr>
-                                    <th scope="row">Result sets</th>
-                                    <td>{{.StoredProc.ResultSets}}</td>
+                                    <th scope="row">URL</th>
+                                    <td>{{.RpgEndPoint.MockUrl}}</td>
                                 </tr>
 
                                 <tr>
-                                    <th scope="row">Data Access</th>
-                                    <td>{{.StoredProc.DataAccess}}</td>
+                                    <th scope="row">Unauth URL</th>
+                                    <td>{{.RpgEndPoint.MockUrlWithoutAuth}}</td>
                                 </tr>
 
-                                <tr>
-                                    <th scope="row">Modified</th>
-                                    <td>{{.StoredProc.Modified}}</td>
-                                </tr>
+                            
+
+
+ 
+
+                          
+ 
 
                                 {{if .Features.AllowHtmlTemplates}}
                                 <tr>
                                     <th scope="row">HTML Template</th>
-                                    <td>{{.StoredProc.HtmlTemplate}}</td>
+                                    <td>{{.RpgEndPoint.HtmlTemplate}}</td>
                                 </tr>
                                 {{end}}
                             </tbody>
@@ -153,16 +134,16 @@ Endpoint
                     </thead>
                     <tbody>
 
-                {{range .StoredProc.AllowedOnServers}}
+                {{range .RpgEndPoint.AllowedOnServers}}
                 <tr>
-                    <td>{{.Name}}</td>
+                    <td>{{.}}</td>
                 
 
                 <td>
-                    <form class="form-inline" method="POST" action="/sp/deleteassignserver">
+                    <form class="form-inline" method="POST" action="/XXXX/deleteassignserver">
                         <input type="hidden" name="csrf_token" value="{{$.CSRFToken}}">
-                        <input type="hidden" name="spid" value="{{$.StoredProc.ID}}">
-                        <input type="hidden" name="serverid" value="{{.ID}}">
+                        <input type="hidden" name="spid" value="{{$.RpgEndPoint.ID}}">
+                        <input type="hidden" name="serverid" value="{{.}}">
                         
                         <button type="submit" class="btn btn-danger mb-2">Delete</button>
                     </div>
@@ -187,9 +168,9 @@ Endpoint
 
 
 
-            <form class="form-inline" method="POST" action="/sp/assignserver">
+            <form class="form-inline" method="POST" action="/rpgendpoint/assignserver">
                 <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
-                <input type="hidden" name="spid" value="{{.StoredProc.ID}}">
+                <input type="hidden" name="spid" value="{{.RpgEndPoint.ID}}">
                 <div class="form-group">
                     <div class="form-group mx-sm-3 mb-2">
                     <label for="defaultserver">Assign Server ...: </label>
@@ -213,89 +194,7 @@ Endpoint
 </div>
 
 <!-- Parameter -->
-
-<div class="row p-2">
-    <div class="col">
-        <form action="/sp/call" method="POST">
-            <div class="card ">
-                <div class="card-header">
-                    <p class="h5">
-                        Parameters <button type="submit" class="btn btn-ghost-primary  float-right">Call</button>
-                    </p>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col">
-
-
-                            <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
-                            <input type="hidden" name="id" value="{{.StoredProc.ID}}">
-
-
-                            <table id="savedqlist"
-                                class="table   table-borderless table-responsive-sm table-striped    ">
-                                <thead class="thead-dark">
-                                    <tr>
-                                        <th>#</th>
-                                        <th>Mode</th>
-                                        <th>Name</th>
-                                        {{if $.Features.AllowParameterAlias}} <th>Alias</th> {{end}}
-
-                                        <th>Data Type</th>
-                                        <th>Precision</th>
-                                        <th>Scale</th>
-                                        <th>MaxLength</th>
-                                        <th>Default Value</th>
-                                        <th>Test Value</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {{if .StoredProc.Parameters}}
-                                    {{range .StoredProc.Parameters}}
-                                    <tr>
-                                        <td>{{.Position}}</td>
-                                        <td>{{.Mode}}</td>
-                                        <td>{{.Name}}</td>
-                                        {{if $.Features.AllowParameterAlias}} <td>{{.Alias}}</td>{{end}}
-                                        <td>{{.Datatype}}</td>
-                                        <td>{{.Precision}}</td>
-                                        <td>{{.Scale}}</td>
-                                        <td>{{.MaxLength}}</td>
-                                        <td>{{.GetDefaultValueX}}</td>
-
-                                        <td>
-                                            {{if ne .Mode "OUT"}}
-                                            <div class="form-group">
-
-                                                <input id="{{.GetNameToUse false}}" class="form-control  " type="text"
-                                                    name="{{.GetNameToUse false}}" aria-describedby="{{.GetNameToUse false}}help"
-                                                    placeholder="{{.GetNameToUse false}}" value='{{.GivenValue}}' required></input>
-
-
-
-
-
-
-                                            </div>
-                                            {{end}}
-                                        </td>
-
-
-
-                                    </tr>
-                                    {{end}}
-
-                                    {{else}}
-                                    {{end}}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>            
-        </form>
-    </div>
-</div>
+ 
 
 <div class="row p-2">
     <div class="col-xl ">
@@ -308,7 +207,7 @@ Endpoint
             <div class="card-body">
                 <div class="row">
                     <div class="col">
-                        <pre>{{.StoredProc.ResponseFormat}}</pre>
+                        <pre>{{.RpgEndPoint.ResponseFormat}}</pre>
 
                     </div>
                 </div>
@@ -320,7 +219,7 @@ Endpoint
 </div>
 
 {{if .Features.AllowPromotion}}
-{{ if .StoredProc.Promotionsql }}
+{{ if .RpgEndPoint.Promotionsql }}
 
 <div class="row p-2">
     <div class="col-xl ">
@@ -333,7 +232,7 @@ Endpoint
             <div class="card-body">
                 <div class="row">
                     <div class="col">
-                        <pre>{{.StoredProc.Promotionsql}}</pre>
+                        <pre>{{.RpgEndPoint.Promotionsql}}</pre>
 
                     </div>
                 </div>

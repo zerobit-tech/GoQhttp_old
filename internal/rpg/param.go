@@ -74,7 +74,7 @@ func (s *Param) LogImage() string {
 // -----------------------------------------------------
 //
 // -----------------------------------------------------
-func (p *Param) ToXml(value string) string {
+func (p *Param) ToXml(nameToUse, value string) string {
 	/*
 					  <parm io="both" var="p4">
 				            <data type="12p2" var="INDEC2">1234567890.12</data>
@@ -92,8 +92,8 @@ func (p *Param) ToXml(value string) string {
 		        </parm>
 	*/
 	pramString := ""
-	pname := p.Name
-	dsname := fmt.Sprintf("DS%s", p.Name)
+	pname := nameToUse
+	dsname := fmt.Sprintf("DS%s", nameToUse)
 
 	//         {'io':'in|out|both|omit'} : XMLSERVICE param type {'io':both'}.
 	//                by='val|ref'
@@ -102,7 +102,7 @@ func (p *Param) ToXml(value string) string {
 		pramString = fmt.Sprintf("<parm io=\"both\" var=\"%s\"><ds var=\"%s\"> %s  </ds></parm>", pname, dsname, strings.Join(p.ToDataXmlList(), "\n"))
 	} else {
 
-		pramString = fmt.Sprintf("<parm io=\"both\" var=\"%s\"> %s </parm>", pname, p.ToDataXml(value))
+		pramString = fmt.Sprintf("<parm io=\"both\" var=\"%s\"> %s </parm>", pname, p.ToDataXml(nameToUse, value))
 	}
 	return pramString
 }
@@ -132,13 +132,13 @@ func (p *Param) ToDataXmlList() []string {
 // -----------------------------------------------------
 //
 // -----------------------------------------------------
-func (p *Param) ToDataXml(value string) string {
+func (p *Param) ToDataXml(name, value string) string {
 	/*
 	   <data type="12p2" var="INDEC2"><![CDATA[1234567890.12]</data>
 	*/
 
 	dateType := p.GetDataType()
-	dname := fmt.Sprintf("T%s", p.Name)
+	dname := fmt.Sprintf("T%s", name)
 	//value := p.Value
 
 	pramString := fmt.Sprintf("  <data type=\"%s\" var=\"%s\"><![CDATA[%s]]></data>  ", dateType, dname, value)

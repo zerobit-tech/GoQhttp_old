@@ -101,17 +101,17 @@ func (app *application) APIHandlers(router *chi.Mux) {
 // ------------------------------------------------------
 func (app *application) RequireUnAuthEndPoint(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		response := &storedProc.StoredProcResponse{ReferenceId: middleware.GetReqID(r.Context())}
+		// response := &storedProc.StoredProcResponse{ReferenceId: middleware.GetReqID(r.Context())}
 
-		namespace, endpointName, _ := app.GetPathParameters(r)
-		endPoint, err := app.GetEndPoint(namespace, endpointName, r.Method)
+		// namespace, endpointName, _ := app.GetPathParameters(r)
+		// endPoint, err := app.GetEndPoint(namespace, endpointName, r.Method)
 
-		if err != nil || !endPoint.AllowWithoutAuth {
-			response.Status = http.StatusNotFound
-			response.Message = http.StatusText(http.StatusNotFound)
-			app.writeJSONAPI(w, response, nil)
-			return
-		}
+		// if err != nil || !endPoint.AllowWithoutAuth {
+		// 	response.Status = http.StatusNotFound
+		// 	response.Message = http.StatusText(http.StatusNotFound)
+		// 	app.writeJSONAPI(w, response, nil)
+		// 	return
+		// }
 
 		next.ServeHTTP(w, r)
 	})
@@ -339,13 +339,13 @@ func (app *application) ProcessAPICall(w http.ResponseWriter, r *http.Request, n
 	defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
 
 	endPoint, endPointNotfoundError := app.GetEndPoint(namespace, endpointName, r.Method)
-	// if endPointNotfoundError != nil {
-	// 	_, _, rpgErr := app.GetRPGEndPoint(namespace, endpointName, r.Method)
-	// 	if rpgErr == nil {
-	// 		// app.ProcessRPGAPICall(w, r, namespace, endpointName, pathParams, requesyBodyFlatMap)
-	// 		// return
-	// 	}
-	// }
+	if endPointNotfoundError != nil {
+		_, _, rpgErr := app.GetRPGEndPoint(namespace, endpointName, r.Method)
+		if rpgErr == nil {
+			app.ProcessRPGAPICall(w, r, namespace, endpointName, pathParams, requesyBodyFlatMap)
+			return
+		}
+	}
 
 	requestId := middleware.GetReqID(r.Context())
 

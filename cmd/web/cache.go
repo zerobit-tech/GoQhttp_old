@@ -54,7 +54,7 @@ func (app *application) GetEndPoint(namespace, endpointName, httpmethod string) 
 // ------------------------------------------------------
 //
 // ------------------------------------------------------
-func (app *application) GetRPGEndPoint(namespace, endpointName, httpmethod string) (*rpg.Program, *storedProc.StoredProc, error) {
+func (app *application) GetRPGEndPoint(namespace, endpointName, httpmethod string) (*rpg.RpgEndPoint, *storedProc.StoredProc, error) {
 
 	sp, err := app.GetEndPoint("v1", "xmlservice512", "post")
 
@@ -62,43 +62,11 @@ func (app *application) GetRPGEndPoint(namespace, endpointName, httpmethod strin
 		return nil, nil, errors.New("RPG Driver not found!")
 	}
 
-	// p1 := &rpg.Param{
-	// 	Name:            "P1",
-	// 	DataType:        "ZONED",
-	// 	Length:          5,
-	// 	DecimalPostions: 0,
-	// 	IsDs:            false,
-	// 	DsDim:           0,
-	// 	IsVarying:       false,
-	// }
-	// p2 := &rpg.Param{
-	// 	Name:            "P2",
-	// 	DataType:        "ZONED",
-	// 	Length:          5,
-	// 	DecimalPostions: 0,
-	// 	IsDs:            false,
-	// 	DsDim:           0,
-	// 	IsVarying:       false,
-	// }
+	rpgEndPointId := fmt.Sprintf("%s_%s_%s", strings.ToLower(namespace), strings.ToLower(endpointName), strings.ToLower(httpmethod))
 
-	// p3 := &rpg.Param{
-	// 	Name:            "P3",
-	// 	DataType:        "ZONED",
-	// 	Length:          5,
-	// 	DecimalPostions: 0,
-	// 	IsDs:            false,
-	// 	DsDim:           0,
-	// 	IsVarying:       false,
-	// }
+	rpgEndPoint, err := app.RpgEndpointModel.Get(rpgEndPointId)
 
-	pgm := &rpg.Program{
-
-		Name: "QHTTPTEST1",
-		Lib:  "SUMITG1",
-		//Parameters: []*rpg.Param{p1, p2, p3},
-	}
-
-	return pgm, sp, nil
+	return rpgEndPoint, sp, err
 
 }
 

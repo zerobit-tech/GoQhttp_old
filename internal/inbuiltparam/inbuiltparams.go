@@ -1,0 +1,14 @@
+package inbuiltparam
+
+var InbuiltParams = []string{
+	"QHTTP_CLIENT_IP",
+	"QHTTP_METHOD",
+	"QHTTP_USER",
+	"QHTTP_SERVER",
+	"QHTTP_SERVER_USER",
+	"QHTTP_USER_TOKEN",
+	"QHTTP_USER_EMAIL",
+	"QHTTP_STATUS_MESSAGE",
+	"QHTTP_STATUS_CODE",
+	"QHTTP_CORRELATION_ID",
+}
