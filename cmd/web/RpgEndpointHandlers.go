@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"net/http"
 	"runtime/debug"
+	"strconv"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/onlysumitg/GoQhttp/internal/rpg"
@@ -17,7 +19,7 @@ import (
 //
 // ------------------------------------------------------
 func (app *application) RpgEndpointHandlers(router *chi.Mux) {
-	router.Route("/rpgendpoint", func(r chi.Router) {
+	router.Route("/pgmendpoints", func(r chi.Router) {
 		r.Use(app.sessionManager.LoadAndSave)
 
 		r.Use(app.RequireAuthentication)
@@ -46,23 +48,50 @@ func (app *application) RpgEndpointHandlers(router *chi.Mux) {
 
 		r.Get("/refresh/{spId}", app.RpgEndpointRefresh)
 
-		// r.Post("/assignserver", app.RpgEndpointAssignServer)
-		// r.Post("/deleteassignserver", app.RpgEndpointRemoveAssignServer)
+		r.Post("/assignserver", app.RpgEndpointAssignServer)
+		r.Post("/deleteassignserver", app.RpgEndpointRemoveAssignServer)
 
 		r.Get("/logs/{spId}", app.RpgEndpointLogs)
 
-		r.Get("/paramalias/{spId}", app.RpgEndpointParamAlias)
+		//r.Get("/paramalias/{spId}", app.RpgEndpointParamAlias)
 		//	r.Post("/saveparamalias", app.RpgEndpointsaveparamalias)
 
 		r.Get("/paramplacement/{spId}", app.RpgEndpointParamPos)
 		r.Post("/saveparamplacement", app.RpgEndpointSaveParamPos)
 
-		r.Get("/paramvalid/{spId}", app.RpgEndpointParamValidator)
-		r.Post("/saveparamvalid", app.RpgEndpointsaveparamValidator)
-
 		r.Get("/help", app.RpgEndpointHelp)
+		r.Get("/fieldrow", app.rpgParam_Field_row)
 
 	})
+
+}
+
+// ------------------------------------------------------
+//
+// ------------------------------------------------------
+func (app *application) rpgParam_Field_row(w http.ResponseWriter, r *http.Request) {
+
+	currentindex := r.URL.Query().Get("index")
+
+	currentindexI, err := strconv.Atoi(currentindex)
+	if err != nil {
+		currentindexI = 0
+	}
+
+	currentindexI += 1
+
+	data := app.newTemplateData(r)
+	programParam := &rpg.ProgramParams{
+		NameToUse: "",
+		Dim:       0,
+	}
+
+	data.ProgramParam = programParam
+	data.Index = currentindexI
+
+	data.RpgParams = app.RpgParamModel.List()
+
+	app.render(w, r, http.StatusOK, "empty_rpg_endpoint_add_param_row.tmpl", data)
 
 }
 
@@ -142,11 +171,17 @@ func (app *application) RpgEndpointAdd(w http.ResponseWriter, r *http.Request) {
 
 	}
 
+	storedP.Init()
+
 	data := app.newTemplateData(r)
+
 	data.Form = storedP
 	data.Servers = app.servers.List()
+	data.RpgParams = app.RpgParamModel.List()
 
-	data.RpgPrograms = app.RpgProgramModel.List()
+	data.Index = len(storedP.Parameters) - 1
+
+	//data.RpgPrograms = app.RpgProgramModel.List()
 	app.render(w, r, http.StatusOK, "rpg_endpoint_add.tmpl", data)
 
 }
@@ -183,14 +218,14 @@ func (app *application) RpgEndpointView(w http.ResponseWriter, r *http.Request) 
 
 	spId := chi.URLParam(r, "spId")
 
-	sP, err := app.RpgEndpointModel.Get(spId)
+	pgmP, err := app.RpgEndpointModel.Get(spId)
 	if err != nil {
 		app.serverError500(w, r, err)
 		return
 	}
-	data.RpgEndPoint = sP
+	data.RpgEndPoint = pgmP
 	data.Servers = app.servers.List()
-	//data.RpgEndpointCallLog, _ = app.spCallLogModel.Get(sP.ID)
+	//data.RpgEndpointCallLog, _ = app.spCallLogModel.Get(pgmP.ID)
 	app.render(w, r, http.StatusOK, "rpg_endpoint_view.tmpl", data)
 
 }
@@ -203,14 +238,14 @@ func (app *application) RpgEndpointLogs(w http.ResponseWriter, r *http.Request) 
 
 	spId := chi.URLParam(r, "spId")
 
-	sP, err := app.RpgEndpointModel.Get(spId)
+	pgmP, err := app.RpgEndpointModel.Get(spId)
 	if err != nil {
 		app.serverError500(w, r, err)
 		return
 	}
-	data.RpgEndPoint = sP
-	//data.RpgEndpointCallLog, _ = app.spCallLogModel.Get(sP.ID)
-	app.render(w, r, http.StatusOK, "rpg_endpoint_logs.tmpl", data)
+	data.RpgEndPoint = pgmP
+	data.SPCallLog, _ = app.spCallLogModel.Get(pgmP.ID)
+	app.render(w, r, http.StatusOK, "sp_logs.tmpl", data)
 
 }
 
@@ -229,12 +264,12 @@ func (app *application) RpgEndpointParamAlias(w http.ResponseWriter, r *http.Req
 
 	spId := chi.URLParam(r, "spId")
 
-	sP, err := app.RpgEndpointModel.Get(spId)
+	pgmP, err := app.RpgEndpointModel.Get(spId)
 	if err != nil {
 		app.serverError500(w, r, err)
 		return
 	}
-	data.RpgEndPoint = sP
+	data.RpgEndPoint = pgmP
 	app.render(w, r, http.StatusOK, "rpg_endpoint_param_alias.tmpl", data)
 
 }
@@ -251,99 +286,110 @@ func (app *application) RpgEndpointAddPost(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	var sP rpg.RpgEndPoint
-	err = app.formDecoder.Decode(&sP, r.PostForm)
+	var pgmP rpg.RpgEndPoint
+	err = app.formDecoder.Decode(&pgmP, r.PostForm)
 	if err != nil {
 		app.sessionManager.Put(r.Context(), "error", fmt.Sprintf("002 Error processing form %s", err.Error()))
 		app.goBack(w, r, http.StatusBadRequest)
 		return
 	}
-	sP.CheckField(validator.NotBlank(sP.EndPointName), "endpointname", "This field cannot be blank")
+	pgmP.CheckField(validator.NotBlank(pgmP.EndPointName), "endpointname", "This field cannot be blank")
+	pgmP.CheckField(validator.NotBlank(pgmP.Name), "name", "This field cannot be blank")
+	pgmP.CheckField(validator.NotBlank(pgmP.Lib), "lib", "This field cannot be blank")
 
-	//sP.CheckField(!app.RpgEndpointModel.Duplicate(&sP), "endpointname", "Endpoint with name and method already exists")
-	sP.CheckField(validator.NotBlank(sP.DefaultServerId), "serverid", "This field cannot be blank")
+	//pgmP.CheckField(!app.RpgEndpointModel.Duplicate(&pgmP), "endpointname", "Endpoint with name and method already exists")
+	pgmP.CheckField(validator.NotBlank(pgmP.DefaultServerId), "serverid", "This field cannot be blank")
 
-	sP.SetNameSpace()
+	pgmP.SetNameSpace()
 
-	if sP.Valid() {
+	if pgmP.Valid() {
 
-		sP.EndPointName = stringutils.RemoveSpecialChars(stringutils.RemoveMultipleSpaces(sP.EndPointName))
+		pgmP.EndPointName = stringutils.RemoveSpecialChars(stringutils.RemoveMultipleSpaces(pgmP.EndPointName))
 
-		sP.CheckField(!app.RpgEndpointModel.Duplicate(&sP), "endpointname", "Endpoint with name and method already exists in this namespace.")
+		pgmP.CheckField(!app.RpgEndpointModel.Duplicate(&pgmP), "endpointname", "Endpoint with name and method already exists in this namespace.")
 	}
 	// assign default server
 
-	server, err := app.servers.Get(sP.DefaultServerId)
+	server, err := app.servers.Get(pgmP.DefaultServerId)
 	if err != nil {
-		sP.CheckField(false, "serverid", "Server not found")
+		pgmP.CheckField(false, "serverid", "Server not found")
 
-		sP.Validator.AddNonFieldError("Please select a valid server")
+		pgmP.Validator.AddNonFieldError("Please select a valid server")
 	} else {
-		sP.DefaultServerId = server.ID
-		sP.AddAllowedServer(server.ID)
+		pgmP.DefaultServerId = server.ID
+		pgmP.AddAllowedServer(server.ID)
 	}
 
 	logBeforeImage := ""
 
 	// Check RpgEndpoint details from iBMI
-	if sP.Valid() {
+	if pgmP.Valid() {
 
-		if sP.ID != "" {
-			//orginalSp, err := app.RpgEndpointModel.Get(sP.ID)
+		if pgmP.ID != "" {
+			//orginalSp, err := app.RpgEndpointModel.Get(pgmP.ID)
 			if err == nil {
 				//logBeforeImage = orginalSp.LogImage()
-				//sP.Parameters = orginalSp.Parameters
+				//pgmP.Parameters = orginalSp.Parameters
 
 			}
 		}
 
-		//err = server.PrepareToSave(r.Context(), &sP)
+		//err = server.PrepareToSave(r.Context(), &pgmP)
 
 		if err != nil {
-			sP.CheckField(false, "name", err.Error())
+			pgmP.CheckField(false, "name", err.Error())
 		}
 
 	}
 
-	if !sP.Valid() {
+	pgmP.AssignParamObjects(app.RpgParamModel)
+	pgmP.AssignParamNames()
+	parametersError := pgmP.ValidateParams()
+
+	if !pgmP.Valid() || parametersError {
+		pgmP.FilterOutInvalidParams()
 		data := app.newTemplateData(r)
-		data.Form = sP
+		data.Form = pgmP
 		app.sessionManager.Put(r.Context(), "error", "Please fix error(s) and resubmit")
 		data.Servers = app.servers.List()
 
+		data.Index = len(pgmP.Parameters) - 1
+		data.RpgParams = app.RpgParamModel.List()
 		app.render(w, r, http.StatusUnprocessableEntity, "rpg_endpoint_add.tmpl", data)
 		return
 	}
 
 	logAction := "Endpoint Created"
-	if sP.ID != "" {
+	if pgmP.ID != "" {
 		logAction = "Endpoint Modified"
 	}
 
+	pgmP.FilterOutInvalidParams()
+	pgmP.Refresh()
 	// finally save
-	id, err := app.RpgEndpointModel.Save(&sP)
+	id, err := app.RpgEndpointModel.Save(&pgmP)
 	if err != nil {
 		app.serverError500(w, r, err)
 		return
 	}
 	app.invalidateEndPointCache()
-	app.sessionManager.Put(r.Context(), "flash", fmt.Sprintf("Endpoint %s added sucessfully", sP.EndPointName))
+	app.sessionManager.Put(r.Context(), "flash", fmt.Sprintf("Endpoint %s added sucessfully", pgmP.EndPointName))
 
 	go func() {
 		defer concurrent.Recoverer("RpgEndpointMODIFIED")
 		defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
 		userID, _ := app.getCurrentUserID(r)
 
-		logEvent := GetSystemLogEvent(userID, logAction, fmt.Sprintf(" %s %s,IP %s", sP.EndPointName, sP.HttpMethod, r.RemoteAddr), false)
+		logEvent := GetSystemLogEvent(userID, logAction, fmt.Sprintf(" %s %s,IP %s", pgmP.EndPointName, pgmP.HttpMethod, r.RemoteAddr), false)
 		logEvent.ImpactedEndpointId = id
 		logEvent.BeforeUpdate = logBeforeImage
-		//logEvent.AfterUpdate = sP.LogImage()
+		//logEvent.AfterUpdate = pgmP.LogImage()
 		app.SystemLoggerChan <- logEvent
 
 	}()
 
 	//http.Redirect(w, r, fmt.Sprintf("/savesql/%s", id), http.StatusSeeOther)
-	http.Redirect(w, r, fmt.Sprintf("/sp/%s", id), http.StatusSeeOther)
+	http.Redirect(w, r, fmt.Sprintf("/pgmendpoints/%s", id), http.StatusSeeOther)
 
 }
 
@@ -354,7 +400,7 @@ func (app *application) RpgEndpointDelete(w http.ResponseWriter, r *http.Request
 
 	spId := chi.URLParam(r, "spId")
 
-	sP, err := app.RpgEndpointModel.Get(spId)
+	pgmP, err := app.RpgEndpointModel.Get(spId)
 	if err != nil {
 		app.sessionManager.Put(r.Context(), "error", fmt.Sprintf("Error: %s", err.Error()))
 		app.goBack(w, r, http.StatusSeeOther)
@@ -362,7 +408,7 @@ func (app *application) RpgEndpointDelete(w http.ResponseWriter, r *http.Request
 	}
 
 	data := app.newTemplateData(r)
-	data.RpgEndPoint = sP
+	data.RpgEndPoint = pgmP
 
 	app.render(w, r, http.StatusOK, "rpg_endpoint_delete.tmpl", data)
 
@@ -404,7 +450,7 @@ func (app *application) RpgEndpointDeleteConfirm(w http.ResponseWriter, r *http.
 
 	}()
 
-	http.Redirect(w, r, "/sp", http.StatusSeeOther)
+	http.Redirect(w, r, "/pgmendpoints", http.StatusSeeOther)
 
 }
 
@@ -415,7 +461,7 @@ func (app *application) RpgEndpointUpdate(w http.ResponseWriter, r *http.Request
 
 	spId := chi.URLParam(r, "spId")
 
-	sP, err := app.RpgEndpointModel.Get(spId)
+	pgmP, err := app.RpgEndpointModel.Get(spId)
 	if err != nil {
 		app.sessionManager.Put(r.Context(), "error", fmt.Sprintf("Update error: %s", err.Error()))
 		app.goBack(w, r, http.StatusBadRequest)
@@ -424,10 +470,13 @@ func (app *application) RpgEndpointUpdate(w http.ResponseWriter, r *http.Request
 
 	data := app.newTemplateData(r)
 
-	data.Form = sP
+	data.Form = pgmP
 	data.Servers = app.servers.List()
-	data.RpgEndPoint = sP
-	data.RpgPrograms = app.RpgProgramModel.List()
+	data.RpgEndPoint = pgmP
+
+	data.RpgParams = app.RpgParamModel.List()
+
+	data.Index = len(pgmP.Parameters) - 1
 
 	app.render(w, r, http.StatusOK, "rpg_endpoint_add.tmpl", data)
 
@@ -440,19 +489,19 @@ func (app *application) RpgEndpointCall(w http.ResponseWriter, r *http.Request) 
 
 	spId := r.FormValue("id")
 
-	sP, err := app.RpgEndpointModel.Get(spId)
+	pgmP, err := app.RpgEndpointModel.Get(spId)
 	if err != nil {
 		app.sessionManager.Put(r.Context(), "error", fmt.Sprintf("Error  : %s", err.Error()))
 		app.goBack(w, r, http.StatusBadRequest)
 		return
 	}
 
-	if sP.DefaultServerId != "" {
+	if pgmP.DefaultServerId != "" {
 
-		//dServer, err := app.servers.Get(sP.DefaultServerId)
+		//dServer, err := app.servers.Get(pgmP.DefaultServerId)
 		if err == nil {
 
-			//_, err = dServer.DummyCall(sP, formToMap(r), app.GetParamValidatorRegex())
+			//_, err = dServer.DummyCall(pgmP, formToMap(r), app.GetParamValidatorRegex())
 
 		}
 	} else {
@@ -465,7 +514,7 @@ func (app *application) RpgEndpointCall(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	app.RpgEndpointModel.Save(sP)
+	app.RpgEndpointModel.Save(pgmP)
 	app.goBack(w, r, http.StatusSeeOther)
 
 }
@@ -484,7 +533,7 @@ func (app *application) RpgEndpointAssignServer(w http.ResponseWriter, r *http.R
 
 	spId := r.Form.Get("spid")
 
-	sP, err := app.RpgEndpointModel.Get(spId)
+	pgmP, err := app.RpgEndpointModel.Get(spId)
 	if err != nil {
 		app.sessionManager.Put(r.Context(), "error", fmt.Sprintf("Endpoint not found: %s", err.Error()))
 		app.goBack(w, r, http.StatusSeeOther)
@@ -498,8 +547,8 @@ func (app *application) RpgEndpointAssignServer(w http.ResponseWriter, r *http.R
 		app.goBack(w, r, http.StatusSeeOther)
 		return
 	}
-	sP.AddAllowedServer(server.ID)
-	app.RpgEndpointModel.Save(sP)
+	pgmP.AddAllowedServer(server.ID)
+	app.RpgEndpointModel.Save(pgmP)
 	app.invalidateEndPointCache()
 
 	app.sessionManager.Put(r.Context(), "flase", "Done")
@@ -520,7 +569,7 @@ func (app *application) RpgEndpointRemoveAssignServer(w http.ResponseWriter, r *
 
 	spId := r.Form.Get("spid")
 
-	sP, err := app.RpgEndpointModel.Get(spId)
+	pgmP, err := app.RpgEndpointModel.Get(spId)
 	if err != nil {
 		app.sessionManager.Put(r.Context(), "error", fmt.Sprintf("Endpoint not found: %s", err.Error()))
 		app.goBack(w, r, http.StatusSeeOther)
@@ -534,15 +583,15 @@ func (app *application) RpgEndpointRemoveAssignServer(w http.ResponseWriter, r *
 		app.goBack(w, r, http.StatusSeeOther)
 		return
 	}
-	if server.ID == sP.DefaultServerId {
+	if server.ID == pgmP.DefaultServerId {
 		app.sessionManager.Put(r.Context(), "error", "Can not remove default server")
 		app.goBack(w, r, http.StatusSeeOther)
 		return
 	}
 
-	sP.DeleteAllowedServer(server.ID)
+	pgmP.DeleteAllowedServer(server.ID)
 
-	app.RpgEndpointModel.Save(sP)
+	app.RpgEndpointModel.Save(pgmP)
 	app.invalidateEndPointCache()
 
 	app.sessionManager.Put(r.Context(), "flase", "Done")
@@ -576,13 +625,13 @@ func (app *application) RpgEndpointParamPos(w http.ResponseWriter, r *http.Reque
 
 	spId := chi.URLParam(r, "spId")
 
-	sP, err := app.RpgEndpointModel.Get(spId)
+	pgmP, err := app.RpgEndpointModel.Get(spId)
 	if err != nil {
 		app.serverError500(w, r, err)
 		return
 	}
-	data.RpgEndPoint = sP
-	//data.ParamPlacements = sP.AvailableParamterPostions()
+	data.RpgEndPoint = pgmP
+	data.ParamPlacements = pgmP.AvailableParamterPostions()
 	app.render(w, r, http.StatusOK, "rpg_endpoint_param_placement.tmpl", data)
 
 }
@@ -592,123 +641,48 @@ func (app *application) RpgEndpointParamPos(w http.ResponseWriter, r *http.Reque
 // ------------------------------------------------------
 func (app *application) RpgEndpointSaveParamPos(w http.ResponseWriter, r *http.Request) {
 
-	// if !app.features.AllowParamPlacement {
-	// 	app.goBack(w, r, http.StatusNotFound)
-	// 	return
-	// }
-
-	// spId := r.FormValue("id")
-
-	// sP, err := app.RpgEndpointModel.Get(spId)
-	// if err != nil {
-	// 	app.sessionManager.Put(r.Context(), "error", fmt.Sprintf("Error  : %s", err.Error()))
-	// 	app.goBack(w, r, http.StatusSeeOther)
-	// 	return
-	// }
-
-	// //	app.RpgEndpointModel.Save(sP)
-	// formMap := formToMap(r)
-
-	// changed := false
-	// for _, p := range sP.Parameters {
-	// 	placement, found := formMap[strings.ToUpper(p.Name)]
-	// 	if found {
-	// 		placementString, ok := placement.(string)
-	// 		if ok && p.Placement != placementString {
-	// 			p.Placement = strings.TrimSpace(strings.ToUpper(placementString))
-
-	// 			changed = true
-
-	// 		}
-	// 	}
-	// }
-
-	// if changed {
-	// 	app.invalidateEndPointCache()
-
-	// 	sP.AssignAliasForPathPlacement()
-	// 	app.RpgEndpointModel.Save(sP)
-	// 	app.sessionManager.Put(r.Context(), "flash", "Done")
-	// } else {
-	// 	app.sessionManager.Put(r.Context(), "flash", "Nothing changed")
-
-	// }
-
-	app.goBack(w, r, http.StatusSeeOther)
-
-}
-
-// ------------------------------------------------------
-// Server details
-// ------------------------------------------------------
-func (app *application) RpgEndpointParamValidator(w http.ResponseWriter, r *http.Request) {
-
-	data := app.newTemplateData(r)
-
-	spId := chi.URLParam(r, "spId")
-
-	sP, err := app.RpgEndpointModel.Get(spId)
-	if err != nil {
-		app.serverError500(w, r, err)
+	if !app.features.AllowParamPlacement {
+		app.goBack(w, r, http.StatusNotFound)
 		return
 	}
-	data.RpgEndPoint = sP
 
-	data.ParamRegexs = app.paramRegexModel.List()
-	app.render(w, r, http.StatusOK, "rpg_endpoint_param_validator.tmpl", data)
+	spId := r.FormValue("id")
 
-}
+	pgmP, err := app.RpgEndpointModel.Get(spId)
+	if err != nil {
+		app.sessionManager.Put(r.Context(), "error", fmt.Sprintf("Error  : %s", err.Error()))
+		app.goBack(w, r, http.StatusSeeOther)
+		return
+	}
 
-// ------------------------------------------------------
-//
-// ------------------------------------------------------
-func (app *application) RpgEndpointsaveparamValidator(w http.ResponseWriter, r *http.Request) {
+	//	app.RpgEndpointModel.Save(pgmP)
+	formMap := formToMap(r)
 
-	// spId := r.FormValue("id")
+	changed := false
+	for _, p := range pgmP.Parameters {
+		placement, found := formMap[strings.ToUpper(p.NameToUse)]
+		if found {
+			placementString, ok := placement.(string)
+			if ok && p.Placement != placementString {
+				p.Placement = strings.TrimSpace(strings.ToUpper(placementString))
 
-	// sP, err := app.RpgEndpointModel.Get(spId)
-	// if err != nil {
-	// 	app.sessionManager.Put(r.Context(), "error", fmt.Sprintf("Error  : %s", err.Error()))
-	// 	app.goBack(w, r, http.StatusSeeOther)
-	// 	return
-	// }
+				changed = true
 
-	// //	app.RpgEndpointModel.Save(sP)
-	// maped := formToMap(r)
+			}
+		}
+	}
 
-	// changed := false
-	// for _, p := range sP.Parameters {
-	// 	validator, found := maped[strings.ToUpper(p.Name)]
-	// 	if found {
-	// 		validatorString, ok := validator.(string)
-	// 		if ok && p.ValidatorRegex != validatorString {
+	if changed {
+		app.invalidateEndPointCache()
 
-	// 			p.ValidatorRegex = validatorString
+		pgmP.AssignAliasForPathPlacement()
+		pgmP.Refresh()
+		app.RpgEndpointModel.Save(pgmP)
+		app.sessionManager.Put(r.Context(), "flash", "Done")
+	} else {
+		app.sessionManager.Put(r.Context(), "flash", "Nothing changed")
 
-	// 			if p.ValidatorRegex != "" {
-	// 				err := p.CheckValidatorRegex(app.paramRegexModel.Map())
-	// 				if err != nil {
-	// 					app.sessionManager.Put(r.Context(), "error", fmt.Sprintf("Error  : %s", err.Error()))
-	// 					app.goBack(w, r, http.StatusSeeOther)
-	// 					return
-	// 				}
-	// 			}
-
-	// 			changed = true
-
-	// 		}
-	// 	}
-	// }
-
-	// if changed {
-	// 	app.invalidateEndPointCache()
-	// 	app.RpgEndpointModel.Save(sP)
-	// 	app.sessionManager.Put(r.Context(), "flash", "Done")
-
-	// } else {
-	// 	app.sessionManager.Put(r.Context(), "flash", "Nothing changed")
-
-	// }
+	}
 
 	app.goBack(w, r, http.StatusSeeOther)
 

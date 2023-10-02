@@ -161,6 +161,10 @@ func (m *RpgParamModel) Get(id string) (*Param, error) {
 
 	if rpgparamJSON != nil {
 		err := json.Unmarshal(rpgparamJSON, &rpgparam)
+		if err == nil {
+			m.loadChildParas(&rpgparam)
+
+		}
 		return &rpgparam, err
 
 	}
@@ -188,6 +192,7 @@ func (m *RpgParamModel) List() []*Param {
 			err := json.Unmarshal(v, &rpgparam)
 			if err == nil {
 				//rpgparam.Load()
+				m.loadChildParas(&rpgparam)
 				rpgparams = append(rpgparams, &rpgparam)
 			}
 		}
@@ -195,5 +200,24 @@ func (m *RpgParamModel) List() []*Param {
 		return nil
 	})
 	return rpgparams
+
+}
+
+// -----------------------------------------------------------------
+//
+// -----------------------------------------------------------------
+// We'll use the Exists method to check if a user exists with a specific ID.
+func (m *RpgParamModel) loadChildParas(p *Param) {
+	if !p.IsDs {
+		return
+	}
+
+	for _, f := range p.DsFields {
+		f1, err := m.Get(f.ParamID)
+
+		if err == nil {
+			f.Param = f1
+		}
+	}
 
 }

@@ -115,7 +115,6 @@ type application struct {
 
 	// ------------ RPG ------------
 	RpgParamModel    *rpg.RpgParamModel
-	RpgProgramModel  *rpg.RpgProgramModel
 	RpgEndpointModel *rpg.RpgEndpointModel
 }
 
@@ -190,7 +189,6 @@ func baseAppConfig(params cliparams.Parameters, db *bolt.DB, userdb *bolt.DB, lo
 
 		//------------------RPG
 		RpgParamModel:    &rpg.RpgParamModel{DB: db},
-		RpgProgramModel:  &rpg.RpgProgramModel{DB: db},
 		RpgEndpointModel: &rpg.RpgEndpointModel{DB: db},
 	}
 
@@ -222,6 +220,9 @@ func baseAppConfig(params cliparams.Parameters, db *bolt.DB, userdb *bolt.DB, lo
 
 	go app.LoadDefaultParamValidatorRegex()
 	//app.CreateHttpPathPermissions()
+
+	app.onLoad()
+
 	return app
 
 }
@@ -233,8 +234,8 @@ func (app *application) CleanupAndShutDown() {
 
 	if app.ServerPingScheduler != nil {
 		log.Println("Stoping server pings...")
-		app.ServerPingScheduler.Clear()
-		app.ServerPingScheduler.Stop()
+		go app.ServerPingScheduler.Clear()
+		go app.ServerPingScheduler.Stop()
 
 	}
 

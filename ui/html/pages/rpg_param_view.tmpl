@@ -57,10 +57,7 @@ RPG Paramter
               <td>{{.RpgParam.IsDs|yesNo}}</td>
             </tr>
 
-            <tr>
-              <td>Datastructure Dim</td>
-              <td>{{.RpgParam.DsDim}}</td>
-            </tr>
+          
             {{end}}
 
 
@@ -96,8 +93,8 @@ RPG Paramter
       <div class="card-body">
         <ol>
           {{range $i, $fieldid := .RpgParam.DsFields}}
-          {{if $fieldid}}
-          <li>{{$fieldid|getrpgparamstring}}</li>
+          {{if $fieldid.ParamID}}
+          <li>{{$fieldid.ParamID|getrpgparamstring}}  DIM {{$fieldid.Dim}} <br \></li>
           {{end}}
           {{end}}
         </ol>

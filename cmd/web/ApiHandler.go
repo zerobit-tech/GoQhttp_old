@@ -332,20 +332,53 @@ func (app *application) POST(w http.ResponseWriter, r *http.Request) {
 //	actual api call processing
 //
 // ------------------------------------------------------
+func (app *application) CheckAPIType(r *http.Request, namespace string, endpointName string) string {
+
+	endPointType := "SQLSP"
+
+	_, endPointNotfoundError := app.GetEndPoint(namespace, endpointName, r.Method)
+	if endPointNotfoundError != nil {
+		_, rpgErr := app.GetRPGEndPoint(namespace, endpointName, r.Method)
+		if rpgErr == nil {
+			endPointType = "PGM"
+		}
+	}
+
+	return endPointType
+}
+
+// ------------------------------------------------------
+//
+//	actual api call processing
+//
+// ------------------------------------------------------
 func (app *application) ProcessAPICall(w http.ResponseWriter, r *http.Request, namespace string, endpointName string,
+	pathParams []httputils.PathParam,
+	requesyBodyFlatMap map[string]xmlutils.ValueDatatype) {
+
+	endPointType := app.CheckAPIType(r, namespace, endpointName)
+
+	switch endPointType {
+	case "PGM":
+		app.ProcessRPGAPICall(w, r, namespace, endpointName, pathParams, requesyBodyFlatMap)
+	default:
+		app.ProcessSQLSPAPICall(w, r, namespace, endpointName, pathParams, requesyBodyFlatMap)
+	}
+
+}
+
+// ------------------------------------------------------
+//
+//	actual api call processing
+//
+// ------------------------------------------------------
+func (app *application) ProcessSQLSPAPICall(w http.ResponseWriter, r *http.Request, namespace string, endpointName string,
 	pathParams []httputils.PathParam,
 	requesyBodyFlatMap map[string]xmlutils.ValueDatatype) {
 
 	defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
 
 	endPoint, endPointNotfoundError := app.GetEndPoint(namespace, endpointName, r.Method)
-	if endPointNotfoundError != nil {
-		_, _, rpgErr := app.GetRPGEndPoint(namespace, endpointName, r.Method)
-		if rpgErr == nil {
-			app.ProcessRPGAPICall(w, r, namespace, endpointName, pathParams, requesyBodyFlatMap)
-			return
-		}
-	}
 
 	requestId := middleware.GetReqID(r.Context())
 

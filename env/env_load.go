@@ -76,3 +76,29 @@ func AllowHtmlTemplates() bool {
 
 	return false
 }
+
+// ----------------------------------------------------------------
+//
+// ----------------------------------------------------------------
+func RpgDriverLib(serverName string) string {
+	return strings.TrimSpace(strings.ToUpper(GetEnvVariable(fmt.Sprintf("%s_PGMDRIVERLIB", strings.ToUpper(serverName)), "QXMLSERV")))
+
+}
+
+// ----------------------------------------------------------------
+//
+// ----------------------------------------------------------------
+func RpgDriverNameSpace(serverName string) string {
+
+	return strings.TrimSpace(strings.ToUpper(GetEnvVariable(fmt.Sprintf("%s_PGMDRIVERNAMESPACE", strings.ToUpper(serverName)), fmt.Sprintf("%s_PGMDRIVER", strings.ToUpper(serverName)))))
+
+}
+
+// ----------------------------------------------------------------
+//
+// ----------------------------------------------------------------
+func RpgDefaultDriverprogram(serverName string) string {
+
+	return strings.TrimSpace(strings.ToUpper(GetEnvVariable(fmt.Sprintf("%s_PGMDRIVERLIB", strings.ToUpper(serverName)), "iPLUG512K")))
+
+}

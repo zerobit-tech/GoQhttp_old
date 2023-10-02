@@ -53,13 +53,15 @@ EndPoints
           <svg class="c-icon mfe-2">
             <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-pencil"></use>
         </svg></a> -->
+
+        {{if not .IsSpecial}}
         <a  hx-push-url="true"  class="btn btn-ghost-danger" 
         data-toggle="tooltip" data-placement="bottom" title="Delete" 
         href='/sp/delete/{{.ID}}'>
           <svg class="c-icon mfe-2">
             <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-trash"></use>
         </svg></a>
-
+  {{end}}
       </td>
 
     </tr>

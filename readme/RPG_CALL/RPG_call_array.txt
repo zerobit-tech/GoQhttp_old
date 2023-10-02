@@ -1,0 +1,49 @@
+call QXMLSERV.iPLUG512K('*na','*here *cdata','<?xml version="1.0" ?>
+<xmlservice>
+    <pgm error="fast" lib="SUMITG1" name="QHTTPTEST5" var="QHTTPTEST1">
+        <parm io="both" var="p1">
+            <data type="5s2" var="I1" dim=10>10</data>
+            <data type="5s2" var="I1" dim=10>10</data>
+            <data type="5s2" var="I1" dim=10>10</data>
+            <data type="5s2" var="I1" dim=10>10</data>
+            <data type="5s2" var="I1" dim=10>10</data>
+            <data type="5s2" var="I1" dim=10>10</data>
+            <data type="5s2" var="I1" dim=10>10</data>
+            <data type="5s2" var="I1" dim=10>10</data>
+            <data type="5s2" var="I1" dim=10>10</data>
+            <data type="5s2" var="I1" dim=10>10</data>
+        </parm>
+      
+        <parm io="both" var="p3">
+            <data type="5s2" var="SUM">0</data>
+        </parm>
+      
+    </pgm>
+</xmlservice>',?);
+
+
+
+============ withOUT DIM ALSO WORKDS ==============
+
+call QXMLSERV.iPLUG512K('*na','*here *cdata','<?xml version="1.0" ?>
+<xmlservice>
+    <pgm error="fast" lib="SUMITG1" name="QHTTPTEST5" var="QHTTPTEST1">
+        <parm io="both" var="p1">
+            <data type="5s2" var="I1" >10</data>
+            <data type="5s2" var="I1" >10</data>
+            <data type="5s2" var="I1" >10</data>
+            <data type="5s2" var="I1" >10</data>
+            <data type="5s2" var="I1" >10</data>
+            <data type="5s2" var="I1" >10</data>
+            <data type="5s2" var="I1" >10</data>
+            <data type="5s2" var="I1" >10</data>
+            <data type="5s2" var="I1" >10</data>
+            <data type="5s2" var="I1" >10</data>
+        </parm>
+      
+        <parm io="both" var="p3">
+            <data type="5s2" var="SUM">0</data>
+        </parm>
+      
+    </pgm>
+</xmlservice>',?);

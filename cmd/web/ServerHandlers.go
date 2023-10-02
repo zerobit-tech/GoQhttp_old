@@ -203,7 +203,7 @@ func (app *application) ServerDelete(w http.ResponseWriter, r *http.Request) {
 	data.Server = server
 
 	data.StoredProcs = make([]*storedProc.StoredProc, 0, 10)
-	for _, s := range app.storedProcs.List() {
+	for _, s := range app.storedProcs.List(false) {
 		if s == nil || s.DefaultServer == nil {
 			continue
 		}

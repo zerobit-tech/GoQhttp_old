@@ -1,54 +1,31 @@
 package main
 
-import (
-	"fmt"
+// ------------------------------------------------------------------
+//
+// ------------------------------------------------------------------
+func main2() {
 
-	"github.com/onlysumitg/GoQhttp/internal/rpg"
-)
+	// var xmlService XmlServiceE
+	// err := xml.Unmarshal([]byte(xmlData), &xmlService)
+	// if err != nil {
+	// 	fmt.Printf("Error unmarshalling XML: %v\n", err)
+	// 	return
+	// }
 
-func main() {
+	// fmt.Printf("Error: %s\n", xmlService.Pgm.Error)
+	// fmt.Printf("Lib: %s\n", xmlService.Pgm.Lib)
+	// fmt.Printf("Name: %s\n", xmlService.Pgm.Name)
+	// fmt.Printf("Var: %s\n", xmlService.Pgm.Var)
 
-	p1 := &rpg.Param{
-		Seq:             1,
-		Name:            "P1",
-		DataType:        "ZONED",
-		Length:          5,
-		DecimalPostions: 0,
-		IsDs:            false,
-		DsDim:           0,
-		IsVarying:       false,
-	 
-	}
-	p2 := &rpg.Param{
-		Seq:             2,
-		Name:            "P2",
-		DataType:        "ZONED",
-		Length:          5,
-		DecimalPostions: 0,
-		IsDs:            false,
-		DsDim:           0,
-		IsVarying:       false,
-	 
-	}
+	// jsonString, err := json.MarshalIndent(xmlService.Pgm.ToJson(), " ", "    ")
+	// fmt.Println("===========================start=======================================================")
+	// if err == nil {
+	// 	fmt.Println(string(jsonString))
+	// } else {
+	// 	fmt.Println("Error ", err)
 
-	p3 := &rpg.Param{
-		Seq:             2,
-		Name:            "P3",
-		DataType:        "ZONED",
-		Length:          5,
-		DecimalPostions: 0,
-		IsDs:            false,
-		DsDim:           0,
-		IsVarying:       false,
-	 
-	}
+	// }
+	// fmt.Println("===========================end=======================================================")
 
-	pgm := rpg.Program{
-
-		Name:       "QHTTPTEST1",
-		Lib:        "SUMITG1",
-		Parameters: []*rpg.Param{p1, p2, p3},
-	}
-
-	//fmt.Println(pgm.ToXML())
+	// fmt.Printf("Success: %s\n", xmlService.Pgm.Success)
 }

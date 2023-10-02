@@ -2,12 +2,14 @@ package ibmiServer
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"net/http"
 	"runtime/debug"
-	"strings"
 	"time"
 
 	"github.com/onlysumitg/GoQhttp/internal/rpg"
+	"github.com/onlysumitg/GoQhttp/internal/rpg/responseprocessor"
 	"github.com/onlysumitg/GoQhttp/internal/storedProc"
 	"github.com/onlysumitg/GoQhttp/logger"
 	"github.com/onlysumitg/GoQhttp/utils/stringutils"
@@ -25,7 +27,7 @@ func (s *Server) RPGAPICall(ctx context.Context, callID string, sp *storedProc.S
 	defer func() {
 		if r := recover(); r != nil {
 			responseFormat = &storedProc.StoredProcResponse{
-				ReferenceId: "string",
+				ReferenceId: callID,
 				Status:      500,
 				Message:     fmt.Sprintf("%s", r),
 				Data:        map[string]any{},
@@ -38,13 +40,28 @@ func (s *Server) RPGAPICall(ctx context.Context, callID string, sp *storedProc.S
 		}
 	}()
 
+	callingXML, err := rpgEndPoint.ToXML(params)
+	if err != nil {
+		responseFormat = &storedProc.StoredProcResponse{
+			ReferenceId: callID,
+			Status:      400,
+			Message:     err.Error(),
+			Data:        map[string]any{},
+			//LogData:     []storedProc.LogByType{{Text: fmt.Sprintf("%s", r), Type: "ERROR"}},
+		}
+		responseFormat.LogData = []*logger.LogEvent{logger.GetLogEvent("ERROR", callID, err.Error(), false)}
+		callDuration = time.Since(t1)
+
+		return
+	}
+
 	sqlParms := make(map[string]xmlutils.ValueDatatype)
 
 	sqlParms["IPC"] = xmlutils.ValueDatatype{Value: "*na", DataType: "STRING"}
 	sqlParms["CTL"] = xmlutils.ValueDatatype{Value: "*here *cdata", DataType: "STRING"}
-	sqlParms["CI"] = xmlutils.ValueDatatype{Value: rpgEndPoint.RpgPgm.ToXML(params), DataType: "STRING"}
+	sqlParms["CI"] = xmlutils.ValueDatatype{Value: callingXML, DataType: "STRING"}
 
-	fmt.Println(">>>>>>>>>>>>>>>rpgPgm.ToXML(params)>>>", rpgEndPoint.RpgPgm.ToXML(params))
+	//fmt.Println(">>>>>>>>>>>>>>>rpgPgm.ToXML(params)>>>", rpgEndPoint.ToXML(params))
 	givenParams := make(map[string]any)
 	//.LogInfo("Building parameters for SP call")
 	for k, v := range sqlParms {
@@ -58,60 +75,34 @@ func (s *Server) RPGAPICall(ctx context.Context, callID string, sp *storedProc.S
 
 	returnedXml, found := res.Data["CO"]
 	if found {
+		//fmt.Println(returnedXml.(string))
+		jsonData, err := responseprocessor.ProcessSucessXML(returnedXml.(string))
+		//fmt.Println(">>>>>>>>>>>>>>>response XML>>>", returnedXml.(string))
+		if err == nil {
 
-		xx := returnedXml.(string)
-		decoder := xmlutils.NewDecoder(strings.NewReader(xx))
-		result, err := decoder.Decode()
+			sucessMesaage, sucessFound := jsonData["**Success"]
+			if sucessFound {
+				res.LogData = append(res.LogData, logger.GetLogEvent("INFO", callID, stringutils.AsString(sucessMesaage), false))
+				delete(jsonData, "**Success")
+				res.Data = jsonData
 
-		if err != nil {
-			fmt.Printf("%v\n", err)
-		} else {
-			//	fmt.Printf("%v\n", result)
-			finalValues := make(map[string]any)
+			} else {
+				errorData, jobErrorMDGID, err := responseprocessor.ProcessErrorXML(returnedXml.(string))
+				if err == nil {
+					res.Message = jobErrorMDGID
+					res.Status = http.StatusBadRequest
+					res.Data = map[string]any{}
+					jsonString, err := json.MarshalIndent(errorData, " ", "  ")
+					if err == nil {
 
-			xmlservice, found := result["xmlservice"]
-			if found {
-
-				xmlserviceMap, ok := xmlservice.(map[string]any)
-
-				if ok {
-					pgm, found := xmlserviceMap["pgm"]
-					if found {
-
-						pgmMap, ok := pgm.(map[string]any)
-						if ok {
-							parms, found := pgmMap["parm"]
-							if found {
-								parmsList, ok := parms.([]map[string]any)
-								if ok {
-									for _, parms := range parmsList {
-
-										varName, foundName := parms["@var"]
-
-										data, found := parms["data"]
-										if found {
-											dataMap, ok := data.(map[string]any)
-											if ok {
-												val, found := dataMap["#text"]
-												if found && foundName {
-													finalValues[stringutils.AsString(varName)] = val
-												}
-											}
-										}
-
-									}
-
-								}
-							}
-						}
+						res.LogData = append(res.LogData, logger.GetLogEvent("ERROR", callID, string(jsonString), false))
 					}
 
 				}
-
 			}
-			res.Data["PARSED2"] = finalValues
-
 		}
+
 	}
+
 	return res, callDur, err
 }

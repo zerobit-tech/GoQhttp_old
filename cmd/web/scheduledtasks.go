@@ -19,7 +19,7 @@ import (
 // --------------------------------
 func (app *application) RefreshStoredProces() {
 	log.Println("Starting scheduled RefreshStoredProces")
-	for _, sp := range app.storedProcs.List() {
+	for _, sp := range app.storedProcs.List(false) {
 		log.Println("Checking sp:", sp.Name)
 		serverRcd := sp.DefaultServer
 		if serverRcd != nil && serverRcd.ID != "" {
@@ -42,7 +42,7 @@ func (app *application) RefreshStoredProces() {
 // --------------------------------
 
 func (app *application) RemoveDeletedStoredProcs() {
-	for _, sp := range app.storedProcs.List() {
+	for _, sp := range app.storedProcs.List(false) {
 		serverRcd := sp.DefaultServer
 		if serverRcd != nil && serverRcd.ID != "" {
 			server, err := app.servers.Get(serverRcd.ID)

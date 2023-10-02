@@ -1,5 +1,7 @@
 package rpg
 
+import "strconv"
+
 var DataTypeMap map[string]string = map[string]string{
 
 	"INTEGER 3i0":  "3i0",
@@ -12,18 +14,16 @@ var DataTypeMap map[string]string = map[string]string{
 	"UNSIGNED INTEGER 10u0": "10u0",
 	"UNSIGNED INTEGER 20u0": "20u0",
 
-	"ALPHANUMERIC/CHAR":         "%da",
-	"VARYING ALPHANUMERIC/CHAR": "%da", //<data type='32a' varying='on'/>
-
-	"PACKED": "%dp%d",
-
+	"PACKED":   "%dp%d",
 	"ZONED":    "%ds%d",
 	"FLOAT 4f": "4f2",
 	"FLOAT 8f": "8f2",
-	"TIME":     "8A",
 
-	"TIMESTAMP": "26A",
-	"DATE":      "10A",
+	"VARYING ALPHANUMERIC/CHAR": "%da", //<data type='32a' varying='on'/>
+	"ALPHANUMERIC/CHAR":         "%da",
+	"TIME":                      "8A",
+	"TIMESTAMP":                 "26A",
+	"DATE":                      "10A",
 }
 
 var dataTypeWithLength map[string]bool = map[string]bool{
@@ -72,4 +72,86 @@ func DataTypeNeedLength(dataType string) bool {
 	_, found := dataTypeWithLength[dataType]
 
 	return found
+}
+
+//---------------------------------
+
+var DataTypeValidator map[string]func(string, int, int) bool = map[string]func(string, int, int) bool{
+
+	"INTEGER 3i0":  intValidator,
+	"INTEGER 5i0":  intValidator,
+	"INTEGER 10i0": intValidator,
+	"INTEGER 20i0": intValidator,
+
+	"UNSIGNED INTEGER 3u0":  uintValidator,
+	"UNSIGNED INTEGER 5u0":  uintValidator,
+	"UNSIGNED INTEGER 10u0": uintValidator,
+	"UNSIGNED INTEGER 20u0": uintValidator,
+
+	"PACKED":   floatValidator,
+	"ZONED":    floatValidator,
+	"FLOAT 4f": floatValidator,
+	"FLOAT 8f": floatValidator,
+
+	"VARYING ALPHANUMERIC/CHAR": charValidator, //<data type='32a' varying='on'/>
+	"ALPHANUMERIC/CHAR":         charValidator,
+	"TIME":                      timeValidator,
+	"TIMESTAMP":                 dateValidator,
+	"DATE":                      timestampValidator,
+}
+
+func intValidator(v string, length, decimal int) bool {
+	_, err := strconv.Atoi(v)
+	if err != nil {
+		return false // error
+	}
+	return true
+}
+func uintValidator(v string, length, decimal int) bool {
+	i, err := strconv.Atoi(v)
+	if err != nil {
+		return false // error
+	}
+
+	if i < 0 {
+		return false // error
+	}
+	return true
+}
+
+func floatValidator(v string, length, decimal int) bool {
+	_, err := strconv.ParseFloat(v, 64)
+	if err != nil {
+		return false // error
+	}
+	return true
+}
+
+func charValidator(v string, length, decimal int) bool {
+	if len(v) > length {
+		return false
+	}
+
+	return true
+}
+func timeValidator(v string, length, decimal int) bool {
+	if len(v) > 8 {
+		return false
+	}
+
+	return true
+}
+func dateValidator(v string, length, decimal int) bool {
+	if len(v) > 10 {
+		return false
+	}
+
+	return true
+}
+func timestampValidator(v string, length, decimal int) bool {
+	if len(v) > 26 {
+		return false
+	}
+
+	return true
 }

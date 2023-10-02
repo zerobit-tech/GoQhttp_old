@@ -28,7 +28,7 @@ func (app *application) ProcessRPGAPICall(w http.ResponseWriter, r *http.Request
 
 	defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
 
-	rpgEndpoint, sp, endPointNotfoundError := app.GetRPGEndPoint(namespace, endpointName, r.Method)
+	rpgEndpoint, endPointNotfoundError := app.GetRPGEndPoint(namespace, endpointName, r.Method)
 
 	requestId := middleware.GetReqID(r.Context())
 
@@ -72,20 +72,21 @@ func (app *application) ProcessRPGAPICall(w http.ResponseWriter, r *http.Request
 
 	user, found := app.getCurrentUser(r)
 
-	// if !found && !rpgEndpoint.AllowWithoutAuth { <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< NEED TO CHECK
-	// 	apiCall.Logger("INFO", "Unauthoerized user", false)
+	if !found && !rpgEndpoint.AllowWithoutAuth {
+		apiCall.Logger("INFO", "Unauthoerized user", false)
 
-	// 	response.Status = http.StatusUnauthorized
-	// 	response.Message = http.StatusText(http.StatusUnauthorized)
-	// 	app.writeJSONAPI(w, response, nil)
-	// 	return
-	// }
+		response.Status = http.StatusUnauthorized
+		response.Message = http.StatusText(http.StatusUnauthorized)
+		app.writeJSONAPI(w, response, nil)
+		return
+	}
 	if found {
 		apiCall.Logger("INFO", fmt.Sprintf("Request user %s %s", user.Name, user.Email), false)
 	} else {
 		apiCall.Logger("INFO", "Processing request without Auth", false)
 	}
 
+	//  ------------------------------- GET Server TO use ------------------------------
 	server, level := app.getServerToUseRPG(rpgEndpoint, user)
 	if server == nil || level == 0 {
 
@@ -100,6 +101,19 @@ func (app *application) ProcessRPGAPICall(w http.ResponseWriter, r *http.Request
 
 	apiCall.Logger("INFO", fmt.Sprintf("Server assigned %s@%s", server.GetUserName(), server.Name), false)
 
+	// ------------------------------ GET Driver to user --------------------
+
+	sp, err := app.GetRPGDriver(rpgEndpoint, server)
+	if err != nil {
+		apiCall.Logger("ERROR", fmt.Sprintf("Program Driver not found for: %s %s/%s", r.Method, namespace, endpointName), false)
+		response.Status = http.StatusNotImplemented
+		response.Message = endPointNotfoundError.Error()
+		app.writeJSONAPI(w, response, nil)
+		return
+
+	}
+	// ------------------------------ Inject request data to input payload --------------------
+
 	app.InjectRequestInfo(r, requesyBodyFlatMap)
 	app.InjectServerInfo(server, requesyBodyFlatMap)
 
@@ -111,9 +125,9 @@ func (app *application) ProcessRPGAPICall(w http.ResponseWriter, r *http.Request
 
 	// apiCall.ResponseString = html.UnescapeString(endPoint.ResponsePlaceholder) //string(jsonByte)
 
-	apiCall.Logger("INFO", fmt.Sprintf("Calling RPG %s   on server %s", apiCall.CurrentRpgEndPoint.EndPointName, server.Name), false)
+	apiCall.Logger("INFO", fmt.Sprintf("Calling RPG %s on server %s", apiCall.CurrentRpgEndPoint.EndPointName, server.Name), false)
 
-	// call the SP
+	// ------------------------------  actual PGM CALL --------------------
 	apiCall.Response, apiCall.SPCallDuration, apiCall.Err = server.RPGAPICall(r.Context(), apiCall.ID, sp, rpgEndpoint, apiCall.RequestFlatMap, app.GetParamValidatorRegex())
 	//log.Printf("%v: %v\n", "SeversCall006", time.Now())
 
@@ -129,10 +143,6 @@ func (app *application) ProcessRPGAPICall(w http.ResponseWriter, r *http.Request
 	apiCall.Logger("INFO", "Finalizing response", false)
 
 	apiCall.Finalize()
-
-	// // JSON or XML ===> TODO
-	// //app.writeJSON(w, apiCall.ResponseCode, apiCall.Response, apiCall.GetHttpHeader())
-	// //app.writeJSON(w, apiCall.ResponseCode, apiCall.Response, apiCall.GetHttpHeader())
 
 	if app.allowHtmlTemplates() && rpgEndpoint.HtmlTemplate != "" {
 		templateData := map[string]any{
@@ -165,7 +175,7 @@ func (app *application) ProcessRPGAPICall(w http.ResponseWriter, r *http.Request
 
 func (app *application) getServerToUseRPG(endPoint *rpg.RpgEndPoint, user *models.User) (*ibmiServer.Server, int) {
 
-	//var userServer *ibmiServer.Server = nil
+	var userServer *ibmiServer.Server = nil
 	var endPointServer *ibmiServer.Server = nil
 
 	endPointServer, err1 := app.servers.Get(endPoint.DefaultServerId)
@@ -173,33 +183,32 @@ func (app *application) getServerToUseRPG(endPoint *rpg.RpgEndPoint, user *model
 		endPointServer = nil
 	}
 
-	return endPointServer, 2
-	// if user != nil {
-	// 	userServer2, err2 := app.servers.Get(user.ServerId)
-	// 	if err2 != nil {
-	// 		userServer = nil
-	// 	} else {
-	// 		userServer = userServer2
-	// 	}
-	// }
+	if user != nil {
+		userServer2, err2 := app.servers.Get(user.ServerId)
+		if err2 != nil {
+			userServer = nil
+		} else {
+			userServer = userServer2
+		}
+	}
 
-	// if userServer != nil && endPoint.IsAllowedForServer(userServer.ID) {
+	if userServer != nil && endPoint.IsAllowedForServer(userServer.ID) {
 
-	// 	return userServer, 1 // 1= user server
+		return userServer, 1 // 1= user server
 
-	// }
+	}
 
-	// // allow endpoint server only for unauth users
+	// allow endpoint server only for unauth users
 
-	// if endPoint.AllowWithoutAuth {
+	if endPoint.AllowWithoutAuth {
 
-	// 	if endPointServer != nil && endPoint.IsAllowedForServer(endPointServer.ID) {
+		if endPointServer != nil && endPoint.IsAllowedForServer(endPointServer.ID) {
 
-	// 		return endPointServer, 2 // 2= endpoint server
+			return endPointServer, 2 // 2= endpoint server
 
-	// 	}
-	// }
+		}
+	}
 
-	// return nil, 0
+	return nil, 0
 
 }

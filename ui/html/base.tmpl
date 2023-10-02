@@ -69,12 +69,18 @@
 
 
 
-
+<!--  Pgm options -->
+{{if .RpgEndPoint}}
+{{if .RpgEndPoint.ID}}
+    {{template "pgmoptions" .}}
+{{end}}
+{{end}}
+<!--  PGM options end-->
 <!--  sp options -->
       {{if .StoredProc}}
       {{if .StoredProc.ID}}
           {{template "spoptions" .}}
-          {{end}}
+      {{end}}
       {{end}}
  <!--  sp options end-->
 

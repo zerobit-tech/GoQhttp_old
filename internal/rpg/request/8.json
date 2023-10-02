@@ -1,0 +1,2067 @@
+
+Payload 	for qhttptst81
+
+
+iname char(10);
+inum zoned(5:0) ;
+inamea char(10) dim(2);
+inuma zoned(5:0) dim(2) ;
+
+iDS likeds(MyDs81) dim(2);
+
+inonnested2 likeds(MyDs281);
+inonnested3 likeds(MyDs381);
+
+ODs likeds(MyDs81) dim(2);
+
+oname char(10);
+onum zoned(5:0) ;
+
+onamea char(10) dim(2);
+onuma zoned(5:0) dim(2) ;
+ononnested2 likeds(MyDs281);
+ononnested3 likeds(MyDs381);
+
+
+{
+    "ODs": [
+      {
+        "multi": [
+          "{ZONED}",
+          "{ZONED}"
+        ],
+        "multi2": [
+          "{ZONED}",
+          "{ZONED}"
+        ],
+        "name": "{ALPHANUMERIC/CHAR}",
+        "name2": "{ALPHANUMERIC/CHAR}",
+        "nested2": [
+          {
+            "ds2multi": [
+              "{ZONED}",
+              "{ZONED}"
+            ],
+            "ds2multi2": [
+              "{ZONED}",
+              "{ZONED}"
+            ],
+            "ds2name": "{ALPHANUMERIC/CHAR}",
+            "ds2nested3": [
+              {
+                "ds3multi": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3multi3": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3name": "{ALPHANUMERIC/CHAR}",
+                "ds3name2": "{ALPHANUMERIC/CHAR}"
+              },
+              {
+                "ds3multi": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3multi3": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3name": "{ALPHANUMERIC/CHAR}",
+                "ds3name2": "{ALPHANUMERIC/CHAR}"
+              }
+            ],
+            "ds2nested32": [
+              {
+                "ds3multi": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3multi3": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3name": "{ALPHANUMERIC/CHAR}",
+                "ds3name2": "{ALPHANUMERIC/CHAR}"
+              },
+              {
+                "ds3multi": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3multi3": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3name": "{ALPHANUMERIC/CHAR}",
+                "ds3name2": "{ALPHANUMERIC/CHAR}"
+              }
+            ],
+            "ds2nondimd3": {
+              "ds3multi": [
+                "{ZONED}",
+                "{ZONED}"
+              ],
+              "ds3multi3": [
+                "{ZONED}",
+                "{ZONED}"
+              ],
+              "ds3name": "{ALPHANUMERIC/CHAR}",
+              "ds3name2": "{ALPHANUMERIC/CHAR}"
+            },
+            "ds3name2": "{ALPHANUMERIC/CHAR}"
+          },
+          {
+            "ds2multi": [
+              "{ZONED}",
+              "{ZONED}"
+            ],
+            "ds2multi2": [
+              "{ZONED}",
+              "{ZONED}"
+            ],
+            "ds2name": "{ALPHANUMERIC/CHAR}",
+            "ds2nested3": [
+              {
+                "ds3multi": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3multi3": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3name": "{ALPHANUMERIC/CHAR}",
+                "ds3name2": "{ALPHANUMERIC/CHAR}"
+              },
+              {
+                "ds3multi": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3multi3": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3name": "{ALPHANUMERIC/CHAR}",
+                "ds3name2": "{ALPHANUMERIC/CHAR}"
+              }
+            ],
+            "ds2nested32": [
+              {
+                "ds3multi": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3multi3": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3name": "{ALPHANUMERIC/CHAR}",
+                "ds3name2": "{ALPHANUMERIC/CHAR}"
+              },
+              {
+                "ds3multi": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3multi3": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3name": "{ALPHANUMERIC/CHAR}",
+                "ds3name2": "{ALPHANUMERIC/CHAR}"
+              }
+            ],
+            "ds2nondimd3": {
+              "ds3multi": [
+                "{ZONED}",
+                "{ZONED}"
+              ],
+              "ds3multi3": [
+                "{ZONED}",
+                "{ZONED}"
+              ],
+              "ds3name": "{ALPHANUMERIC/CHAR}",
+              "ds3name2": "{ALPHANUMERIC/CHAR}"
+            },
+            "ds3name2": "{ALPHANUMERIC/CHAR}"
+          }
+        ],
+        "nested22": [
+          {
+            "ds2multi": [
+              "{ZONED}",
+              "{ZONED}"
+            ],
+            "ds2multi2": [
+              "{ZONED}",
+              "{ZONED}"
+            ],
+            "ds2name": "{ALPHANUMERIC/CHAR}",
+            "ds2nested3": [
+              {
+                "ds3multi": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3multi3": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3name": "{ALPHANUMERIC/CHAR}",
+                "ds3name2": "{ALPHANUMERIC/CHAR}"
+              },
+              {
+                "ds3multi": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3multi3": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3name": "{ALPHANUMERIC/CHAR}",
+                "ds3name2": "{ALPHANUMERIC/CHAR}"
+              }
+            ],
+            "ds2nested32": [
+              {
+                "ds3multi": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3multi3": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3name": "{ALPHANUMERIC/CHAR}",
+                "ds3name2": "{ALPHANUMERIC/CHAR}"
+              },
+              {
+                "ds3multi": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3multi3": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3name": "{ALPHANUMERIC/CHAR}",
+                "ds3name2": "{ALPHANUMERIC/CHAR}"
+              }
+            ],
+            "ds2nondimd3": {
+              "ds3multi": [
+                "{ZONED}",
+                "{ZONED}"
+              ],
+              "ds3multi3": [
+                "{ZONED}",
+                "{ZONED}"
+              ],
+              "ds3name": "{ALPHANUMERIC/CHAR}",
+              "ds3name2": "{ALPHANUMERIC/CHAR}"
+            },
+            "ds3name2": "{ALPHANUMERIC/CHAR}"
+          },
+          {
+            "ds2multi": [
+              "{ZONED}",
+              "{ZONED}"
+            ],
+            "ds2multi2": [
+              "{ZONED}",
+              "{ZONED}"
+            ],
+            "ds2name": "{ALPHANUMERIC/CHAR}",
+            "ds2nested3": [
+              {
+                "ds3multi": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3multi3": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3name": "{ALPHANUMERIC/CHAR}",
+                "ds3name2": "{ALPHANUMERIC/CHAR}"
+              },
+              {
+                "ds3multi": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3multi3": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3name": "{ALPHANUMERIC/CHAR}",
+                "ds3name2": "{ALPHANUMERIC/CHAR}"
+              }
+            ],
+            "ds2nested32": [
+              {
+                "ds3multi": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3multi3": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3name": "{ALPHANUMERIC/CHAR}",
+                "ds3name2": "{ALPHANUMERIC/CHAR}"
+              },
+              {
+                "ds3multi": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3multi3": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3name": "{ALPHANUMERIC/CHAR}",
+                "ds3name2": "{ALPHANUMERIC/CHAR}"
+              }
+            ],
+            "ds2nondimd3": {
+              "ds3multi": [
+                "{ZONED}",
+                "{ZONED}"
+              ],
+              "ds3multi3": [
+                "{ZONED}",
+                "{ZONED}"
+              ],
+              "ds3name": "{ALPHANUMERIC/CHAR}",
+              "ds3name2": "{ALPHANUMERIC/CHAR}"
+            },
+            "ds3name2": "{ALPHANUMERIC/CHAR}"
+          }
+        ],
+        "nested3": [
+          {
+            "ds3multi": [
+              "{ZONED}",
+              "{ZONED}"
+            ],
+            "ds3multi3": [
+              "{ZONED}",
+              "{ZONED}"
+            ],
+            "ds3name": "{ALPHANUMERIC/CHAR}",
+            "ds3name2": "{ALPHANUMERIC/CHAR}"
+          },
+          {
+            "ds3multi": [
+              "{ZONED}",
+              "{ZONED}"
+            ],
+            "ds3multi3": [
+              "{ZONED}",
+              "{ZONED}"
+            ],
+            "ds3name": "{ALPHANUMERIC/CHAR}",
+            "ds3name2": "{ALPHANUMERIC/CHAR}"
+          }
+        ],
+        "nested32": [
+          {
+            "ds3multi": [
+              "{ZONED}",
+              "{ZONED}"
+            ],
+            "ds3multi3": [
+              "{ZONED}",
+              "{ZONED}"
+            ],
+            "ds3name": "{ALPHANUMERIC/CHAR}",
+            "ds3name2": "{ALPHANUMERIC/CHAR}"
+          },
+          {
+            "ds3multi": [
+              "{ZONED}",
+              "{ZONED}"
+            ],
+            "ds3multi3": [
+              "{ZONED}",
+              "{ZONED}"
+            ],
+            "ds3name": "{ALPHANUMERIC/CHAR}",
+            "ds3name2": "{ALPHANUMERIC/CHAR}"
+          }
+        ],
+        "nonnested2": {
+          "ds2multi": [
+            "{ZONED}",
+            "{ZONED}"
+          ],
+          "ds2multi2": [
+            "{ZONED}",
+            "{ZONED}"
+          ],
+          "ds2name": "{ALPHANUMERIC/CHAR}",
+          "ds2nested3": [
+            {
+              "ds3multi": [
+                "{ZONED}",
+                "{ZONED}"
+              ],
+              "ds3multi3": [
+                "{ZONED}",
+                "{ZONED}"
+              ],
+              "ds3name": "{ALPHANUMERIC/CHAR}",
+              "ds3name2": "{ALPHANUMERIC/CHAR}"
+            },
+            {
+              "ds3multi": [
+                "{ZONED}",
+                "{ZONED}"
+              ],
+              "ds3multi3": [
+                "{ZONED}",
+                "{ZONED}"
+              ],
+              "ds3name": "{ALPHANUMERIC/CHAR}",
+              "ds3name2": "{ALPHANUMERIC/CHAR}"
+            }
+          ],
+          "ds2nested32": [
+            {
+              "ds3multi": [
+                "{ZONED}",
+                "{ZONED}"
+              ],
+              "ds3multi3": [
+                "{ZONED}",
+                "{ZONED}"
+              ],
+              "ds3name": "{ALPHANUMERIC/CHAR}",
+              "ds3name2": "{ALPHANUMERIC/CHAR}"
+            },
+            {
+              "ds3multi": [
+                "{ZONED}",
+                "{ZONED}"
+              ],
+              "ds3multi3": [
+                "{ZONED}",
+                "{ZONED}"
+              ],
+              "ds3name": "{ALPHANUMERIC/CHAR}",
+              "ds3name2": "{ALPHANUMERIC/CHAR}"
+            }
+          ],
+          "ds2nondimd3": {
+            "ds3multi": [
+              "{ZONED}",
+              "{ZONED}"
+            ],
+            "ds3multi3": [
+              "{ZONED}",
+              "{ZONED}"
+            ],
+            "ds3name": "{ALPHANUMERIC/CHAR}",
+            "ds3name2": "{ALPHANUMERIC/CHAR}"
+          },
+          "ds3name2": "{ALPHANUMERIC/CHAR}"
+        },
+        "nonnested3": {
+          "ds3multi": [
+            "{ZONED}",
+            "{ZONED}"
+          ],
+          "ds3multi3": [
+            "{ZONED}",
+            "{ZONED}"
+          ],
+          "ds3name": "{ALPHANUMERIC/CHAR}",
+          "ds3name2": "{ALPHANUMERIC/CHAR}"
+        }
+      },
+      {
+        "multi": [
+          "{ZONED}",
+          "{ZONED}"
+        ],
+        "multi2": [
+          "{ZONED}",
+          "{ZONED}"
+        ],
+        "name": "{ALPHANUMERIC/CHAR}",
+        "name2": "{ALPHANUMERIC/CHAR}",
+        "nested2": [
+          {
+            "ds2multi": [
+              "{ZONED}",
+              "{ZONED}"
+            ],
+            "ds2multi2": [
+              "{ZONED}",
+              "{ZONED}"
+            ],
+            "ds2name": "{ALPHANUMERIC/CHAR}",
+            "ds2nested3": [
+              {
+                "ds3multi": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3multi3": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3name": "{ALPHANUMERIC/CHAR}",
+                "ds3name2": "{ALPHANUMERIC/CHAR}"
+              },
+              {
+                "ds3multi": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3multi3": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3name": "{ALPHANUMERIC/CHAR}",
+                "ds3name2": "{ALPHANUMERIC/CHAR}"
+              }
+            ],
+            "ds2nested32": [
+              {
+                "ds3multi": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3multi3": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3name": "{ALPHANUMERIC/CHAR}",
+                "ds3name2": "{ALPHANUMERIC/CHAR}"
+              },
+              {
+                "ds3multi": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3multi3": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3name": "{ALPHANUMERIC/CHAR}",
+                "ds3name2": "{ALPHANUMERIC/CHAR}"
+              }
+            ],
+            "ds2nondimd3": {
+              "ds3multi": [
+                "{ZONED}",
+                "{ZONED}"
+              ],
+              "ds3multi3": [
+                "{ZONED}",
+                "{ZONED}"
+              ],
+              "ds3name": "{ALPHANUMERIC/CHAR}",
+              "ds3name2": "{ALPHANUMERIC/CHAR}"
+            },
+            "ds3name2": "{ALPHANUMERIC/CHAR}"
+          },
+          {
+            "ds2multi": [
+              "{ZONED}",
+              "{ZONED}"
+            ],
+            "ds2multi2": [
+              "{ZONED}",
+              "{ZONED}"
+            ],
+            "ds2name": "{ALPHANUMERIC/CHAR}",
+            "ds2nested3": [
+              {
+                "ds3multi": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3multi3": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3name": "{ALPHANUMERIC/CHAR}",
+                "ds3name2": "{ALPHANUMERIC/CHAR}"
+              },
+              {
+                "ds3multi": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3multi3": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3name": "{ALPHANUMERIC/CHAR}",
+                "ds3name2": "{ALPHANUMERIC/CHAR}"
+              }
+            ],
+            "ds2nested32": [
+              {
+                "ds3multi": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3multi3": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3name": "{ALPHANUMERIC/CHAR}",
+                "ds3name2": "{ALPHANUMERIC/CHAR}"
+              },
+              {
+                "ds3multi": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3multi3": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3name": "{ALPHANUMERIC/CHAR}",
+                "ds3name2": "{ALPHANUMERIC/CHAR}"
+              }
+            ],
+            "ds2nondimd3": {
+              "ds3multi": [
+                "{ZONED}",
+                "{ZONED}"
+              ],
+              "ds3multi3": [
+                "{ZONED}",
+                "{ZONED}"
+              ],
+              "ds3name": "{ALPHANUMERIC/CHAR}",
+              "ds3name2": "{ALPHANUMERIC/CHAR}"
+            },
+            "ds3name2": "{ALPHANUMERIC/CHAR}"
+          }
+        ],
+        "nested22": [
+          {
+            "ds2multi": [
+              "{ZONED}",
+              "{ZONED}"
+            ],
+            "ds2multi2": [
+              "{ZONED}",
+              "{ZONED}"
+            ],
+            "ds2name": "{ALPHANUMERIC/CHAR}",
+            "ds2nested3": [
+              {
+                "ds3multi": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3multi3": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3name": "{ALPHANUMERIC/CHAR}",
+                "ds3name2": "{ALPHANUMERIC/CHAR}"
+              },
+              {
+                "ds3multi": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3multi3": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3name": "{ALPHANUMERIC/CHAR}",
+                "ds3name2": "{ALPHANUMERIC/CHAR}"
+              }
+            ],
+            "ds2nested32": [
+              {
+                "ds3multi": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3multi3": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3name": "{ALPHANUMERIC/CHAR}",
+                "ds3name2": "{ALPHANUMERIC/CHAR}"
+              },
+              {
+                "ds3multi": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3multi3": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3name": "{ALPHANUMERIC/CHAR}",
+                "ds3name2": "{ALPHANUMERIC/CHAR}"
+              }
+            ],
+            "ds2nondimd3": {
+              "ds3multi": [
+                "{ZONED}",
+                "{ZONED}"
+              ],
+              "ds3multi3": [
+                "{ZONED}",
+                "{ZONED}"
+              ],
+              "ds3name": "{ALPHANUMERIC/CHAR}",
+              "ds3name2": "{ALPHANUMERIC/CHAR}"
+            },
+            "ds3name2": "{ALPHANUMERIC/CHAR}"
+          },
+          {
+            "ds2multi": [
+              "{ZONED}",
+              "{ZONED}"
+            ],
+            "ds2multi2": [
+              "{ZONED}",
+              "{ZONED}"
+            ],
+            "ds2name": "{ALPHANUMERIC/CHAR}",
+            "ds2nested3": [
+              {
+                "ds3multi": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3multi3": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3name": "{ALPHANUMERIC/CHAR}",
+                "ds3name2": "{ALPHANUMERIC/CHAR}"
+              },
+              {
+                "ds3multi": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3multi3": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3name": "{ALPHANUMERIC/CHAR}",
+                "ds3name2": "{ALPHANUMERIC/CHAR}"
+              }
+            ],
+            "ds2nested32": [
+              {
+                "ds3multi": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3multi3": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3name": "{ALPHANUMERIC/CHAR}",
+                "ds3name2": "{ALPHANUMERIC/CHAR}"
+              },
+              {
+                "ds3multi": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3multi3": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3name": "{ALPHANUMERIC/CHAR}",
+                "ds3name2": "{ALPHANUMERIC/CHAR}"
+              }
+            ],
+            "ds2nondimd3": {
+              "ds3multi": [
+                "{ZONED}",
+                "{ZONED}"
+              ],
+              "ds3multi3": [
+                "{ZONED}",
+                "{ZONED}"
+              ],
+              "ds3name": "{ALPHANUMERIC/CHAR}",
+              "ds3name2": "{ALPHANUMERIC/CHAR}"
+            },
+            "ds3name2": "{ALPHANUMERIC/CHAR}"
+          }
+        ],
+        "nested3": [
+          {
+            "ds3multi": [
+              "{ZONED}",
+              "{ZONED}"
+            ],
+            "ds3multi3": [
+              "{ZONED}",
+              "{ZONED}"
+            ],
+            "ds3name": "{ALPHANUMERIC/CHAR}",
+            "ds3name2": "{ALPHANUMERIC/CHAR}"
+          },
+          {
+            "ds3multi": [
+              "{ZONED}",
+              "{ZONED}"
+            ],
+            "ds3multi3": [
+              "{ZONED}",
+              "{ZONED}"
+            ],
+            "ds3name": "{ALPHANUMERIC/CHAR}",
+            "ds3name2": "{ALPHANUMERIC/CHAR}"
+          }
+        ],
+        "nested32": [
+          {
+            "ds3multi": [
+              "{ZONED}",
+              "{ZONED}"
+            ],
+            "ds3multi3": [
+              "{ZONED}",
+              "{ZONED}"
+            ],
+            "ds3name": "{ALPHANUMERIC/CHAR}",
+            "ds3name2": "{ALPHANUMERIC/CHAR}"
+          },
+          {
+            "ds3multi": [
+              "{ZONED}",
+              "{ZONED}"
+            ],
+            "ds3multi3": [
+              "{ZONED}",
+              "{ZONED}"
+            ],
+            "ds3name": "{ALPHANUMERIC/CHAR}",
+            "ds3name2": "{ALPHANUMERIC/CHAR}"
+          }
+        ],
+        "nonnested2": {
+          "ds2multi": [
+            "{ZONED}",
+            "{ZONED}"
+          ],
+          "ds2multi2": [
+            "{ZONED}",
+            "{ZONED}"
+          ],
+          "ds2name": "{ALPHANUMERIC/CHAR}",
+          "ds2nested3": [
+            {
+              "ds3multi": [
+                "{ZONED}",
+                "{ZONED}"
+              ],
+              "ds3multi3": [
+                "{ZONED}",
+                "{ZONED}"
+              ],
+              "ds3name": "{ALPHANUMERIC/CHAR}",
+              "ds3name2": "{ALPHANUMERIC/CHAR}"
+            },
+            {
+              "ds3multi": [
+                "{ZONED}",
+                "{ZONED}"
+              ],
+              "ds3multi3": [
+                "{ZONED}",
+                "{ZONED}"
+              ],
+              "ds3name": "{ALPHANUMERIC/CHAR}",
+              "ds3name2": "{ALPHANUMERIC/CHAR}"
+            }
+          ],
+          "ds2nested32": [
+            {
+              "ds3multi": [
+                "{ZONED}",
+                "{ZONED}"
+              ],
+              "ds3multi3": [
+                "{ZONED}",
+                "{ZONED}"
+              ],
+              "ds3name": "{ALPHANUMERIC/CHAR}",
+              "ds3name2": "{ALPHANUMERIC/CHAR}"
+            },
+            {
+              "ds3multi": [
+                "{ZONED}",
+                "{ZONED}"
+              ],
+              "ds3multi3": [
+                "{ZONED}",
+                "{ZONED}"
+              ],
+              "ds3name": "{ALPHANUMERIC/CHAR}",
+              "ds3name2": "{ALPHANUMERIC/CHAR}"
+            }
+          ],
+          "ds2nondimd3": {
+            "ds3multi": [
+              "{ZONED}",
+              "{ZONED}"
+            ],
+            "ds3multi3": [
+              "{ZONED}",
+              "{ZONED}"
+            ],
+            "ds3name": "{ALPHANUMERIC/CHAR}",
+            "ds3name2": "{ALPHANUMERIC/CHAR}"
+          },
+          "ds3name2": "{ALPHANUMERIC/CHAR}"
+        },
+        "nonnested3": {
+          "ds3multi": [
+            "{ZONED}",
+            "{ZONED}"
+          ],
+          "ds3multi3": [
+            "{ZONED}",
+            "{ZONED}"
+          ],
+          "ds3name": "{ALPHANUMERIC/CHAR}",
+          "ds3name2": "{ALPHANUMERIC/CHAR}"
+        }
+      }
+    ],
+    "iDS": [
+      {
+        "multi": [
+          "{ZONED}",
+          "{ZONED}"
+        ],
+        "multi2": [
+          "{ZONED}",
+          "{ZONED}"
+        ],
+        "name": "{ALPHANUMERIC/CHAR}",
+        "name2": "{ALPHANUMERIC/CHAR}",
+        "nested2": [
+          {
+            "ds2multi": [
+              "{ZONED}",
+              "{ZONED}"
+            ],
+            "ds2multi2": [
+              "{ZONED}",
+              "{ZONED}"
+            ],
+            "ds2name": "{ALPHANUMERIC/CHAR}",
+            "ds2nested3": [
+              {
+                "ds3multi": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3multi3": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3name": "{ALPHANUMERIC/CHAR}",
+                "ds3name2": "{ALPHANUMERIC/CHAR}"
+              },
+              {
+                "ds3multi": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3multi3": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3name": "{ALPHANUMERIC/CHAR}",
+                "ds3name2": "{ALPHANUMERIC/CHAR}"
+              }
+            ],
+            "ds2nested32": [
+              {
+                "ds3multi": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3multi3": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3name": "{ALPHANUMERIC/CHAR}",
+                "ds3name2": "{ALPHANUMERIC/CHAR}"
+              },
+              {
+                "ds3multi": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3multi3": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3name": "{ALPHANUMERIC/CHAR}",
+                "ds3name2": "{ALPHANUMERIC/CHAR}"
+              }
+            ],
+            "ds2nondimd3": {
+              "ds3multi": [
+                "{ZONED}",
+                "{ZONED}"
+              ],
+              "ds3multi3": [
+                "{ZONED}",
+                "{ZONED}"
+              ],
+              "ds3name": "{ALPHANUMERIC/CHAR}",
+              "ds3name2": "{ALPHANUMERIC/CHAR}"
+            },
+            "ds3name2": "{ALPHANUMERIC/CHAR}"
+          },
+          {
+            "ds2multi": [
+              "{ZONED}",
+              "{ZONED}"
+            ],
+            "ds2multi2": [
+              "{ZONED}",
+              "{ZONED}"
+            ],
+            "ds2name": "{ALPHANUMERIC/CHAR}",
+            "ds2nested3": [
+              {
+                "ds3multi": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3multi3": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3name": "{ALPHANUMERIC/CHAR}",
+                "ds3name2": "{ALPHANUMERIC/CHAR}"
+              },
+              {
+                "ds3multi": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3multi3": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3name": "{ALPHANUMERIC/CHAR}",
+                "ds3name2": "{ALPHANUMERIC/CHAR}"
+              }
+            ],
+            "ds2nested32": [
+              {
+                "ds3multi": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3multi3": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3name": "{ALPHANUMERIC/CHAR}",
+                "ds3name2": "{ALPHANUMERIC/CHAR}"
+              },
+              {
+                "ds3multi": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3multi3": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3name": "{ALPHANUMERIC/CHAR}",
+                "ds3name2": "{ALPHANUMERIC/CHAR}"
+              }
+            ],
+            "ds2nondimd3": {
+              "ds3multi": [
+                "{ZONED}",
+                "{ZONED}"
+              ],
+              "ds3multi3": [
+                "{ZONED}",
+                "{ZONED}"
+              ],
+              "ds3name": "{ALPHANUMERIC/CHAR}",
+              "ds3name2": "{ALPHANUMERIC/CHAR}"
+            },
+            "ds3name2": "{ALPHANUMERIC/CHAR}"
+          }
+        ],
+        "nested22": [
+          {
+            "ds2multi": [
+              "{ZONED}",
+              "{ZONED}"
+            ],
+            "ds2multi2": [
+              "{ZONED}",
+              "{ZONED}"
+            ],
+            "ds2name": "{ALPHANUMERIC/CHAR}",
+            "ds2nested3": [
+              {
+                "ds3multi": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3multi3": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3name": "{ALPHANUMERIC/CHAR}",
+                "ds3name2": "{ALPHANUMERIC/CHAR}"
+              },
+              {
+                "ds3multi": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3multi3": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3name": "{ALPHANUMERIC/CHAR}",
+                "ds3name2": "{ALPHANUMERIC/CHAR}"
+              }
+            ],
+            "ds2nested32": [
+              {
+                "ds3multi": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3multi3": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3name": "{ALPHANUMERIC/CHAR}",
+                "ds3name2": "{ALPHANUMERIC/CHAR}"
+              },
+              {
+                "ds3multi": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3multi3": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3name": "{ALPHANUMERIC/CHAR}",
+                "ds3name2": "{ALPHANUMERIC/CHAR}"
+              }
+            ],
+            "ds2nondimd3": {
+              "ds3multi": [
+                "{ZONED}",
+                "{ZONED}"
+              ],
+              "ds3multi3": [
+                "{ZONED}",
+                "{ZONED}"
+              ],
+              "ds3name": "{ALPHANUMERIC/CHAR}",
+              "ds3name2": "{ALPHANUMERIC/CHAR}"
+            },
+            "ds3name2": "{ALPHANUMERIC/CHAR}"
+          },
+          {
+            "ds2multi": [
+              "{ZONED}",
+              "{ZONED}"
+            ],
+            "ds2multi2": [
+              "{ZONED}",
+              "{ZONED}"
+            ],
+            "ds2name": "{ALPHANUMERIC/CHAR}",
+            "ds2nested3": [
+              {
+                "ds3multi": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3multi3": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3name": "{ALPHANUMERIC/CHAR}",
+                "ds3name2": "{ALPHANUMERIC/CHAR}"
+              },
+              {
+                "ds3multi": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3multi3": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3name": "{ALPHANUMERIC/CHAR}",
+                "ds3name2": "{ALPHANUMERIC/CHAR}"
+              }
+            ],
+            "ds2nested32": [
+              {
+                "ds3multi": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3multi3": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3name": "{ALPHANUMERIC/CHAR}",
+                "ds3name2": "{ALPHANUMERIC/CHAR}"
+              },
+              {
+                "ds3multi": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3multi3": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3name": "{ALPHANUMERIC/CHAR}",
+                "ds3name2": "{ALPHANUMERIC/CHAR}"
+              }
+            ],
+            "ds2nondimd3": {
+              "ds3multi": [
+                "{ZONED}",
+                "{ZONED}"
+              ],
+              "ds3multi3": [
+                "{ZONED}",
+                "{ZONED}"
+              ],
+              "ds3name": "{ALPHANUMERIC/CHAR}",
+              "ds3name2": "{ALPHANUMERIC/CHAR}"
+            },
+            "ds3name2": "{ALPHANUMERIC/CHAR}"
+          }
+        ],
+        "nested3": [
+          {
+            "ds3multi": [
+              "{ZONED}",
+              "{ZONED}"
+            ],
+            "ds3multi3": [
+              "{ZONED}",
+              "{ZONED}"
+            ],
+            "ds3name": "{ALPHANUMERIC/CHAR}",
+            "ds3name2": "{ALPHANUMERIC/CHAR}"
+          },
+          {
+            "ds3multi": [
+              "{ZONED}",
+              "{ZONED}"
+            ],
+            "ds3multi3": [
+              "{ZONED}",
+              "{ZONED}"
+            ],
+            "ds3name": "{ALPHANUMERIC/CHAR}",
+            "ds3name2": "{ALPHANUMERIC/CHAR}"
+          }
+        ],
+        "nested32": [
+          {
+            "ds3multi": [
+              "{ZONED}",
+              "{ZONED}"
+            ],
+            "ds3multi3": [
+              "{ZONED}",
+              "{ZONED}"
+            ],
+            "ds3name": "{ALPHANUMERIC/CHAR}",
+            "ds3name2": "{ALPHANUMERIC/CHAR}"
+          },
+          {
+            "ds3multi": [
+              "{ZONED}",
+              "{ZONED}"
+            ],
+            "ds3multi3": [
+              "{ZONED}",
+              "{ZONED}"
+            ],
+            "ds3name": "{ALPHANUMERIC/CHAR}",
+            "ds3name2": "{ALPHANUMERIC/CHAR}"
+          }
+        ],
+        "nonnested2": {
+          "ds2multi": [
+            "{ZONED}",
+            "{ZONED}"
+          ],
+          "ds2multi2": [
+            "{ZONED}",
+            "{ZONED}"
+          ],
+          "ds2name": "{ALPHANUMERIC/CHAR}",
+          "ds2nested3": [
+            {
+              "ds3multi": [
+                "{ZONED}",
+                "{ZONED}"
+              ],
+              "ds3multi3": [
+                "{ZONED}",
+                "{ZONED}"
+              ],
+              "ds3name": "{ALPHANUMERIC/CHAR}",
+              "ds3name2": "{ALPHANUMERIC/CHAR}"
+            },
+            {
+              "ds3multi": [
+                "{ZONED}",
+                "{ZONED}"
+              ],
+              "ds3multi3": [
+                "{ZONED}",
+                "{ZONED}"
+              ],
+              "ds3name": "{ALPHANUMERIC/CHAR}",
+              "ds3name2": "{ALPHANUMERIC/CHAR}"
+            }
+          ],
+          "ds2nested32": [
+            {
+              "ds3multi": [
+                "{ZONED}",
+                "{ZONED}"
+              ],
+              "ds3multi3": [
+                "{ZONED}",
+                "{ZONED}"
+              ],
+              "ds3name": "{ALPHANUMERIC/CHAR}",
+              "ds3name2": "{ALPHANUMERIC/CHAR}"
+            },
+            {
+              "ds3multi": [
+                "{ZONED}",
+                "{ZONED}"
+              ],
+              "ds3multi3": [
+                "{ZONED}",
+                "{ZONED}"
+              ],
+              "ds3name": "{ALPHANUMERIC/CHAR}",
+              "ds3name2": "{ALPHANUMERIC/CHAR}"
+            }
+          ],
+          "ds2nondimd3": {
+            "ds3multi": [
+              "{ZONED}",
+              "{ZONED}"
+            ],
+            "ds3multi3": [
+              "{ZONED}",
+              "{ZONED}"
+            ],
+            "ds3name": "{ALPHANUMERIC/CHAR}",
+            "ds3name2": "{ALPHANUMERIC/CHAR}"
+          },
+          "ds3name2": "{ALPHANUMERIC/CHAR}"
+        },
+        "nonnested3": {
+          "ds3multi": [
+            "{ZONED}",
+            "{ZONED}"
+          ],
+          "ds3multi3": [
+            "{ZONED}",
+            "{ZONED}"
+          ],
+          "ds3name": "{ALPHANUMERIC/CHAR}",
+          "ds3name2": "{ALPHANUMERIC/CHAR}"
+        }
+      },
+      {
+        "multi": [
+          "{ZONED}",
+          "{ZONED}"
+        ],
+        "multi2": [
+          "{ZONED}",
+          "{ZONED}"
+        ],
+        "name": "{ALPHANUMERIC/CHAR}",
+        "name2": "{ALPHANUMERIC/CHAR}",
+        "nested2": [
+          {
+            "ds2multi": [
+              "{ZONED}",
+              "{ZONED}"
+            ],
+            "ds2multi2": [
+              "{ZONED}",
+              "{ZONED}"
+            ],
+            "ds2name": "{ALPHANUMERIC/CHAR}",
+            "ds2nested3": [
+              {
+                "ds3multi": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3multi3": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3name": "{ALPHANUMERIC/CHAR}",
+                "ds3name2": "{ALPHANUMERIC/CHAR}"
+              },
+              {
+                "ds3multi": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3multi3": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3name": "{ALPHANUMERIC/CHAR}",
+                "ds3name2": "{ALPHANUMERIC/CHAR}"
+              }
+            ],
+            "ds2nested32": [
+              {
+                "ds3multi": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3multi3": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3name": "{ALPHANUMERIC/CHAR}",
+                "ds3name2": "{ALPHANUMERIC/CHAR}"
+              },
+              {
+                "ds3multi": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3multi3": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3name": "{ALPHANUMERIC/CHAR}",
+                "ds3name2": "{ALPHANUMERIC/CHAR}"
+              }
+            ],
+            "ds2nondimd3": {
+              "ds3multi": [
+                "{ZONED}",
+                "{ZONED}"
+              ],
+              "ds3multi3": [
+                "{ZONED}",
+                "{ZONED}"
+              ],
+              "ds3name": "{ALPHANUMERIC/CHAR}",
+              "ds3name2": "{ALPHANUMERIC/CHAR}"
+            },
+            "ds3name2": "{ALPHANUMERIC/CHAR}"
+          },
+          {
+            "ds2multi": [
+              "{ZONED}",
+              "{ZONED}"
+            ],
+            "ds2multi2": [
+              "{ZONED}",
+              "{ZONED}"
+            ],
+            "ds2name": "{ALPHANUMERIC/CHAR}",
+            "ds2nested3": [
+              {
+                "ds3multi": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3multi3": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3name": "{ALPHANUMERIC/CHAR}",
+                "ds3name2": "{ALPHANUMERIC/CHAR}"
+              },
+              {
+                "ds3multi": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3multi3": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3name": "{ALPHANUMERIC/CHAR}",
+                "ds3name2": "{ALPHANUMERIC/CHAR}"
+              }
+            ],
+            "ds2nested32": [
+              {
+                "ds3multi": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3multi3": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3name": "{ALPHANUMERIC/CHAR}",
+                "ds3name2": "{ALPHANUMERIC/CHAR}"
+              },
+              {
+                "ds3multi": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3multi3": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3name": "{ALPHANUMERIC/CHAR}",
+                "ds3name2": "{ALPHANUMERIC/CHAR}"
+              }
+            ],
+            "ds2nondimd3": {
+              "ds3multi": [
+                "{ZONED}",
+                "{ZONED}"
+              ],
+              "ds3multi3": [
+                "{ZONED}",
+                "{ZONED}"
+              ],
+              "ds3name": "{ALPHANUMERIC/CHAR}",
+              "ds3name2": "{ALPHANUMERIC/CHAR}"
+            },
+            "ds3name2": "{ALPHANUMERIC/CHAR}"
+          }
+        ],
+        "nested22": [
+          {
+            "ds2multi": [
+              "{ZONED}",
+              "{ZONED}"
+            ],
+            "ds2multi2": [
+              "{ZONED}",
+              "{ZONED}"
+            ],
+            "ds2name": "{ALPHANUMERIC/CHAR}",
+            "ds2nested3": [
+              {
+                "ds3multi": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3multi3": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3name": "{ALPHANUMERIC/CHAR}",
+                "ds3name2": "{ALPHANUMERIC/CHAR}"
+              },
+              {
+                "ds3multi": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3multi3": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3name": "{ALPHANUMERIC/CHAR}",
+                "ds3name2": "{ALPHANUMERIC/CHAR}"
+              }
+            ],
+            "ds2nested32": [
+              {
+                "ds3multi": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3multi3": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3name": "{ALPHANUMERIC/CHAR}",
+                "ds3name2": "{ALPHANUMERIC/CHAR}"
+              },
+              {
+                "ds3multi": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3multi3": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3name": "{ALPHANUMERIC/CHAR}",
+                "ds3name2": "{ALPHANUMERIC/CHAR}"
+              }
+            ],
+            "ds2nondimd3": {
+              "ds3multi": [
+                "{ZONED}",
+                "{ZONED}"
+              ],
+              "ds3multi3": [
+                "{ZONED}",
+                "{ZONED}"
+              ],
+              "ds3name": "{ALPHANUMERIC/CHAR}",
+              "ds3name2": "{ALPHANUMERIC/CHAR}"
+            },
+            "ds3name2": "{ALPHANUMERIC/CHAR}"
+          },
+          {
+            "ds2multi": [
+              "{ZONED}",
+              "{ZONED}"
+            ],
+            "ds2multi2": [
+              "{ZONED}",
+              "{ZONED}"
+            ],
+            "ds2name": "{ALPHANUMERIC/CHAR}",
+            "ds2nested3": [
+              {
+                "ds3multi": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3multi3": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3name": "{ALPHANUMERIC/CHAR}",
+                "ds3name2": "{ALPHANUMERIC/CHAR}"
+              },
+              {
+                "ds3multi": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3multi3": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3name": "{ALPHANUMERIC/CHAR}",
+                "ds3name2": "{ALPHANUMERIC/CHAR}"
+              }
+            ],
+            "ds2nested32": [
+              {
+                "ds3multi": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3multi3": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3name": "{ALPHANUMERIC/CHAR}",
+                "ds3name2": "{ALPHANUMERIC/CHAR}"
+              },
+              {
+                "ds3multi": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3multi3": [
+                  "{ZONED}",
+                  "{ZONED}"
+                ],
+                "ds3name": "{ALPHANUMERIC/CHAR}",
+                "ds3name2": "{ALPHANUMERIC/CHAR}"
+              }
+            ],
+            "ds2nondimd3": {
+              "ds3multi": [
+                "{ZONED}",
+                "{ZONED}"
+              ],
+              "ds3multi3": [
+                "{ZONED}",
+                "{ZONED}"
+              ],
+              "ds3name": "{ALPHANUMERIC/CHAR}",
+              "ds3name2": "{ALPHANUMERIC/CHAR}"
+            },
+            "ds3name2": "{ALPHANUMERIC/CHAR}"
+          }
+        ],
+        "nested3": [
+          {
+            "ds3multi": [
+              "{ZONED}",
+              "{ZONED}"
+            ],
+            "ds3multi3": [
+              "{ZONED}",
+              "{ZONED}"
+            ],
+            "ds3name": "{ALPHANUMERIC/CHAR}",
+            "ds3name2": "{ALPHANUMERIC/CHAR}"
+          },
+          {
+            "ds3multi": [
+              "{ZONED}",
+              "{ZONED}"
+            ],
+            "ds3multi3": [
+              "{ZONED}",
+              "{ZONED}"
+            ],
+            "ds3name": "{ALPHANUMERIC/CHAR}",
+            "ds3name2": "{ALPHANUMERIC/CHAR}"
+          }
+        ],
+        "nested32": [
+          {
+            "ds3multi": [
+              "{ZONED}",
+              "{ZONED}"
+            ],
+            "ds3multi3": [
+              "{ZONED}",
+              "{ZONED}"
+            ],
+            "ds3name": "{ALPHANUMERIC/CHAR}",
+            "ds3name2": "{ALPHANUMERIC/CHAR}"
+          },
+          {
+            "ds3multi": [
+              "{ZONED}",
+              "{ZONED}"
+            ],
+            "ds3multi3": [
+              "{ZONED}",
+              "{ZONED}"
+            ],
+            "ds3name": "{ALPHANUMERIC/CHAR}",
+            "ds3name2": "{ALPHANUMERIC/CHAR}"
+          }
+        ],
+        "nonnested2": {
+          "ds2multi": [
+            "{ZONED}",
+            "{ZONED}"
+          ],
+          "ds2multi2": [
+            "{ZONED}",
+            "{ZONED}"
+          ],
+          "ds2name": "{ALPHANUMERIC/CHAR}",
+          "ds2nested3": [
+            {
+              "ds3multi": [
+                "{ZONED}",
+                "{ZONED}"
+              ],
+              "ds3multi3": [
+                "{ZONED}",
+                "{ZONED}"
+              ],
+              "ds3name": "{ALPHANUMERIC/CHAR}",
+              "ds3name2": "{ALPHANUMERIC/CHAR}"
+            },
+            {
+              "ds3multi": [
+                "{ZONED}",
+                "{ZONED}"
+              ],
+              "ds3multi3": [
+                "{ZONED}",
+                "{ZONED}"
+              ],
+              "ds3name": "{ALPHANUMERIC/CHAR}",
+              "ds3name2": "{ALPHANUMERIC/CHAR}"
+            }
+          ],
+          "ds2nested32": [
+            {
+              "ds3multi": [
+                "{ZONED}",
+                "{ZONED}"
+              ],
+              "ds3multi3": [
+                "{ZONED}",
+                "{ZONED}"
+              ],
+              "ds3name": "{ALPHANUMERIC/CHAR}",
+              "ds3name2": "{ALPHANUMERIC/CHAR}"
+            },
+            {
+              "ds3multi": [
+                "{ZONED}",
+                "{ZONED}"
+              ],
+              "ds3multi3": [
+                "{ZONED}",
+                "{ZONED}"
+              ],
+              "ds3name": "{ALPHANUMERIC/CHAR}",
+              "ds3name2": "{ALPHANUMERIC/CHAR}"
+            }
+          ],
+          "ds2nondimd3": {
+            "ds3multi": [
+              "{ZONED}",
+              "{ZONED}"
+            ],
+            "ds3multi3": [
+              "{ZONED}",
+              "{ZONED}"
+            ],
+            "ds3name": "{ALPHANUMERIC/CHAR}",
+            "ds3name2": "{ALPHANUMERIC/CHAR}"
+          },
+          "ds3name2": "{ALPHANUMERIC/CHAR}"
+        },
+        "nonnested3": {
+          "ds3multi": [
+            "{ZONED}",
+            "{ZONED}"
+          ],
+          "ds3multi3": [
+            "{ZONED}",
+            "{ZONED}"
+          ],
+          "ds3name": "{ALPHANUMERIC/CHAR}",
+          "ds3name2": "{ALPHANUMERIC/CHAR}"
+        }
+      }
+    ],
+    "iname": "{ALPHANUMERIC/CHAR}",
+    "inamea": [
+      "{ALPHANUMERIC/CHAR}",
+      "{ALPHANUMERIC/CHAR}"
+    ],
+    "inonnested2": {
+      "ds2multi": [
+        "{ZONED}",
+        "{ZONED}"
+      ],
+      "ds2multi2": [
+        "{ZONED}",
+        "{ZONED}"
+      ],
+      "ds2name": "{ALPHANUMERIC/CHAR}",
+      "ds2nested3": [
+        {
+          "ds3multi": [
+            "{ZONED}",
+            "{ZONED}"
+          ],
+          "ds3multi3": [
+            "{ZONED}",
+            "{ZONED}"
+          ],
+          "ds3name": "{ALPHANUMERIC/CHAR}",
+          "ds3name2": "{ALPHANUMERIC/CHAR}"
+        },
+        {
+          "ds3multi": [
+            "{ZONED}",
+            "{ZONED}"
+          ],
+          "ds3multi3": [
+            "{ZONED}",
+            "{ZONED}"
+          ],
+          "ds3name": "{ALPHANUMERIC/CHAR}",
+          "ds3name2": "{ALPHANUMERIC/CHAR}"
+        }
+      ],
+      "ds2nested32": [
+        {
+          "ds3multi": [
+            "{ZONED}",
+            "{ZONED}"
+          ],
+          "ds3multi3": [
+            "{ZONED}",
+            "{ZONED}"
+          ],
+          "ds3name": "{ALPHANUMERIC/CHAR}",
+          "ds3name2": "{ALPHANUMERIC/CHAR}"
+        },
+        {
+          "ds3multi": [
+            "{ZONED}",
+            "{ZONED}"
+          ],
+          "ds3multi3": [
+            "{ZONED}",
+            "{ZONED}"
+          ],
+          "ds3name": "{ALPHANUMERIC/CHAR}",
+          "ds3name2": "{ALPHANUMERIC/CHAR}"
+        }
+      ],
+      "ds2nondimd3": {
+        "ds3multi": [
+          "{ZONED}",
+          "{ZONED}"
+        ],
+        "ds3multi3": [
+          "{ZONED}",
+          "{ZONED}"
+        ],
+        "ds3name": "{ALPHANUMERIC/CHAR}",
+        "ds3name2": "{ALPHANUMERIC/CHAR}"
+      },
+      "ds3name2": "{ALPHANUMERIC/CHAR}"
+    },
+    "inonnested3": {
+      "ds3multi": [
+        "{ZONED}",
+        "{ZONED}"
+      ],
+      "ds3multi3": [
+        "{ZONED}",
+        "{ZONED}"
+      ],
+      "ds3name": "{ALPHANUMERIC/CHAR}",
+      "ds3name2": "{ALPHANUMERIC/CHAR}"
+    },
+    "inum": "{ZONED}",
+    "inuma": [
+      "{ZONED}",
+      "{ZONED}"
+    ],
+    "oname": "{ALPHANUMERIC/CHAR}",
+    "onamea": [
+      "{ALPHANUMERIC/CHAR}",
+      "{ALPHANUMERIC/CHAR}"
+    ],
+    "ononnested2": {
+      "ds2multi": [
+        "{ZONED}",
+        "{ZONED}"
+      ],
+      "ds2multi2": [
+        "{ZONED}",
+        "{ZONED}"
+      ],
+      "ds2name": "{ALPHANUMERIC/CHAR}",
+      "ds2nested3": [
+        {
+          "ds3multi": [
+            "{ZONED}",
+            "{ZONED}"
+          ],
+          "ds3multi3": [
+            "{ZONED}",
+            "{ZONED}"
+          ],
+          "ds3name": "{ALPHANUMERIC/CHAR}",
+          "ds3name2": "{ALPHANUMERIC/CHAR}"
+        },
+        {
+          "ds3multi": [
+            "{ZONED}",
+            "{ZONED}"
+          ],
+          "ds3multi3": [
+            "{ZONED}",
+            "{ZONED}"
+          ],
+          "ds3name": "{ALPHANUMERIC/CHAR}",
+          "ds3name2": "{ALPHANUMERIC/CHAR}"
+        }
+      ],
+      "ds2nested32": [
+        {
+          "ds3multi": [
+            "{ZONED}",
+            "{ZONED}"
+          ],
+          "ds3multi3": [
+            "{ZONED}",
+            "{ZONED}"
+          ],
+          "ds3name": "{ALPHANUMERIC/CHAR}",
+          "ds3name2": "{ALPHANUMERIC/CHAR}"
+        },
+        {
+          "ds3multi": [
+            "{ZONED}",
+            "{ZONED}"
+          ],
+          "ds3multi3": [
+            "{ZONED}",
+            "{ZONED}"
+          ],
+          "ds3name": "{ALPHANUMERIC/CHAR}",
+          "ds3name2": "{ALPHANUMERIC/CHAR}"
+        }
+      ],
+      "ds2nondimd3": {
+        "ds3multi": [
+          "{ZONED}",
+          "{ZONED}"
+        ],
+        "ds3multi3": [
+          "{ZONED}",
+          "{ZONED}"
+        ],
+        "ds3name": "{ALPHANUMERIC/CHAR}",
+        "ds3name2": "{ALPHANUMERIC/CHAR}"
+      },
+      "ds3name2": "{ALPHANUMERIC/CHAR}"
+    },
+    "ononnested3": {
+      "ds3multi": [
+        "{ZONED}",
+        "{ZONED}"
+      ],
+      "ds3multi3": [
+        "{ZONED}",
+        "{ZONED}"
+      ],
+      "ds3name": "{ALPHANUMERIC/CHAR}",
+      "ds3name2": "{ALPHANUMERIC/CHAR}"
+    },
+    "onum": "{ZONED}",
+    "onuma": [
+      "{ZONED}",
+      "{ZONED}"
+    ]
+  }

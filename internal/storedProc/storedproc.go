@@ -66,6 +66,8 @@ type StoredProc struct {
 
 	HtmlTemplate string `json:"htmltemplate" db:"htmltemplate" form:"htmltemplate"`
 	Namespace    string `json:"namespace" db:"namespace" form:"namespace"`
+
+	IsSpecial bool `json:"isspecial" db:"isspecial" form:"-"`
 }
 
 // ------------------------------------------------------------

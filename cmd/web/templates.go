@@ -100,10 +100,13 @@ type templateData struct {
 	RpgParamDatatypes []string
 	RpgParams         []*rpg.Param
 	RpgParam          *rpg.Param
-	RpgPrograms       []*rpg.Program
-	RpgProgram        *rpg.Program
-	RpgEndPoints      []*rpg.RpgEndPoint
-	RpgEndPoint       *rpg.RpgEndPoint
+
+	RpgEndPoints []*rpg.RpgEndPoint
+	RpgEndPoint  *rpg.RpgEndPoint
+
+	DsField      *rpg.DSField
+	ProgramParam *rpg.ProgramParams
+	Index        int
 }
 
 func ListComparisonOperators() []string {

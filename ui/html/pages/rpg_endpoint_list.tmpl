@@ -3,74 +3,73 @@ RPG EndPoints
 {{end}}
 
 {{define "content"}}
- 
- 
+
+
 <div class="row p-2">
   <div class="col">
-    <div class="card" id="splistcard">
+    <div class="card" id="pgmeplistcard">
       <div class="card-header">
-        <p class="h5">Endpoints 
-          <a  hx-push-url="true"  class="btn btn-ghost-info float-right" href="/rpgendpoint/add">+Add</a>
-          <a  hx-push-url="true"  class="btn btn-ghost-info float-right" href="/rpgendpoint/help">Help</a>
+        <p class="h5">Program Endpoints
+          <a hx-push-url="true" class="btn btn-ghost-info float-right" href="/pgmendpoints/add">+Add</a>
+          <a hx-push-url="true" class="btn btn-ghost-info float-right" href="/pgmendpoints/help">Help</a>
 
         </p>
-       
+
       </div>
 
- 
+
       <div class="card-body">
-<table id="splist"    class="table   table-borderless table-responsive-sm table-striped    ">
-  <thead class="thead-dark">
-    <tr>
-      <th>Namespace</th>
-      <th>EndPoint name</th>
-      <th>Method</th>
-      <th>Server</th>
-      <th>StoredProc</th>
-       <th>Options</th>
-    </tr>
-  </thead>
-  <tbody>
-    {{if .RpgEndPoints}}
-    {{range .RpgEndPoints}}
-    <tr>
-      <td>{{.Namespace}}</td>
-      <td>{{.EndPointName}}</td>
-      <td>{{.HttpMethod}}</td>
-      <td>  {{.DefaultServerId}} </td>
+        <table id="pgmplist" class="table   table-borderless table-responsive-sm table-striped    ">
+          <thead class="thead-dark">
+            <tr>
+              <th>Namespace</th>
+              <th>EndPoint name</th>
+              <th>Method</th>
+              <th>Server</th>
+              <th>Program</th>
+              <th>Options</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{if .RpgEndPoints}}
+            {{range .RpgEndPoints}}
+            <tr>
+              <td>{{.Namespace}}</td>
+              <td>{{.EndPointName}}</td>
+              <td>{{.HttpMethod}}</td>
+              <td> {{.DefaultServerId|servername}} </td>
 
-      <td>{{.RpgProgram}}</td>
-        <td nowrap>
-        <a  hx-push-url="true"  class="btn btn-ghost-info" href='/rpgendpoint/{{.ID}}'>
-        
-          View</a>
+              <td>{{.Lib}}/{{.Name}}</td>
+              <td nowrap>
+                <a hx-push-url="true" class="btn btn-ghost-info" href='/pgmendpoints/{{.ID}}'>
 
-        <!-- <a class="btn btn-ghost-info" 
+                  View</a>
+
+                <!-- <a class="btn btn-ghost-info" 
         data-toggle="tooltip" data-placement="bottom" title="Edit" 
-        href='/rpgendpoint/update/{{.ID}}'>
+        href='/pgmendpoints/update/{{.ID}}'>
           <svg class="c-icon mfe-2">
             <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-pencil"></use>
         </svg></a> -->
-        <a  hx-push-url="true"  class="btn btn-ghost-danger" 
-        data-toggle="tooltip" data-placement="bottom" title="Delete" 
-        href='/rpgendpoint/delete/{{.ID}}'>
-          <svg class="c-icon mfe-2">
-            <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-trash"></use>
-        </svg></a>
+                <a hx-push-url="true" class="btn btn-ghost-danger" data-toggle="tooltip" data-placement="bottom"
+                  title="Delete" href='/pgmendpoints/delete/{{.ID}}'>
+                  <svg class="c-icon mfe-2">
+                    <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-trash"></use>
+                  </svg></a>
 
-      </td>
+              </td>
 
-    </tr>
-    {{end}}
+            </tr>
+            {{end}}
 
-    {{else}}
-     {{end}}
-  </tbody>
-</table>
- 
-</div>
-</div>
-</div>
+            {{else}}
+            {{end}}
+          </tbody>
+        </table>
+
+      </div>
+    </div>
+  </div>
 </div>
 
 {{end}}
@@ -82,15 +81,13 @@ RPG EndPoints
 <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.13.1/js/jquery.dataTables.js"></script>
 
 <script>
-  
-    $(document).ready( function () {
-      $('#splist').DataTable(
-        {"pageLength": 100,
-              "language": {
-                "emptyTable": "No results found"
-              }
-          }
-      );
-  } );
+  $(document).ready(function () {
+    $('#pgmplist').DataTable({
+      "pageLength": 100,
+      "language": {
+        "emptyTable": "No results found"
+      }
+    });
+  });
 </script>
 {{end}}

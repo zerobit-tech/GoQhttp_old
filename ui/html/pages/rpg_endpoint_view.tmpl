@@ -13,7 +13,7 @@ Endpoint
                     data-toggle="tooltip"
                     hx-indicator = "#processing"
                      data-placement="bottom" title="Reload" 
-                    href="/rpgendpoint/refresh/{{.RpgEndPoint.ID}}">
+                    href="/pgmendpoints/refresh/{{.RpgEndPoint.ID}}">
                         <svg class="c-icon mfe-2">
                             <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-reload"></use>
                         </svg>
@@ -71,11 +71,11 @@ Endpoint
                                 </tr>
                                 <tr>
                                     <th scope="row">Default Server</th>
-                                    <td> {{.RpgEndPoint.DefaultServerId}} </td>
+                                    <td> {{.RpgEndPoint.DefaultServerId|servername}} </td>
                                 </tr>
                                 <tr>
                                     <th scope="row">RPG Program</th>
-                                    <td>{{.RpgEndPoint.RpgProgram}}</td>
+                                    <td>{{.RpgEndPoint.Lib}}/{{.RpgEndPoint.Name}}</td>
                                 </tr>
                                
                                 <tr>
@@ -136,11 +136,11 @@ Endpoint
 
                 {{range .RpgEndPoint.AllowedOnServers}}
                 <tr>
-                    <td>{{.}}</td>
+                    <td>{{.|servername}}</td>
                 
 
                 <td>
-                    <form class="form-inline" method="POST" action="/XXXX/deleteassignserver">
+                    <form class="form-inline" method="POST" action="/pgmendpoints/deleteassignserver">
                         <input type="hidden" name="csrf_token" value="{{$.CSRFToken}}">
                         <input type="hidden" name="spid" value="{{$.RpgEndPoint.ID}}">
                         <input type="hidden" name="serverid" value="{{.}}">
@@ -168,7 +168,7 @@ Endpoint
 
 
 
-            <form class="form-inline" method="POST" action="/rpgendpoint/assignserver">
+            <form class="form-inline" method="POST" action="/pgmendpoints/assignserver">
                 <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
                 <input type="hidden" name="spid" value="{{.RpgEndPoint.ID}}">
                 <div class="form-group">

@@ -81,7 +81,7 @@ func (m *StoredProcModel) Delete(id string) error {
 // We'll use the Insert method to add a new record to the "users" table.
 func (m *StoredProcModel) DeleteByName(name string, method string) error {
 
-	for _, sp := range m.List() {
+	for _, sp := range m.List(true) {
 		if strings.EqualFold(sp.EndPointName, name) && strings.EqualFold(sp.HttpMethod, method) {
 			err := m.Delete(sp.ID)
 			if err != nil {
@@ -123,7 +123,7 @@ func (m *StoredProcModel) Exists(id string) bool {
 // We'll use the Exists method to check if a user exists with a specific ID.
 func (m *StoredProcModel) Duplicate(u *storedProc.StoredProc) bool {
 	exists := false
-	for _, sp := range m.List() {
+	for _, sp := range m.List(true) {
 
 		if sp.ID != u.ID && strings.EqualFold(sp.EndPointName, u.EndPointName) && strings.EqualFold(sp.HttpMethod, u.HttpMethod) && strings.EqualFold(sp.GetNamespace(), u.GetNamespace()) {
 			exists = true
@@ -176,7 +176,7 @@ func (m *StoredProcModel) Get(id string) (*storedProc.StoredProc, error) {
 //
 // -----------------------------------------------------------------
 // We'll use the Exists method to check if a user exists with a specific ID.
-func (m *StoredProcModel) List() []*storedProc.StoredProc {
+func (m *StoredProcModel) List(loadSpecial bool) []*storedProc.StoredProc {
 	savedQueries := make([]*storedProc.StoredProc, 0)
 	_ = m.DB.View(func(tx *bolt.Tx) error {
 		bucket := tx.Bucket(m.getTableName())
@@ -190,6 +190,11 @@ func (m *StoredProcModel) List() []*storedProc.StoredProc {
 			savedQuery := storedProc.StoredProc{}
 			err := json.Unmarshal(v, &savedQuery)
 			if err == nil {
+
+				if !loadSpecial && savedQuery.IsSpecial {
+					continue
+				}
+
 				savedQueries = append(savedQueries, &savedQuery)
 			}
 		}

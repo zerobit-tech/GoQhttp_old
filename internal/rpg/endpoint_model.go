@@ -161,17 +161,10 @@ func (m *RpgEndpointModel) Get(id string) (*RpgEndPoint, error) {
 
 	if savedQueryJSON != nil {
 		err := json.Unmarshal(savedQueryJSON, &savedQuery)
-		// load rpg program
 		if err == nil {
-			rpgmodel := &RpgProgramModel{
-				DB: m.DB,
-			}
-			rpgPgm, err2 := rpgmodel.Get(savedQuery.RpgProgram)
-			if err2 == nil {
-				savedQuery.RpgPgm = rpgPgm
-			}
-		}
+			m.LoadParameter(&savedQuery)
 
+		}
 		return &savedQuery, err
 
 	}
@@ -185,10 +178,6 @@ func (m *RpgEndpointModel) Get(id string) (*RpgEndPoint, error) {
 // -----------------------------------------------------------------
 // We'll use the Exists method to check if a user exists with a specific ID.
 func (m *RpgEndpointModel) List() []*RpgEndPoint {
-
-	rpgmodel := &RpgProgramModel{
-		DB: m.DB,
-	}
 
 	savedQueries := make([]*RpgEndPoint, 0)
 	_ = m.DB.View(func(tx *bolt.Tx) error {
@@ -204,10 +193,7 @@ func (m *RpgEndpointModel) List() []*RpgEndPoint {
 			err := json.Unmarshal(v, &savedQuery)
 			if err == nil {
 
-				rpgPgm, err2 := rpgmodel.Get(savedQuery.RpgProgram)
-				if err2 == nil {
-					savedQuery.RpgPgm = rpgPgm
-				}
+				m.LoadParameter(&savedQuery)
 
 				savedQueries = append(savedQueries, &savedQuery)
 			}
@@ -216,5 +202,22 @@ func (m *RpgEndpointModel) List() []*RpgEndPoint {
 		return nil
 	})
 	return savedQueries
+
+}
+
+// -----------------------------------------------------------------
+//
+// -----------------------------------------------------------------
+// We'll use the Exists method to check if a user exists with a specific ID.
+func (m *RpgEndpointModel) LoadParameter(p *RpgEndPoint) {
+	paramModel := &RpgParamModel{DB: m.DB}
+
+	for _, pgmParam := range p.Parameters {
+
+		param, err := paramModel.Get(pgmParam.FieldID)
+		if err == nil {
+			pgmParam.Param = param
+		}
+	}
 
 }

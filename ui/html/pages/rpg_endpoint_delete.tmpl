@@ -16,74 +16,54 @@ Endpoint
                     <div class="col">
                         <table class="table   table-borderless table-responsive-sm table-striped    ">
                             <tbody>
-                                {{if .StoredProc.AllowWithoutAuth}}
+                                {{if .RpgEndPoint.AllowWithoutAuth}}
                                 <tr>
                                     <th scope="row" class="text-danger">Allowed Without Auth</th>
-                                    <td  class="text-danger">{{.StoredProc.AllowWithoutAuth| yesNo}}</td>
+                                    <td  class="text-danger">{{.RpgEndPoint.AllowWithoutAuth| yesNo}}</td>
                                 </tr>
                                 {{end}}
 
                                 <tr>
                                     <th scope="row">EndPoint name</th>
-                                    <td>{{.StoredProc.EndPointName}}</td>
+                                    <td>{{.RpgEndPoint.EndPointName}}</td>
                                 </tr>
 
                                 <tr>
                                     <th scope="row">Http Method</th>
-                                    <td>{{.StoredProc.HttpMethod}}</td>
+                                    <td>{{.RpgEndPoint.HttpMethod}}</td>
                                 </tr>
-                                {{if .StoredProc.AllowWithoutAuth}}
+                                {{if .RpgEndPoint.AllowWithoutAuth}}
                                 <tr>
                                     <th class="text-danger" scope="row">URL without Auth</th>
-                                    <td class="text-danger" >{{$.HostUrl}}/{{.StoredProc.MockUrlWithoutAuth}}</td>
+                                    <td class="text-danger" >{{$.HostUrl}}/{{.RpgEndPoint.MockUrlWithoutAuth}}</td>
                                 </tr>
                                 {{end}}
                                 <tr>
                                     <th scope="row">URL</th>
-                                    <td>{{$.HostUrl}}/{{.StoredProc.MockUrl}}</td>
+                                    <td>{{$.HostUrl}}/{{.RpgEndPoint.MockUrl}}</td>
                                 </tr>
                                 <tr>
                                     <th scope="row">Payload</th>
                                     <td>
-                                        <pre>{{.StoredProc.InputPayload}}</pre>
+                                        <pre>{{.RpgEndPoint.InputPayload}}</pre>
                                     </td>
                                 </tr>
 
                                 <tr>
                                     <th scope="row">Default Server</th>
-                                    <td>{{if .StoredProc.DefaultServer}} {{.StoredProc.DefaultServer.Name}}{{end}}</td>
+                                    <td> {{.RpgEndPoint.DefaultServerId|servername}}</td>
                                 </tr>
                                 <tr>
-                                    <th scope="row">Stored Proc</th>
-                                    <td>{{.StoredProc.Name}}</td>
+                                    <th scope="row">Program</th>
+                                    <td>{{.RpgEndPoint.Name}}</td>
                                 </tr>
                                 <tr>
-                                    <th scope="row">Stored Proc Lib</th>
-                                    <td>{{.StoredProc.Lib}}</td>
+                                    <th scope="row"> Lib</th>
+                                    <td>{{.RpgEndPoint.Lib}}</td>
                                 </tr>
 
 
-                                <tr>
-                                    <th scope="row">Specific Stored Proc</th>
-                                    <td>{{.StoredProc.SpecificName}}</td>
-                                </tr>
-                                <tr>
-                                    <th scope="row">Specific Stored Proc Lib</th>
-                                    <td>{{.StoredProc.SpecificLib}}</td>
-                                </tr>
-
-
-
-                                <tr>
-                                    <th scope="row">Use specific name</th>
-                                    <td>{{.StoredProc.UseSpecificName}}</td>
-                                </tr>
-
-
-                                <tr>
-                                    <th scope="row">Result sets</th>
-                                    <td>{{.StoredProc.ResultSets}}</td>
-                                </tr>
+                              
                             </tbody>
                         </table>
                     </div>
@@ -94,9 +74,9 @@ Endpoint
 
 
 
-                <form method="post" action="/sp/delete">
+                <form method="post" action="/pgmendpoints/delete">
                     <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
-                      <input type="hidden" name="spId" value="{{.StoredProc.ID}}">
+                      <input type="hidden" name="spId" value="{{.RpgEndPoint.ID}}">
                 <button type="submit" class="btn btn-danger">Confirm</button>
                 
                 </form>

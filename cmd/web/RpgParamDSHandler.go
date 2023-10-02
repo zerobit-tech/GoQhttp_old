@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"runtime/debug"
 	"sort"
+	"strconv"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/onlysumitg/GoQhttp/internal/rpg"
@@ -30,11 +32,44 @@ func (app *application) RpgParamDSHandlers(router *chi.Mux) {
 		r.Get("/update/{id}", app.rpgParamDSUpdate)
 		r.Post("/update/{id}", app.rpgParamDSAddPost)
 
+		r.Get("/fieldrow", app.rpgParamDSAdd_Field_row)
+
 	})
 
 }
 
 // ------------------------------------------------------
+
+// ------------------------------------------------------
+//
+// ------------------------------------------------------
+func (app *application) rpgParamDSAdd_Field_row(w http.ResponseWriter, r *http.Request) {
+
+	currentindex := r.URL.Query().Get("index")
+
+	currentindexI, err := strconv.Atoi(currentindex)
+	if err != nil {
+		currentindexI = 0
+	}
+
+	currentindexI += 1
+
+	dsField := &rpg.DSField{
+		ParamID:   "",
+		NameToUse: "",
+		Dim:       0,
+	}
+
+	data := app.newTemplateData(r)
+
+	data.DsField = dsField
+	data.Index = currentindexI
+
+	data.RpgParams = app.RpgParamModel.List()
+
+	app.render(w, r, http.StatusOK, "empty_rpg_param_ds_add_field_row.tmpl", data)
+
+}
 
 // ------------------------------------------------------
 //
@@ -45,7 +80,10 @@ func (app *application) rpgParamDSAdd(w http.ResponseWriter, r *http.Request) {
 
 	data := app.newTemplateData(r)
 
-	param.DsFields = make([]string, 20)
+	param.Init()
+
+	data.Index = len(param.DsFields) - 1
+
 	data.Form = param
 
 	data.RpgParams = app.RpgParamModel.List()
@@ -73,6 +111,8 @@ func (app *application) rpgParamDSAddPost(w http.ResponseWriter, r *http.Request
 		app.goBack(w, r, http.StatusBadRequest)
 		return
 	}
+
+	rpgParam.IsDs = true
 	rpgParam.CheckField(validator.NotBlank(rpgParam.Name), "name", "This field cannot be blank")
 
 	if rpgParam.Valid() {
@@ -83,6 +123,7 @@ func (app *application) rpgParamDSAddPost(w http.ResponseWriter, r *http.Request
 
 	logBeforeImage := ""
 
+	duplicateNameError := false
 	// Check SP details from iBMI
 	if rpgParam.Valid() {
 
@@ -94,9 +135,22 @@ func (app *application) rpgParamDSAddPost(w http.ResponseWriter, r *http.Request
 			}
 		}
 
+		for _, f := range rpgParam.DsFields {
+			if strings.TrimSpace(f.NameToUse) == "" && f.ParamID != "" {
+				param, err := app.RpgParamModel.Get(f.ParamID)
+				if err == nil {
+					f.Param = param
+				}
+
+			}
+		}
+
+		rpgParam.AssignDSFieldNames()
+		duplicateNameError = rpgParam.ValidateFields()
+
 	}
 
-	if !rpgParam.Valid() {
+	if !rpgParam.Valid() || duplicateNameError {
 		data := app.newTemplateData(r)
 		data.Form = rpgParam
 		app.sessionManager.Put(r.Context(), "error", "Please fix error(s) and resubmit")
@@ -105,6 +159,8 @@ func (app *application) rpgParamDSAddPost(w http.ResponseWriter, r *http.Request
 		for k := range rpg.DataTypeMap {
 			data.RpgParamDatatypes = append(data.RpgParamDatatypes, k)
 		}
+		data.Index = len(rpgParam.DsFields) - 1
+		data.RpgParams = app.RpgParamModel.List()
 
 		sort.Strings(data.RpgParamDatatypes)
 		app.render(w, r, http.StatusUnprocessableEntity, "rpg_param_ds_add.tmpl", data)
@@ -117,6 +173,8 @@ func (app *application) rpgParamDSAddPost(w http.ResponseWriter, r *http.Request
 	}
 
 	rpgParam.IsDs = true
+	rpgParam.FilterOutInvalidParams()
+
 	// finally save
 	id, err := app.RpgParamModel.Save(&rpgParam)
 	if err != nil {
@@ -161,6 +219,7 @@ func (app *application) rpgParamDSUpdate(w http.ResponseWriter, r *http.Request)
 
 	data.Form = rpgParam
 	data.RpgParams = app.RpgParamModel.List()
+	data.Index = len(rpgParam.DsFields) - 1
 
 	app.render(w, r, http.StatusOK, "rpg_param_ds_add.tmpl", data)
 
