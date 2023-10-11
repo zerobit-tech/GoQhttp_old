@@ -1,0 +1,49 @@
+{{define "title"}}
+Add
+{{end}}
+
+
+{{define "content"}}
+<div class="row p-2">
+    <div class="col-4 " id="spaddcol">
+        <div class="card " id="spaddcard" style="height: 100%;">
+           
+            <div class="card-body">
+
+          
+            
+
+                
+                <label for="datatype">Endpoint Type</label>
+                        <SELECT  hx-get="/endpoints/getform"  
+                        hx-trigger="load, change"
+                        hx-target="#eparea"
+                         hx-include="#datatype" 
+                         hx-select="#endpointa"
+                         id="datatype" class="form-control" name="eptype">
+                            <OPTION   value="sqlsp">Stored Procedure</OPTION>
+                           <OPTION   value="pgm">Program</OPTION>
+                           
+                        </SELECT>
+
+        
+
+         
+            </div>
+
+        </div>
+    </div>
+
+
+</div>
+
+ 
+
+    <div  id="eparea">
+    </div>
+
+ 
+ 
+ 
+
+{{end}}

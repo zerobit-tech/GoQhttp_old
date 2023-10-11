@@ -14,6 +14,7 @@ import (
 
 	"github.com/justinas/nosurf"
 	"github.com/onlysumitg/GoQhttp/featureflags"
+	"github.com/onlysumitg/GoQhttp/internal/endpoints"
 	"github.com/onlysumitg/GoQhttp/internal/ibmiServer"
 	"github.com/onlysumitg/GoQhttp/internal/models"
 	"github.com/onlysumitg/GoQhttp/internal/rpg"
@@ -107,6 +108,10 @@ type templateData struct {
 	DsField      *rpg.DSField
 	ProgramParam *rpg.ProgramParams
 	Index        int
+
+	// ----- Generic endpoint ----------------
+	Endpoint  *endpoints.Endpoint
+	Endpoints []endpoints.Endpoint
 }
 
 func ListComparisonOperators() []string {

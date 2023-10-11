@@ -16,7 +16,7 @@ Add
             </div>
             <div class="card-body">
 
-                <form action="/rpgparam/{{if .Form.ID}}update/{{.Form.ID}}{{else}}add{{end}}" method="POST">
+                <form action="/pgmfields/{{if .Form.ID}}update/{{.Form.ID}}{{else}}add{{end}}" method="POST">
                     <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
                     <input type="hidden" id="id" name="id" value="{{.Form.ID}}">
 
@@ -35,7 +35,7 @@ Add
 
                     <div class="form-group">
                         <label for="datatype">Data Type</label>
-                        <SELECT  hx-get="/rpgparam/dtfields"  
+                        <SELECT  hx-get="/pgmfields/dtfields"  
                         hx-trigger="load, change"
                         hx-target="#dtfields"
                          hx-include="#datatype,#id" 
@@ -79,6 +79,13 @@ Add
  
 
                     <br />
+                    {{if .Form.ID}} 
+                    <div class="alert alert-danger" role="alert">
+
+                        Please check below for impacted Fields and Endpoints.
+              
+                      </div>
+                    {{end}}
                     <button type="submit" class="btn btn-primary">Submit</button>
 
 
@@ -99,5 +106,23 @@ Add
        
     </div>
 </div>
+
+
+
+<!--- used by DS -->
+{{if .Form.ID}}
+ 
+      
+      <span  hx-get="/pgmfields/usageds/{{.Form.ID}}" hx-trigger="load" hx-select="#mainfieldlist">
+        <p>Loading...</p>
+    </span>
+ 
+    <span  hx-get="/pgmfields/usagepgm/{{.Form.ID}}" hx-trigger="load" hx-select="#pgmeplist">
+        <p>Loading...</p>
+    </span>
+ 
+{{end}}
+
+
 
 {{end}}

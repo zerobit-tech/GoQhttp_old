@@ -1,0 +1,78 @@
+{{define "title"}}
+EndPoints
+{{end}}
+
+{{define "content"}}
+
+
+<div class="row p-2">
+  <div class="col">
+    <div class="card" id="eplistcard">
+      <div class="card-header">
+        <p class="h5">Endpoints
+          <a hx-push-url="true" class="btn btn-ghost-info float-right" href="/endpoints/add">+Add</a>
+          <a hx-push-url="true" class="btn btn-ghost-info float-right" href="/endpoints/help">Help</a>
+
+        </p>
+
+      </div>
+
+
+      <div class="card-body">
+        <table id="eplist" class="table   table-borderless table-responsive-sm table-striped    ">
+          <thead class="thead-dark">
+            <tr>
+              <th>Namespace</th>
+              <th>EndPoint name</th>
+              <th>Method</th>
+              <th>Server</th>
+              <th>Handler</th>
+              <th>Type</th>
+              <th>Options</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{if .Endpoints}}
+            {{range .Endpoints}}
+            <tr>
+              <td>{{.EPNameSpace}}</td>
+              <td>{{.EPName}}</td>
+              <td>{{.EPMethod}}</td>
+              <td> {{.EPServerId|servername}} </td>
+              
+              <td>{{.EPHander}}</td>
+                <td>{{.EPType}}</td>
+              <td nowrap>{{.EPDetailUrl}}</td>
+
+            </tr>
+            {{end}}
+
+            {{else}}
+            {{end}}
+          </tbody>
+        </table>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+{{end}}
+
+
+{{define "aftercontent"}}
+
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.1/css/jquery.dataTables.css">
+<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.13.1/js/jquery.dataTables.js"></script>
+
+<script>
+  $(document).ready(function () {
+    $('#eplist').DataTable({
+      "pageLength": 100,
+      "language": {
+        "emptyTable": "No results found"
+      }
+    });
+  });
+</script>
+{{end}}

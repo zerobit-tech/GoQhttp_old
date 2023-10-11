@@ -316,8 +316,17 @@ func (app *application) RpgEndpointAddPost(w http.ResponseWriter, r *http.Reques
 
 		pgmP.Validator.AddNonFieldError("Please select a valid server")
 	} else {
-		pgmP.DefaultServerId = server.ID
-		pgmP.AddAllowedServer(server.ID)
+		_, err := app.GetRPGDriver(server)
+		if err != nil {
+			pgmP.CheckField(false, "serverid", "Program Drivers not available")
+			pgmP.Validator.AddNonFieldError("Program Drivers are not available for this server")
+
+		} else {
+
+			pgmP.DefaultServerId = server.ID
+
+			pgmP.AddAllowedServer(server.ID)
+		}
 	}
 
 	logBeforeImage := ""

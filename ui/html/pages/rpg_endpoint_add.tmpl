@@ -4,13 +4,14 @@ Add
 
 
 {{define "content"}}
-<div class="row p-2">
+<div class="row p-2" id="endpointa">
     <div class="col" id="spaddcol">
         <div class="card " id="spaddcard" style="height: 100%;">
             <div class="card-header">
                 <p class="h5">
-                    {{if .Form.ID}} Edit {{else}} Add {{end}} EndPoint
+                    {{if .Form.ID}} Edit {{else}} Add {{end}} Program EndPoint
 
+                    <a id="addrpgparms"  hx-push-url="true"  class="btn btn-ghost-info float-right" href="/pgmfields">Manage Fields</a>
 
                 </p>
             </div>
@@ -290,7 +291,7 @@ Add
                                             <button hx-trigger="revealed" hx-target="closest tr"
                                                 hx-indicator="#processing" class="btn btn-primary"
                                                 hx-get="/pgmendpoints/fieldrow?index={{.Index}}" hx-swap="outerHTML">+
-                                                Add Field</button>
+                                                Add Parameter</button>
                                         </td>
                                     </tr>
 

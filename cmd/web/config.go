@@ -20,6 +20,7 @@ import (
 	"github.com/onlysumitg/GoQhttp/session"
 
 	"github.com/onlysumitg/GoQhttp/internal/dbserver"
+	"github.com/onlysumitg/GoQhttp/internal/endpoints"
 	"github.com/onlysumitg/GoQhttp/internal/iwebsocket"
 	"github.com/onlysumitg/GoQhttp/internal/models"
 	"github.com/onlysumitg/GoQhttp/internal/rpg"
@@ -116,6 +117,10 @@ type application struct {
 	// ------------ RPG ------------
 	RpgParamModel    *rpg.RpgParamModel
 	RpgEndpointModel *rpg.RpgEndpointModel
+
+	// ----- Generic endpoint ----------------
+	Endpoint  *endpoints.Endpoint
+	Endpoints []*endpoints.Endpoint
 }
 
 // -------------------------------------------------------------------------

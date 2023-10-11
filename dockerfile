@@ -13,6 +13,7 @@ WORKDIR /app
 COPY ./bin/QHttp_${APP_VERSION} ./QHttp
 COPY ./drivers/ibm-iaccess.deb ./ibm-iaccess.deb
 
+RUN apt install --reinstall build-essential
 RUN apt update && \
     apt install -y -q --no-install-recommends unixodbc-dev \
     unixodbc \

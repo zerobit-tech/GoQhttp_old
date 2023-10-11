@@ -4,12 +4,12 @@ Add
 
 
 {{define "content"}}
-<div class="row p-2">
+<div class="row p-2" id="endpointa">
     <div class="col-4" id="spaddcol">
         <div class="card " id="spaddcard" style="height: 100%;">
             <div class="card-header">
                 <p class="h5">
-                    {{if .Form.ID}} Edit {{else}} Add {{end}} EndPoint
+                    {{if .Form.ID}} Edit {{else}} Add {{end}} Stored Proc EndPoint
 
                     <a id="searchbtn" 
                     data-toggle="tooltip" data-placement="bottom" title="Search stored procedure" 

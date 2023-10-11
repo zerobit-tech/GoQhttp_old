@@ -12,6 +12,7 @@ import (
 	"github.com/onlysumitg/GoQhttp/internal/rpg/responseprocessor"
 	"github.com/onlysumitg/GoQhttp/internal/storedProc"
 	"github.com/onlysumitg/GoQhttp/logger"
+	"github.com/onlysumitg/GoQhttp/utils/httputils"
 	"github.com/onlysumitg/GoQhttp/utils/stringutils"
 	"github.com/onlysumitg/GoQhttp/utils/xmlutils"
 )
@@ -84,6 +85,30 @@ func (s *Server) RPGAPICall(ctx context.Context, callID string, sp *storedProc.S
 			if sucessFound {
 				res.LogData = append(res.LogData, logger.GetLogEvent("INFO", callID, stringutils.AsString(sucessMesaage), false))
 				delete(jsonData, "**Success")
+
+				statusCodeMessage, found := jsonData["QHTTP_STATUS_MESSAGE"]
+				if found {
+					delete(jsonData, "QHTTP_STATUS_MESSAGE")
+					res.Message = stringutils.AsString(statusCodeMessage)
+				}
+
+				statusCode, found := jsonData["QHTTP_STATUS_CODE"]
+				if found {
+					httpCode, message := httputils.GetValidHttpCode(statusCode)
+
+					if httpCode > 0 {
+						res.Status = httpCode
+
+						// remove QHTTP_STATUS_CODE from out params
+						delete(jsonData, "QHTTP_STATUS_CODE")
+
+						if res.Message == "" {
+							res.Message = message
+						}
+
+					}
+				}
+
 				res.Data = jsonData
 
 			} else {

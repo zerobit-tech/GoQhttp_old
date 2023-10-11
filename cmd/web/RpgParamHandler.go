@@ -18,7 +18,7 @@ import (
 //
 // ------------------------------------------------------
 func (app *application) RpgParamHandlers(router *chi.Mux) {
-	router.Route("/rpgparam", func(r chi.Router) {
+	router.Route("/pgmfields", func(r chi.Router) {
 		//r.With(paginate).Get("/", listArticles)
 		r.Use(app.sessionManager.LoadAndSave)
 
@@ -36,8 +36,12 @@ func (app *application) RpgParamHandlers(router *chi.Mux) {
 		r.Get("/update/{id}", app.rpgParamUpdate)
 		r.Post("/update/{id}", app.rpgParamAddPost)
 
-		r.Get("/delete/{spId}", app.SPDelete)
-		r.Post("/delete", app.SPDeleteConfirm)
+		//r.Get("/delete/{id}", app.SPDelete)
+		//r.Post("/delete", app.SPDeleteConfirm)
+
+		r.Get("/usageds/{id}", app.rpgParamUsageDS)
+		r.Get("/usagepgm/{id}", app.rpgParamUsagePGM)
+
 	})
 
 }
@@ -210,7 +214,7 @@ func (app *application) rpgParamAddPost(w http.ResponseWriter, r *http.Request) 
 	}()
 
 	//http.Redirect(w, r, fmt.Sprintf("/savesql/%s", id), http.StatusSeeOther)
-	http.Redirect(w, r, fmt.Sprintf("/rpgparam/%s", id), http.StatusSeeOther)
+	http.Redirect(w, r, fmt.Sprintf("/pgmfields/%s", id), http.StatusSeeOther)
 
 }
 
@@ -378,5 +382,66 @@ func (app *application) rpgParamSaveValidator(w http.ResponseWriter, r *http.Req
 	}
 
 	app.goBack(w, r, http.StatusSeeOther)
+
+}
+
+// ------------------------------------------------------
+// add new server
+// ------------------------------------------------------
+func (app *application) rpgParamUsageDS(w http.ResponseWriter, r *http.Request) {
+
+	id := chi.URLParam(r, "id")
+
+	rpgParam, err := app.RpgParamModel.Get(id)
+	if err != nil {
+		app.sessionManager.Put(r.Context(), "error", fmt.Sprintf("Update error: %s", err.Error()))
+		app.goBack(w, r, http.StatusBadRequest)
+		return
+	}
+
+	data := app.newTemplateData(r)
+
+	data.RpgParams = make([]*rpg.Param, 0)
+	rpgParams := app.RpgParamModel.List()
+
+	for _, p := range rpgParams {
+		if p.DsHasField(rpgParam.ID) {
+			data.RpgParams = append(data.RpgParams, p)
+		}
+	}
+
+	nextUrl := r.URL.Query().Get("next") //filters=["color", "price", "brand"]
+	data.Next = nextUrl
+	app.render(w, r, http.StatusOK, "rpg_param_list.tmpl", data)
+
+}
+
+// ------------------------------------------------------
+// add new server
+// ------------------------------------------------------
+func (app *application) rpgParamUsagePGM(w http.ResponseWriter, r *http.Request) {
+
+	id := chi.URLParam(r, "id")
+
+	rpgParam, err := app.RpgParamModel.Get(id)
+	if err != nil {
+		app.sessionManager.Put(r.Context(), "error", fmt.Sprintf("Update error: %s", err.Error()))
+		app.goBack(w, r, http.StatusBadRequest)
+		return
+	}
+
+	data := app.newTemplateData(r)
+
+	data.RpgEndPoints = make([]*rpg.RpgEndPoint, 0, 10)
+
+	storedPs := app.RpgEndpointModel.List()
+
+	for _, sp := range storedPs {
+		if sp.IsUsingField(app.RpgParamModel, rpgParam.ID) {
+			data.RpgEndPoints = append(data.RpgEndPoints, sp)
+		}
+	}
+
+	app.render(w, r, http.StatusOK, "rpg_endpoint_list.tmpl", data)
 
 }

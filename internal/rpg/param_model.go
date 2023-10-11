@@ -168,7 +168,7 @@ func (m *RpgParamModel) Get(id string) (*Param, error) {
 		return &rpgparam, err
 
 	}
-	//rpgparam.Load()
+	//pgmfields.Load()
 	return &rpgparam, errors.New("Not Found")
 
 }
@@ -191,7 +191,7 @@ func (m *RpgParamModel) List() []*Param {
 			rpgparam := Param{}
 			err := json.Unmarshal(v, &rpgparam)
 			if err == nil {
-				//rpgparam.Load()
+				//pgmfields.Load()
 				m.loadChildParas(&rpgparam)
 				rpgparams = append(rpgparams, &rpgparam)
 			}

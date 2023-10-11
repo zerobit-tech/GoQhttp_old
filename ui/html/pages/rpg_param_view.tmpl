@@ -9,13 +9,13 @@ RPG Paramter
   <div class="col">
     <div class="card " style="height: 100%;">
       <div class="card-header">
-        <p class="h5">RPG Parameter detail</p>
+        <p class="h5">Program field detail</p>
 
       </div>
 
 
       <div class="card-body">
-        <table class="table table-bordered table-striped">
+        <table class="table table-bordered  table-responsive-sm table-striped  ">
           <tbody>
 
 
@@ -113,30 +113,4 @@ RPG Paramter
  
 {{end}}
 
-
-{{define "aftercontent"}}
-
-<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.1/css/jquery.dataTables.css">
-<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.13.1/js/jquery.dataTables.js"></script>
-
-<script>
-
-  $(document).ready(function () {
-    $('#splist').DataTable(
-      {
-        "pageLength": 100,
-        "language": {
-          "emptyTable": "No results found"
-        }
-      }
-    );
-
-    $('#rbackrolelist').DataTable({
-      "pageLength": 100,
-      "language": {
-        "emptyTable": "No records."
-      }
-    });
-  });
-</script>
-{{end}}
+ 

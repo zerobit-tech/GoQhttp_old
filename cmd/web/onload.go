@@ -66,11 +66,11 @@ func (app *application) createRPGDrivers() {
 
 				err = server.PrepareToSave(context.Background(), sp)
 				if err != nil {
-					log.Fatal("Error creating ", err)
+					log.Println("Error createing Program drivers ", err)
 				}
 				_, err := app.storedProcs.Save(sp)
 				if err != nil {
-					log.Fatal("Error creating ", err)
+					log.Println("Error creating Program drivers ", err)
 				}
 			}
 

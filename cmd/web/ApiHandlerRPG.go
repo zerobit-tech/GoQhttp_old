@@ -103,7 +103,7 @@ func (app *application) ProcessRPGAPICall(w http.ResponseWriter, r *http.Request
 
 	// ------------------------------ GET Driver to user --------------------
 
-	sp, err := app.GetRPGDriver(rpgEndpoint, server)
+	sp, err := app.GetRPGDriver(server)
 	if err != nil {
 		apiCall.Logger("ERROR", fmt.Sprintf("Program Driver not found for: %s %s/%s", r.Method, namespace, endpointName), false)
 		response.Status = http.StatusNotImplemented
@@ -125,7 +125,7 @@ func (app *application) ProcessRPGAPICall(w http.ResponseWriter, r *http.Request
 
 	// apiCall.ResponseString = html.UnescapeString(endPoint.ResponsePlaceholder) //string(jsonByte)
 
-	apiCall.Logger("INFO", fmt.Sprintf("Calling RPG %s on server %s", apiCall.CurrentRpgEndPoint.EndPointName, server.Name), false)
+	apiCall.Logger("INFO", fmt.Sprintf("Calling Program %s on server %s", apiCall.CurrentRpgEndPoint.EndPointName, server.Name), false)
 
 	// ------------------------------  actual PGM CALL --------------------
 	apiCall.Response, apiCall.SPCallDuration, apiCall.Err = server.RPGAPICall(r.Context(), apiCall.ID, sp, rpgEndpoint, apiCall.RequestFlatMap, app.GetParamValidatorRegex())

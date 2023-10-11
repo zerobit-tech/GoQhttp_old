@@ -457,45 +457,19 @@ func (s *Server) call(ctx context.Context, callID string, sp *storedProc.StoredP
 			}
 
 			if p.Mode == "OUT" && keyToUse == "QHTTP_STATUS_CODE" && p.IsInt() {
-				intval, ok := 0, false
 
-				switch reflect.ValueOf(*v).Kind() {
-				case reflect.Int32:
-					if intval32, ok2 := (*v).(int32); ok2 {
-						intval = int(intval32)
-						ok = ok2
-					}
-				case reflect.Int64:
-					if intval64, ok2 := (*v).(int64); ok2 {
-						intval = int(intval64)
-						ok = ok2
-					}
-				case reflect.Int16:
-					if intval16, ok2 := (*v).(int16); ok2 {
-						intval = int(intval16)
-						ok = ok2
-					}
-				case reflect.Int8:
-					if intval8, ok2 := (*v).(int8); ok2 {
-						intval = int(intval8)
-						ok = ok2
-					}
-				default:
-					intval, ok = (*v).(int)
-				}
+				httpCode,message := httputils.GetValidHttpCode(*v)
 
-				if ok {
-					validCode, message := httputils.IsValidHttpCode(int(intval))
-					if validCode {
-						qhttp_status_code = int(intval)
+				if httpCode > 0 {
+					qhttp_status_code = httpCode
 
-						// remove QHTTP_STATUS_CODE from out params
-						delete(preparedCallStatements.ResponseFormat, keyToUse)
+					// remove QHTTP_STATUS_CODE from out params
+					delete(preparedCallStatements.ResponseFormat, keyToUse)
 
-						if qhttp_status_message == "" {
-							qhttp_status_message = message
-						}
+					if qhttp_status_message == "" {
+						qhttp_status_message = message
 					}
+
 				}
 
 			}

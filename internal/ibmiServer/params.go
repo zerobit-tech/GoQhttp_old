@@ -64,3 +64,4 @@ func getParameterofType(p *storedProc.StoredProcParamter) *any {
 
 	return &x
 }
+

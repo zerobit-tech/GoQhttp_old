@@ -19,7 +19,7 @@ import (
 //
 // ------------------------------------------------------
 func (app *application) RpgParamDSHandlers(router *chi.Mux) {
-	router.Route("/rpgparamds", func(r chi.Router) {
+	router.Route("/pgmfieldsds", func(r chi.Router) {
 		//r.With(paginate).Get("/", listArticles)
 		r.Use(app.sessionManager.LoadAndSave)
 
@@ -197,7 +197,7 @@ func (app *application) rpgParamDSAddPost(w http.ResponseWriter, r *http.Request
 	}()
 
 	//http.Redirect(w, r, fmt.Sprintf("/savesql/%s", id), http.StatusSeeOther)
-	http.Redirect(w, r, fmt.Sprintf("/rpgparam/%s", id), http.StatusSeeOther)
+	http.Redirect(w, r, fmt.Sprintf("/pgmfields/%s", id), http.StatusSeeOther)
 
 }
 

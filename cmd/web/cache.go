@@ -68,7 +68,7 @@ func (app *application) GetRPGEndPoint(namespace, endpointName, httpmethod strin
 // ------------------------------------------------------
 //
 // ------------------------------------------------------
-func (app *application) GetRPGDriver(rpg *rpg.RpgEndPoint, server *ibmiServer.Server) (*storedProc.StoredProc, error) {
+func (app *application) GetRPGDriver(server *ibmiServer.Server) (*storedProc.StoredProc, error) {
 
 	sp, err := app.GetEndPoint(env.RpgDriverNameSpace(server.Name), env.RpgDefaultDriverprogram(server.Name), "post") //iPLUGR512K
 

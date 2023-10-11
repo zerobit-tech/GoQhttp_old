@@ -4,14 +4,14 @@ Field
 
 {{define "content"}}
  
-<div class="row p-2">
+<div class="row p-2" id="mainfieldlist">
   <div class="col">
     <div class="card ">
       <div class="card-header">
         <p class="h5">Program Fields 
 
-           <a id="addrpgparms"  hx-push-url="true"  class="btn btn-ghost-info float-right" href="/rpgparam/add">+Add Field</a>
-           <a id="addrpgparms"  hx-push-url="true"  class="btn btn-ghost-info float-right" href="/rpgparamds/add">+Add DataStructure</a>
+           <a id="addrpgparms"  hx-push-url="true"  class="btn btn-ghost-info float-right" href="/pgmfields/add">+Add Field</a>
+           <a id="addrpgparms"  hx-push-url="true"  class="btn btn-ghost-info float-right" href="/pgmfieldsds/add">+Add DataStructure</a>
 
          </p>
        
@@ -24,8 +24,7 @@ Field
       <thead class="thead-dark">
         <tr>
           
-          <th>Type</th>
-          <th>Name</th>
+           <th>Name</th>
            
           
 
@@ -38,8 +37,7 @@ Field
 
         {{range .RpgParams}}
         <tr>
-          <td>{{if .IsDs}} Datastructure {{else}} {{end}}</td>
-            <td> {{.ID|getrpgparamstring}}</td>
+             <td class="tdbreak"> {{.ID|getrpgparamstring}}</td>
  
             
             
@@ -47,16 +45,16 @@ Field
 
             <td>
                  
-                  <a  hx-push-url="true"  class="btn btn-ghost-info" href='/rpgparam/{{.ID}}'  >View</a>   
+                  <a  hx-push-url="true"  class="btn btn-ghost-info" href='/pgmfields/{{.ID}}'  >View</a>   
                   <a  hx-push-url="true"  class="btn btn-ghost-info" 
                      data-toggle="tooltip" data-placement="bottom" title="Edit" 
-                     href='/rpgparam{{if .IsDs}}ds{{end}}/update/{{.ID}}'  >   <svg class="c-icon mfe-2">
+                     href='/pgmfields{{if .IsDs}}ds{{end}}/update/{{.ID}}'  >   <svg class="c-icon mfe-2">
                       <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-pencil"></use>
                   </svg></a> 
                
                   <a class="btn btn-ghost-danger"   hx-push-url="true" 
                      data-toggle="tooltip" data-placement="bottom" title="Delete" 
-                     href='/rpgparam/delete/{{.ID}}'  >   
+                     href='/pgmfields/delete/{{.ID}}'  >   
                       <svg class="c-icon mfe-2">
                       <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-trash"></use>
                   </svg></a>

@@ -44,6 +44,26 @@ type RpgEndPoint struct {
 // ------------------------------------------------------------
 //
 // ------------------------------------------------------------
+func (p *RpgEndPoint) IsUsingField(rpgParamModel *RpgParamModel,fieldID string) bool{
+
+	for _, f := range p.Parameters {
+		if f.FieldID == fieldID{
+			return true
+		}
+		param, err := rpgParamModel.Get(f.FieldID)
+		if err==nil{
+			if param.DsHasField(fieldID){
+				return true
+			}
+		}
+
+	}
+
+	return false
+}
+// ------------------------------------------------------------
+//
+// ------------------------------------------------------------
 func (p *RpgEndPoint) AssignParamObjects(rpgParamModel *RpgParamModel) {
 	for _, f := range p.Parameters {
 

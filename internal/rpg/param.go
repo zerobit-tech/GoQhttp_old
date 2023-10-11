@@ -42,6 +42,21 @@ type Param struct {
 // ------------------------------------------------------------
 //
 // ------------------------------------------------------------
+func (p *Param) DsHasField(fieldId string) bool {
+	if p.IsDs {
+		for _, f := range p.DsFields {
+			if f!=nil && f.ParamID ==fieldId{
+				return true
+			}
+		}
+	}
+
+	return false
+}
+
+// ------------------------------------------------------------
+//
+// ------------------------------------------------------------
 func (p *Param) AssignDSFieldNames() {
 	if p.IsDs {
 		for _, f := range p.DsFields {
