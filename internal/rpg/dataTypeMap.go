@@ -2,6 +2,9 @@ package rpg
 
 import "strconv"
 
+// ------------------------------------------------------------
+//
+// ------------------------------------------------------------
 var DataTypeMap map[string]string = map[string]string{
 
 	"INTEGER 3i0":  "3i0",
@@ -26,6 +29,9 @@ var DataTypeMap map[string]string = map[string]string{
 	"DATE":                      "10A",
 }
 
+// ------------------------------------------------------------
+//
+// ------------------------------------------------------------
 var dataTypeWithLength map[string]bool = map[string]bool{
 
 	"ALPHANUMERIC/CHAR":         true,
@@ -36,6 +42,9 @@ var dataTypeWithLength map[string]bool = map[string]bool{
 	"ZONED": true,
 }
 
+// ------------------------------------------------------------
+//
+// ------------------------------------------------------------
 var dataTypeWithDecimal map[string]bool = map[string]bool{
 
 	"PACKED": true,
@@ -43,6 +52,9 @@ var dataTypeWithDecimal map[string]bool = map[string]bool{
 	"ZONED": true,
 }
 
+// ------------------------------------------------------------
+//
+// ------------------------------------------------------------
 var dataTypeNumeric map[string]bool = map[string]bool{
 
 	"INTEGER 3i0":  true,
@@ -62,20 +74,27 @@ var dataTypeNumeric map[string]bool = map[string]bool{
 	"FLOAT 8f": true,
 }
 
+// ------------------------------------------------------------
+//
+// ------------------------------------------------------------
 func DataTypeNeedDecimalValue(dataType string) bool {
 	_, found := dataTypeWithDecimal[dataType]
 
 	return found
 }
 
+// ------------------------------------------------------------
+//
+// ------------------------------------------------------------
 func DataTypeNeedLength(dataType string) bool {
 	_, found := dataTypeWithLength[dataType]
 
 	return found
 }
 
-//---------------------------------
-
+// ------------------------------------------------------------
+//
+// ------------------------------------------------------------
 var DataTypeValidator map[string]func(string, int, int) bool = map[string]func(string, int, int) bool{
 
 	"INTEGER 3i0":  intValidator,
@@ -100,6 +119,17 @@ var DataTypeValidator map[string]func(string, int, int) bool = map[string]func(s
 	"DATE":                      timestampValidator,
 }
 
+// ------------------------------------------------------------
+//
+// ------------------------------------------------------------
+var DataTypeSpecialText map[string]string = map[string]string{
+
+	"VARYING ALPHANUMERIC/CHAR": "varying='on'",
+}
+
+// ------------------------------------------------------------
+//
+// ------------------------------------------------------------
 func intValidator(v string, length, decimal int) bool {
 	_, err := strconv.Atoi(v)
 	if err != nil {
@@ -107,6 +137,10 @@ func intValidator(v string, length, decimal int) bool {
 	}
 	return true
 }
+
+// ------------------------------------------------------------
+//
+// ------------------------------------------------------------
 func uintValidator(v string, length, decimal int) bool {
 	i, err := strconv.Atoi(v)
 	if err != nil {
@@ -119,6 +153,9 @@ func uintValidator(v string, length, decimal int) bool {
 	return true
 }
 
+// ------------------------------------------------------------
+//
+// ------------------------------------------------------------
 func floatValidator(v string, length, decimal int) bool {
 	_, err := strconv.ParseFloat(v, 64)
 	if err != nil {
@@ -127,6 +164,9 @@ func floatValidator(v string, length, decimal int) bool {
 	return true
 }
 
+// ------------------------------------------------------------
+//
+// ------------------------------------------------------------
 func charValidator(v string, length, decimal int) bool {
 	if len(v) > length {
 		return false
@@ -134,6 +174,10 @@ func charValidator(v string, length, decimal int) bool {
 
 	return true
 }
+
+// ------------------------------------------------------------
+//
+// ------------------------------------------------------------
 func timeValidator(v string, length, decimal int) bool {
 	if len(v) > 8 {
 		return false
@@ -141,6 +185,10 @@ func timeValidator(v string, length, decimal int) bool {
 
 	return true
 }
+
+// ------------------------------------------------------------
+//
+// ------------------------------------------------------------
 func dateValidator(v string, length, decimal int) bool {
 	if len(v) > 10 {
 		return false
@@ -148,6 +196,10 @@ func dateValidator(v string, length, decimal int) bool {
 
 	return true
 }
+
+// ------------------------------------------------------------
+//
+// ------------------------------------------------------------
 func timestampValidator(v string, length, decimal int) bool {
 	if len(v) > 26 {
 		return false

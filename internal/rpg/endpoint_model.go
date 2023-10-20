@@ -135,6 +135,23 @@ func (m *RpgEndpointModel) Duplicate(u *RpgEndPoint) bool {
 //
 // -----------------------------------------------------------------
 // We'll use the Exists method to check if a user exists with a specific ID.
+func (m *RpgEndpointModel) DuplicateByName(name string, method string, namespace string) bool {
+	exists := false
+	for _, sp := range m.List() {
+
+		if strings.EqualFold(sp.EndPointName, name) && strings.EqualFold(sp.HttpMethod, method) && strings.EqualFold(sp.GetNamespace(), namespace) {
+			exists = true
+			break
+		}
+	}
+
+	return exists
+}
+
+// -----------------------------------------------------------------
+//
+// -----------------------------------------------------------------
+// We'll use the Exists method to check if a user exists with a specific ID.
 func (m *RpgEndpointModel) Get(id string) (*RpgEndPoint, error) {
 
 	if id == "" {

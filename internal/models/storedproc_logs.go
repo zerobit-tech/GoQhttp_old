@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/onlysumitg/GoQhttp/env"
+	"github.com/onlysumitg/GoQhttp/internal/endpoints"
 	"github.com/onlysumitg/GoQhttp/utils/concurrent"
 	bolt "go.etcd.io/bbolt"
 )
@@ -25,7 +26,7 @@ type SPCallLog struct {
 	Logs []LogEntry `json:"logid" db:"logid" form:"-"`
 }
 type SPCallLogEntry struct {
-	SpID string
+	EndPoint endpoints.Endpoint
 
 	LogId string
 }
@@ -66,11 +67,11 @@ func (m *SPCallLogModel) AddLogid() {
 			CalledAt: time.Now().Local(),
 		}
 
-		splog, err := m.Get(logE.SpID)
+		splog, err := m.Get(logE.EndPoint.EPID())
 
 		if err != nil {
 			logEntries := make([]LogEntry, 0)
-			splog = &SPCallLog{SpID: logE.SpID, Logs: logEntries}
+			splog = &SPCallLog{SpID: logE.EndPoint.EPID(), Logs: logEntries}
 		}
 
 		//Prepend
@@ -79,6 +80,11 @@ func (m *SPCallLogModel) AddLogid() {
 		maxEntries, err := strconv.Atoi(env.GetEnvVariable("MAX_LOG_ENTRIES_FOR_ONE_ENDPOINT", "1000"))
 		if err != nil || maxEntries <= 0 {
 			maxEntries = 1000
+		}
+
+		maxEntriesByEP := logE.EndPoint.EPMaxLogEntries()
+		if maxEntries > maxEntriesByEP {
+			maxEntries = maxEntriesByEP
 		}
 
 		if len(splog.Logs) > maxEntries {

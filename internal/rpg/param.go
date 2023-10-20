@@ -30,7 +30,6 @@ type Param struct {
 	DataType        string `json:"datatype" db:"datatype" form:"datatype"`
 	Length          uint   `json:"length" db:"length" form:"length"`
 	DecimalPostions uint   `json:"decimalpostions" db:"decimalpostions" form:"decimalpostions"`
-	IsVarying       bool   `json:"isvarying" db:"isvarying" form:"isvarying"`
 
 	IsDs     bool `json:"isds" db:"isds" form:"isds"`
 	DsFields []*DSField
@@ -45,7 +44,7 @@ type Param struct {
 func (p *Param) DsHasField(fieldId string) bool {
 	if p.IsDs {
 		for _, f := range p.DsFields {
-			if f!=nil && f.ParamID ==fieldId{
+			if f != nil && f.ParamID == fieldId {
 				return true
 			}
 		}
@@ -275,8 +274,6 @@ func (s *Param) LogImage() string {
 
 	imageMap["DecimalPostions"] = s.DecimalPostions
 
-	imageMap["IsVarying"] = s.IsVarying
-
 	j, err := json.MarshalIndent(imageMap, " ", " ")
 	if err == nil {
 		return string(j)
@@ -439,6 +436,7 @@ func (p *Param) singleParameterXMLXX(key string, name string, values map[string]
 	*/
 
 	dateType := p.GetDataType()
+	specialText := p.GetSpecialText()
 	dname := name
 
 	//value := p.Value
@@ -463,7 +461,7 @@ func (p *Param) singleParameterXMLXX(key string, name string, values map[string]
 				}
 
 			}
-			dataList[i] = fmt.Sprintf("  <data type=\"%s\" var=\"%s\"><![CDATA[%s]]></data>  ", dateType, dname, valS)
+			dataList[i] = fmt.Sprintf("  <data type=\"%s\" var=\"%s\"  %s><![CDATA[%s]]></data>  ", dateType, dname, specialText, valS)
 		}
 
 		pramString = strings.Join(dataList, "\n")
@@ -479,7 +477,7 @@ func (p *Param) singleParameterXMLXX(key string, name string, values map[string]
 			}
 		}
 
-		pramString = fmt.Sprintf("<data type=\"%s\" var=\"%s\"><![CDATA[%s]]></data>  ", dateType, dname, valS)
+		pramString = fmt.Sprintf("<data type=\"%s\" var=\"%s\" %s><![CDATA[%s]]></data>  ", dateType, dname, specialText, valS)
 	}
 
 	return pramString, nil
@@ -504,6 +502,18 @@ func (p *Param) GetDataType() string {
 	}
 
 	return dataType
+}
+
+// -----------------------------------------------------
+//
+// -----------------------------------------------------
+func (p *Param) GetSpecialText() string {
+	speicalText, found := DataTypeSpecialText[p.DataType]
+	if found {
+		return speicalText
+	}
+
+	return ""
 }
 
 // -----------------------------------------------------

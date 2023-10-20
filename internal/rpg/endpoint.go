@@ -31,6 +31,7 @@ type RpgEndPoint struct {
 	ResponseFormat     string   `json:"responseformat" db:"responseformat" form:"-"`
 	Promotionsql       string   `json:"promotionsql" db:"promotionsql" form:"-"`
 
+	MaxlogEntries int `json:"maxlogentries" db:"maxlogentries" form:"maxlogentries"`
 	//	RpgProgram         string   `json:"rpgpgmid" db:"rpgpgmid" form:"rpgpgmid"`
 	//	RpgPgm *Program `json:"-" db:"-" form:"-"`
 
@@ -44,15 +45,15 @@ type RpgEndPoint struct {
 // ------------------------------------------------------------
 //
 // ------------------------------------------------------------
-func (p *RpgEndPoint) IsUsingField(rpgParamModel *RpgParamModel,fieldID string) bool{
+func (p *RpgEndPoint) IsUsingField(rpgParamModel *RpgParamModel, fieldID string) bool {
 
 	for _, f := range p.Parameters {
-		if f.FieldID == fieldID{
+		if f.FieldID == fieldID {
 			return true
 		}
 		param, err := rpgParamModel.Get(f.FieldID)
-		if err==nil{
-			if param.DsHasField(fieldID){
+		if err == nil {
+			if param.DsHasField(fieldID) {
 				return true
 			}
 		}
@@ -61,6 +62,7 @@ func (p *RpgEndPoint) IsUsingField(rpgParamModel *RpgParamModel,fieldID string) 
 
 	return false
 }
+
 // ------------------------------------------------------------
 //
 // ------------------------------------------------------------
@@ -117,7 +119,9 @@ func (p *RpgEndPoint) ValidateParams() bool {
 	if !anyError {
 		anyError = p.checkDuplicateFieldName()
 	}
-
+	if !anyError {
+		anyError = p.checkAllowedByHttpMethod()
+	}
 	return anyError
 
 }
@@ -165,6 +169,37 @@ func (p *RpgEndPoint) checkDuplicateFieldName() bool {
 			nameMap[f.NameToUse] = true
 		}
 	}
+
+	return anyError
+}
+
+// ------------------------------------------------------------
+//
+// ------------------------------------------------------------
+func (p *RpgEndPoint) checkAllowedByHttpMethod() bool {
+	anyError := false
+
+	hasArray := false
+	hasDs := false
+
+	if strings.EqualFold(p.HttpMethod, "GET") || strings.EqualFold(p.HttpMethod, "DELETE") {
+		for _, f := range p.Parameters {
+			if f.Dim > 1 {
+				hasArray = true
+				f.AddFieldError("name", fmt.Sprintf("Array now allowed for %s method", p.HttpMethod))
+				continue
+			}
+
+			if f.Param != nil && f.Param.IsDs {
+				hasArray = true
+				f.AddFieldError("name", fmt.Sprintf("DS now allowed for %s method", p.HttpMethod))
+				continue
+
+			}
+		}
+	}
+
+	anyError = hasArray || hasDs
 
 	return anyError
 }
@@ -366,6 +401,55 @@ outerloop:
 			}
 
 		}
+	}
+	jsonPayload, err := json.MarshalIndent(inputPayload, "", "  ")
+	if err == nil {
+		outJsonString = string(jsonPayload)
+	}
+
+	return outJsonString
+
+}
+
+// ------------------------------------------------------------
+// BuildMockUrl(s)
+// ------------------------------------------------------------
+func (s *RpgEndPoint) OutputStructureJson() string {
+
+	outJsonString := ""
+	inputPayload := make(map[string]any)
+
+outerloop:
+	for _, p := range s.Parameters {
+
+		if p.Param == nil {
+			continue
+		}
+
+		if p.InOutType == "in" {
+			continue outerloop
+		}
+
+		if p.Param.IsDs {
+
+			x := p.Param.DsJson(p.Dim)
+			if p.Dim > 1 {
+				inputPayload[p.NameToUse] = x
+			} else {
+				inputPayload[p.NameToUse] = x[0]
+			}
+
+		} else {
+
+			x := p.Param.NoNDsJson(p.Dim)
+			if p.Dim > 1 {
+				inputPayload[p.NameToUse] = x
+			} else {
+				inputPayload[p.NameToUse] = x[0]
+			}
+
+		}
+
 	}
 	jsonPayload, err := json.MarshalIndent(inputPayload, "", "  ")
 	if err == nil {

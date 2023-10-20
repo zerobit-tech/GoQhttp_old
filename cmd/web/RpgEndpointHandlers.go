@@ -307,6 +307,8 @@ func (app *application) RpgEndpointAddPost(w http.ResponseWriter, r *http.Reques
 		pgmP.EndPointName = stringutils.RemoveSpecialChars(stringutils.RemoveMultipleSpaces(pgmP.EndPointName))
 
 		pgmP.CheckField(!app.RpgEndpointModel.Duplicate(&pgmP), "endpointname", "Endpoint with name and method already exists in this namespace.")
+		pgmP.CheckField(!app.storedProcs.DuplicateByName(pgmP.Name, pgmP.HttpMethod, pgmP.Namespace), "endpointname", "Endpoint with name and method already exists in this namespace.")
+
 	}
 	// assign default server
 

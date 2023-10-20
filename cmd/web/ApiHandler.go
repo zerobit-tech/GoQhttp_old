@@ -503,7 +503,7 @@ func (app *application) ProcessSQLSPAPICall(w http.ResponseWriter, r *http.Reque
 		defer concurrent.Recoverer("Recovered in AddLogid")
 		defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
 
-		l := models.SPCallLogEntry{SpID: apiCall.CurrentSP.ID, LogId: apiCall.ID}
+		l := models.SPCallLogEntry{EndPoint: apiCall.CurrentSP, LogId: apiCall.ID}
 		app.spCallLogModel.DataChan <- l
 	}()
 

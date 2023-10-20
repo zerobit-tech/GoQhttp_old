@@ -34,6 +34,8 @@ Endpoint
                                         <th>Name</th>
                                     
                                         <th>Data Type</th>
+                                        <th>Dim</th>
+
                                         <th>Placement</th>
                                     </tr>
                                 </thead>
@@ -46,12 +48,14 @@ Endpoint
                                         <td>{{$param.NameToUse}}</td>
                                      
                                         <td>{{$param.Param.ID|getrpgparamstring}}</td>
-                                     
+                                        <td>{{$param.Dim}}</td>
+
                                      
 
                                         <td>
                                             {{if ne "out" $param.InOutType}}
-                                            {{if not  $param.Param.IsDs}}
+                                            {{if not $param.Param.IsDs}}
+                                            {{if le $param.Dim  1}}
                                             <div class="form-group">
                                                 <SELECT id="{{$param.NameToUse}}" class="form-control" name="{{$param.NameToUse}}">
                                                     <OPTION value="">Default</OPTION>
@@ -64,6 +68,7 @@ Endpoint
                                                     "PATH": will change the parameter name
                                                 </small>
                                             </div>
+                                            {{end}}
                                             {{end}}
                                             {{end}}
                                          </td>

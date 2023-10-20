@@ -163,7 +163,7 @@ func (app *application) ProcessRPGAPICall(w http.ResponseWriter, r *http.Request
 		defer concurrent.Recoverer("Recovered in AddLogid")
 		defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
 
-		l := models.SPCallLogEntry{SpID: apiCall.CurrentRpgEndPoint.ID, LogId: apiCall.ID}
+		l := models.SPCallLogEntry{EndPoint: apiCall.CurrentRpgEndPoint, LogId: apiCall.ID}
 		app.spCallLogModel.DataChan <- l
 	}()
 

@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"log"
 	"runtime/debug"
 	"strings"
@@ -128,8 +129,15 @@ func (app *application) ProcessPromotionRecord(s *ibmiServer.Server, pr *storedP
 			newSP := s.PromotionRecordToStoredProc(*pr)
 			newSP.ID = newSP.Slug() // id is by name_httpmethod --> auto replace old if alreay exits
 
-			err := s.PrepareToSave(context.Background(), newSP)
+			var err error = nil
+			if app.RpgEndpointModel.DuplicateByName(newSP.EndPointName, newSP.HttpMethod, newSP.Namespace) {
 
+				err = errors.New("Duplicate name. Conflict with program endpoint")
+
+			}
+			if err == nil {
+				err = s.PrepareToSave(context.Background(), newSP)
+			}
 			if err == nil {
 				newSP.AddAllowedServer(s.ID, s.Name)
 

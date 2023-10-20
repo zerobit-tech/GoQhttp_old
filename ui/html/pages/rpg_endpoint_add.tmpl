@@ -195,7 +195,7 @@ Add
                         <div class="col-8">
 
                             <table id="rbackrolelist"
-                                class="table   table-borderless table-responsive-sm table-striped    ">
+                                class="table   table-borderless  table-striped    ">
                                 <thead class="thead-dark">
                                     <tr>
                                         <th>Usage</th>
@@ -242,7 +242,7 @@ Add
                                             </div>
                                         </td>
 
-                                        <td>
+                                        <td style="width: 50%;">
                                             <div class="form-group">
 
                                                 <SELECT class="form-control" name="Parameters[{{$i}}].FieldID">
@@ -267,7 +267,7 @@ Add
                                                 <input id="Parameters[{{$i}}].Dim"
                                                     class="form-control {{with $params.FieldErrors.dim}} is-invalid {{end}}"
                                                     type="number" name="Parameters[{{$i}}].Dim"
-                                                    aria-describedby="libhelp" placeholder="Param Name"
+                                                    aria-describedby="libhelp" placeholder=""
                                                     value='{{$params.Dim}}' min="0"></input>
 
                                                 {{with $params.FieldErrors.dim}}

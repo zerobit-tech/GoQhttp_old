@@ -310,6 +310,8 @@ func (app *application) SPAddPost(w http.ResponseWriter, r *http.Request) {
 		sP.EndPointName = stringutils.RemoveSpecialChars(stringutils.RemoveMultipleSpaces(sP.EndPointName))
 
 		sP.CheckField(!app.storedProcs.Duplicate(&sP), "endpointname", "Endpoint with name and method already exists in this namespace.")
+		sP.CheckField(!app.RpgEndpointModel.DuplicateByName(sP.EndPointName, sP.HttpMethod, sP.Namespace), "endpointname", "Endpoint with name and method already exists in this namespace.")
+
 	}
 	// assign default server
 

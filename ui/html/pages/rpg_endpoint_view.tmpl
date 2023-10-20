@@ -193,8 +193,114 @@ Endpoint
 
 </div>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 <!-- Parameter -->
  
+<div class="row p-2">
+    <div class="col">
+        
+            <div class="card ">
+                <div class="card-header">
+                    <p class="h5">
+                       Parameters
+                    </p>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col">
+
+
+                        
+
+                            <table id="savedqlist"
+                                class="table   table-borderless table-responsive-sm table-striped    ">
+                                <thead class="thead-dark">
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Mode</th>
+                                        <th>Is DS?</th>
+                                        <th>Name</th>
+                                      
+
+                                        <th>Data Type</th>
+                                        <th>Precision</th>
+                                        <th>Scale</th>
+                                 
+                                        <th>Dim</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {{if .RpgEndPoint.Parameters}}
+                                    {{range .RpgEndPoint.Parameters}}
+                                    <tr>
+                                        <td>{{.Seq}}</td>
+                                        <td>{{.InOutType}}</td>
+                                        <td>{{.Param.IsDs}}</td>
+                                        <td>{{.NameToUse}}</td>
+                                     
+                                        <td>{{.Param.DataType}}</td>
+                                        <td>{{.Param.Length}}</td>
+                                        <td>{{.Param.DecimalPostions}}</td>
+                                        <td>{{.Dim}}</td>
+
+
+
+
+                                    </tr>
+                                    {{end}}
+
+                                    {{else}}
+                                    {{end}}
+                                </tbody>
+                            </table>
+
+
+                            
+                        </div>
+                    </div>
+                </div>
+            </div>            
+        
+    </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- Response Structure -->
 
 <div class="row p-2">
     <div class="col-xl ">
@@ -207,7 +313,7 @@ Endpoint
             <div class="card-body">
                 <div class="row">
                     <div class="col">
-                        <pre>{{.RpgEndPoint.ResponseFormat}}</pre>
+                        <pre>{{.RpgEndPoint.OutputStructureJson}}</pre>
 
                     </div>
                 </div>
