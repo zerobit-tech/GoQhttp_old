@@ -1,6 +1,8 @@
 package rpg
 
 import (
+	"strings"
+
 	"github.com/onlysumitg/GoQhttp/internal/validator"
 )
 
@@ -22,7 +24,7 @@ type ProgramParams struct {
 // -----------------------------------------------------
 //
 // -----------------------------------------------------
-func (p *ProgramParams) getNameToUse() string {
+func (p *ProgramParams) GetNameToUse() string {
 
-	return p.NameToUse
+	return strings.ToUpper(p.NameToUse)
 }

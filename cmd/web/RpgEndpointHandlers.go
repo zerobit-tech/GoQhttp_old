@@ -671,7 +671,7 @@ func (app *application) RpgEndpointSaveParamPos(w http.ResponseWriter, r *http.R
 
 	changed := false
 	for _, p := range pgmP.Parameters {
-		placement, found := formMap[strings.ToUpper(p.NameToUse)]
+		placement, found := formMap[p.GetNameToUse()]
 		if found {
 			placementString, ok := placement.(string)
 			if ok && p.Placement != placementString {

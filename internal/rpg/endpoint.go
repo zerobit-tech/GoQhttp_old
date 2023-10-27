@@ -98,7 +98,7 @@ func (p *RpgEndPoint) FilterOutInvalidParams() {
 	fields := make([]*ProgramParams, 0)
 	for _, f := range p.Parameters {
 		field := f
-		f.NameToUse = strings.TrimSpace(strings.ToUpper(f.NameToUse))
+		f.NameToUse = strings.TrimSpace(f.GetNameToUse())
 
 		if f.NameToUse != "" && f.FieldID != "" {
 			fields = append(fields, field)
@@ -156,17 +156,17 @@ func (p *RpgEndPoint) checkDuplicateFieldName() bool {
 
 	nameMap := make(map[string]bool)
 	for _, f := range p.Parameters {
-		if strings.TrimSpace(f.NameToUse) == "" {
+		if strings.TrimSpace(f.GetNameToUse()) == "" {
 			continue
 		}
 		f.NameToUse = strings.ToUpper(f.NameToUse)
-		_, found := nameMap[f.NameToUse]
+		_, found := nameMap[f.GetNameToUse()]
 		if found {
 			f.AddFieldError("name", "Duplicate Name")
 			anyError = true
 
 		} else {
-			nameMap[f.NameToUse] = true
+			nameMap[f.GetNameToUse()] = true
 		}
 	}
 
@@ -327,7 +327,7 @@ outerloop:
 			continue
 		}
 
-		nameToUse := p.getNameToUse()
+		nameToUse := p.GetNameToUse()
 		if p.InOutType == "out" {
 			continue outerloop
 		}
@@ -384,18 +384,18 @@ outerloop:
 
 				x := p.Param.DsJson(p.Dim)
 				if p.Dim > 1 {
-					inputPayload[p.NameToUse] = x
+					inputPayload[p.GetNameToUse()] = x
 				} else {
-					inputPayload[p.NameToUse] = x[0]
+					inputPayload[p.GetNameToUse()] = x[0]
 				}
 
 			} else {
 
 				x := p.Param.NoNDsJson(p.Dim)
 				if p.Dim > 1 {
-					inputPayload[p.NameToUse] = x
+					inputPayload[p.GetNameToUse()] = x
 				} else {
-					inputPayload[p.NameToUse] = x[0]
+					inputPayload[p.GetNameToUse()] = x[0]
 				}
 
 			}
@@ -416,6 +416,12 @@ outerloop:
 // ------------------------------------------------------------
 func (s *RpgEndPoint) OutputStructureJson() string {
 
+	outStr := map[string]any{
+		"ReferenceId": "{string}",
+		"Status":      200,
+		"Message":     "{string}",
+	}
+
 	outJsonString := ""
 	inputPayload := make(map[string]any)
 
@@ -434,24 +440,26 @@ outerloop:
 
 			x := p.Param.DsJson(p.Dim)
 			if p.Dim > 1 {
-				inputPayload[p.NameToUse] = x
+				inputPayload[p.GetNameToUse()] = x
 			} else {
-				inputPayload[p.NameToUse] = x[0]
+				inputPayload[p.GetNameToUse()] = x[0]
 			}
 
 		} else {
 
 			x := p.Param.NoNDsJson(p.Dim)
 			if p.Dim > 1 {
-				inputPayload[p.NameToUse] = x
+				inputPayload[p.GetNameToUse()] = x
 			} else {
-				inputPayload[p.NameToUse] = x[0]
+				inputPayload[p.GetNameToUse()] = x[0]
 			}
 
 		}
 
 	}
-	jsonPayload, err := json.MarshalIndent(inputPayload, "", "  ")
+
+	outStr["Data"] = inputPayload
+	jsonPayload, err := json.MarshalIndent(outStr, "", "  ")
 	if err == nil {
 		outJsonString = string(jsonPayload)
 	}
@@ -479,7 +487,7 @@ outerloop:
 			continue outerloop
 		}
 
-		nameToUse := p.getNameToUse()
+		nameToUse := p.GetNameToUse()
 
 		// dont display inbuilt param
 		for _, ibp := range inbuiltparam.InbuiltParams {
@@ -551,7 +559,7 @@ func (p *RpgEndPoint) ParamStrings(inparams map[string]xmlutils.ValueDatatype) (
 			continue
 		}
 
-		xmlString, err := pr.Param.ToXml(pr.getNameToUse(), inparams, pr.InOutType, pr.Dim)
+		xmlString, err := pr.Param.ToXml(pr.GetNameToUse(), inparams, pr.InOutType, pr.Dim)
 		if err != nil {
 			return make([]string, 0), err
 		}
