@@ -3,6 +3,7 @@ package jsonutils
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 
 	"github.com/onlysumitg/GoQhttp/utils/typeutils"
 )
@@ -40,7 +41,7 @@ func setMapValues(parsedJson map[string]any, keys string) map[string]any {
 			listMap := make(map[string]any)
 			newList, ok := value.([]any)
 			if !ok {
-				fmt.Println("ERRORRRRRRRRRRRRRR 3", value)
+				log.Println("err 3", value)
 			}
 
 			for i, lValue := range newList {

@@ -240,7 +240,11 @@ func (app *application) LogHandler(next http.Handler) http.Handler {
 				logger.LoggerChan <- logEH
 			}()
 		} else {
-			fmt.Println(">>>>>>>>>>> ERROR rec.Code rec.Code>>>>>>>>>>>>>.....", err.Error())
+			//goroutine
+			go func() {
+				logEH := logger.GetLogEvent("ERROR", requestId, err.Error(), false)
+				logger.LoggerChan <- logEH
+			}()
 
 		}
 
@@ -379,33 +383,34 @@ func GetLicInfo(ctx context.Context) *lic.LicenseFile {
 // ------------------------------------------------------
 func CheckLicMiddleware(next http.Handler) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
-		goToUrl := "/license"
+		// goToUrl := "/license"
 
-		licFile, err := lic.VerifyLicFiles()
-		if err != nil {
-			http.Redirect(w, r, goToUrl, http.StatusSeeOther)
+		// licFile, err := lic.VerifyLicFiles()
+		// if err != nil {
+		// 	http.Redirect(w, r, goToUrl, http.StatusSeeOther)
 
-		} else {
+		// } else {
 
-			ctx := r.Context()
+		// 	ctx := r.Context()
 
-			licFileData := &lic.LicenseFile{
-				Name: licFile,
-			}
+		// 	licFileData := &lic.LicenseFile{
+		// 		Name: licFile,
+		// 	}
 
-			licData, err := lic.GetLicFileExpiryDuration(licFile)
+		// 	licData, err := lic.GetLicFileExpiryDuration(licFile)
 
-			if err == nil {
-				licFileData.ExpiryDays = licData.ExpiryDays
-				licFileData.ValidTill = licData.End
-				licFileData.AssignedTo = licData.Client
-				licFileData.AssignedToEmail = licData.ClientEmail
-			}
-			ctx = context.WithValue(ctx, LIC_INFO, licFileData)
+		// 	if err == nil {
+		// 		licFileData.ExpiryDays = licData.ExpiryDays
+		// 		licFileData.ValidTill = licData.End
+		// 		licFileData.AssignedTo = licData.Client
+		// 		licFileData.AssignedToEmail = licData.ClientEmail
+		// 	}
+		// 	ctx = context.WithValue(ctx, LIC_INFO, licFileData)
 
-			next.ServeHTTP(w, r.WithContext(ctx))
+		// 	next.ServeHTTP(w, r.WithContext(ctx))
 
-		}
+		//}
+		next.ServeHTTP(w, r)
 
 	}
 	return http.HandlerFunc(fn)
@@ -418,31 +423,32 @@ func CheckLicMiddlewareNoRedirect(next http.Handler) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		//goToUrl := "/license"
 
-		licFile, err := lic.VerifyLicFiles()
-		if err != nil {
-			next.ServeHTTP(w, r)
+		// licFile, err := lic.VerifyLicFiles()
+		// if err != nil {
+		// 	next.ServeHTTP(w, r)
 
-		} else {
+		// } else {
 
-			ctx := r.Context()
+		// 	ctx := r.Context()
 
-			licFileData := &lic.LicenseFile{
-				Name: licFile,
-			}
+		// 	licFileData := &lic.LicenseFile{
+		// 		Name: licFile,
+		// 	}
 
-			licData, err := lic.GetLicFileExpiryDuration(licFile)
+		// 	licData, err := lic.GetLicFileExpiryDuration(licFile)
 
-			if err == nil {
-				licFileData.ExpiryDays = licData.ExpiryDays
-				licFileData.ValidTill = licData.End
-				licFileData.AssignedTo = licData.Client
-				licFileData.AssignedToEmail = licData.ClientEmail
-			}
-			ctx = context.WithValue(ctx, LIC_INFO, licFileData)
+		// 	if err == nil {
+		// 		licFileData.ExpiryDays = licData.ExpiryDays
+		// 		licFileData.ValidTill = licData.End
+		// 		licFileData.AssignedTo = licData.Client
+		// 		licFileData.AssignedToEmail = licData.ClientEmail
+		// 	}
+		// 	ctx = context.WithValue(ctx, LIC_INFO, licFileData)
 
-			next.ServeHTTP(w, r.WithContext(ctx))
+		// 	next.ServeHTTP(w, r.WithContext(ctx))
 
-		}
+		//}
+		next.ServeHTTP(w, r)
 
 	}
 	return http.HandlerFunc(fn)

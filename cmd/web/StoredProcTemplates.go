@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -52,7 +53,7 @@ func (app *application) LoadSPTemplates() {
 
 	app.storedProcsTemplates = make([]string, 0)
 	if err != nil {
-		fmt.Println("ERROR::", err)
+		log.Println("ERROR::", err)
 		return
 	}
 

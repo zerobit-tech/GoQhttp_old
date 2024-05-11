@@ -109,7 +109,7 @@ func processValue(value any, keyChain string) map[string]xmlutils.ValueDatatype 
 	if typeutils.IsMap(value) {
 		newValueMap, ok := value.(map[string]any)
 		if !ok {
-			log.Println("ERRORRRRRRRRRRRRRR 1", value)
+			log.Println("err 1", value)
 		} else {
 			iMap := buildFlatMap(newValueMap, keyChain)
 
@@ -120,7 +120,7 @@ func processValue(value any, keyChain string) map[string]xmlutils.ValueDatatype 
 	} else if typeutils.IsList(value) {
 		newList, ok := value.([]any)
 		if !ok {
-			log.Println("ERRORRRRRRRRRRRRRR 2", value)
+			log.Println("err 2", value)
 		}
 
 		iMap := buildFlatList(newList, keyChain)

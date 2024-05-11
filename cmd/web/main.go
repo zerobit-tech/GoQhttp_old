@@ -19,7 +19,7 @@ import (
 )
 
 var FeatureSet string = "ALL"
-var Version string = "v0.0.0"
+var Version string = "v1.0.0"
 
 func main() {
 
@@ -113,6 +113,7 @@ func main() {
 	// profiling server
 	debugMe(*params)
 
+	log.Println(qhttpTextArt)
 	log.Printf("QHttp is live at  %s \n", hostUrl)
 
 	// go openbrowser(url)

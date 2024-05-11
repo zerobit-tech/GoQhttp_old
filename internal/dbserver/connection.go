@@ -143,7 +143,7 @@ func getConnectionFromCache(server DBServer) (_ *sql.DB, inuse bool) {
 	// error occured in ping
 	if err != nil {
 
-		fmt.Println("Closing connections .....", err)
+		log.Println("Closing connections .....", err)
 		db.Close()
 		connectionMap.Delete(connectionID)
 		return nil, false
