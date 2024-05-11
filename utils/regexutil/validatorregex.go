@@ -10,4 +10,6 @@ var Regex = map[string]string{
 	"NOT_BLANK":        `^\S+$`,
 	"DATE":             `^\d{4}-\d{2}-\d{2}$`,
 	"TIME":             `^\d{2}:\d{2}:\d{2}$`,
+	"JSON":             "__JSON__",
+	"XML":              "__XML__",
 }

@@ -88,7 +88,7 @@ func (app *application) ServerHandlers(router *chi.Mux) {
 		//	r.Get("/findsp/{serverid}", app.FindSP)
 
 		superadmingroup := r.Group(nil)
- 
+
 		superadmingroup.Use(app.RequireSuperAdmin)
 		superadmingroup.Get("/add", app.ServerAdd)
 		superadmingroup.Post("/add", app.ServerAddPost)

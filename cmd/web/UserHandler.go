@@ -242,26 +242,6 @@ func (app *application) isSuperAdmin(r *http.Request) bool {
 // ------------------------------------------------------
 // Return true if the current request is from an authenticated user, otherwise
 // return false.
-func (app *application) isStaff(r *http.Request) bool {
-	user, err := app.GetUser(r)
-
-	if err != nil {
-		return false
-	}
-
-	if user.IsStaff {
-		return true
-	}
-
-	return false
-
-}
-
-// ------------------------------------------------------
-//
-// ------------------------------------------------------
-// Return true if the current request is from an authenticated user, otherwise
-// return false.
 func (app *application) RemoveSessionUser(r *http.Request) {
 	//app.sessionManager.Remove(r.Context(), "authenticatedUserID")
 	app.sessionManager.Remove(r.Context(), "authenticatedUserToken")
@@ -284,6 +264,26 @@ func (app *application) UpdateSessionUserToketn(r *http.Request, user models.Use
 	// app.sessionManager.Put(r.Context(), "authenticatedUserID", user.ID)
 	app.sessionManager.Put(r.Context(), "authenticatedUserToken", jwtString)
 	return nil
+}
+
+// ------------------------------------------------------
+//
+// ------------------------------------------------------
+// Return true if the current request is from an authenticated user, otherwise
+// return false.
+func (app *application) isStaff(r *http.Request) bool {
+	user, err := app.GetUser(r)
+
+	if err != nil {
+		return false
+	}
+
+	if user.IsStaff {
+		return true
+	}
+
+	return false
+
 }
 
 // ------------------------------------------------------

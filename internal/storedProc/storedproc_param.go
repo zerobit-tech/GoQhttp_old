@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/onlysumitg/GoQhttp/internal/validator"
 	"github.com/onlysumitg/GoQhttp/utils/floatutils"
 	"github.com/onlysumitg/GoQhttp/utils/stringutils"
 	"github.com/onlysumitg/godbc"
@@ -297,11 +298,20 @@ func (p *StoredProcParamter) GetValidatorRegex(regexMap map[string]string) (*reg
 // -----------------------------------------------------------------
 func (p *StoredProcParamter) ValidatorValueByRegex(val string, regexMap map[string]string) bool {
 
-	re, err := p.GetValidatorRegex(regexMap)
-	if err != nil {
-		return true // Dont stop if regex does not compile
-	}
+	paramRegex := strings.ToUpper(p.ValidatorRegex)
+	switch paramRegex {
+	case "JSON":
+		return validator.MustBeJSON(val)
+	case "XML":
+		return validator.MustBeXML(val)
+	default:
+		re, err := p.GetValidatorRegex(regexMap)
+		if err != nil {
+			return true // Dont stop if regex does not compile
+		}
 
-	return re.MatchString(val)
+		return re.MatchString(val)
+
+	}
 
 }

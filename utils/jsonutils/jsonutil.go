@@ -72,9 +72,33 @@ func JsonToFlatMap(stringJson string) (map[string]xmlutils.ValueDatatype, error)
 // -----------------------------------------------------------
 func JsonToFlatMapFromMap(parsedJson map[string]any) map[string]xmlutils.ValueDatatype {
 
-	flatmap := processValue(parsedJson, "")
+	//flatmap := processValue(parsedJson, "")
+	flatmap := processValueSingleLevel(parsedJson, "")
 
 	return flatmap
+}
+
+// -----------------------------------------------------------
+//
+// -----------------------------------------------------------
+func processValueSingleLevel(parsedJson map[string]any, keyChain string) map[string]xmlutils.ValueDatatype {
+	flatmap := make(map[string]xmlutils.ValueDatatype)
+
+	for k, v := range parsedJson {
+		if typeutils.IsMap(v) || typeutils.IsList(v) {
+			j, err := json.Marshal(v)
+			if err == nil {
+				flatmap[strings.ToUpper(k)] = xmlutils.ValueDatatype{Value: string(j), DataType: "STRING"}
+			}
+
+		} else {
+			flatmap[strings.ToUpper(k)] = xmlutils.ValueDatatype{Value: v, DataType: fmt.Sprint(reflect.ValueOf(v).Kind())}
+
+		}
+	}
+
+	return flatmap
+
 }
 
 // -----------------------------------------------------------
