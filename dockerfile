@@ -1,8 +1,8 @@
-FROM debian:latest
+FROM debian
 
-ARG APP_VERSION="v0.0.0"
+ARG APP_VERSION="v1.3.2"
  
-ENV PORT=4081
+ENV PORT=4091
 EXPOSE ${PORT}
 
 ENV DOMAIN=0.0.0.0
@@ -13,6 +13,9 @@ WORKDIR /app
 COPY ./bin/QHttp_${APP_VERSION} ./QHttp
 COPY ./drivers/ibm-iaccess.deb ./ibm-iaccess.deb
 
+RUN apt-get -y update
+RUN apt-get -y install build-essential
+RUN apt-get install -y libx11-dev
 RUN apt update && \
     apt install -y -q --no-install-recommends unixodbc-dev \
     unixodbc \
@@ -21,7 +24,7 @@ RUN apt update && \
     rm ./ibm-iaccess.deb && \
     chmod +x  ./QHttp
 
-CMD [ "./QHttp" ]
+CMD [ "./QHttp","--https=false" ]
 
 # docker build -t onlysumitg/qhttp .
 # docker run -p 4081:4081 -v /home/sumit/ideaprojects/GoQhttp/bin/lic:/app/lic           --name=qhttp onlysumitg/qhttp

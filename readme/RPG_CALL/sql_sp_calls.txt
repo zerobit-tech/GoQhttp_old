@@ -1,0 +1,8 @@
+call QXMLSERV.iPLUGR512K('*na','*here *cdata','pgm name="MYPGM" error="on" var="lljqezl"/>');
+
+
+call QXMLSERV.iPLUG512K('*na','*here *cdata','<pgm name="MYPGM" error="fast" lib="MYLIB" var="rtoiu1nqew"/>',?);
+
+
+
+call QXMLSERV.iPLUG512K('*na','*here','',?);

@@ -342,3 +342,10 @@ func (app *application) deleteSPData(spid string) {
 	}
 	app.spCallLogModel.Delete(spid)
 }
+
+// -----------------------------------------------------------------
+//
+// -----------------------------------------------------------------
+// Create a new decodePostForm() helper method. The second parameter here, dst,
+// is the target destination that we want to decode the form data into.
+func (app *application) deleteRpgEndpointData(spid string) {}

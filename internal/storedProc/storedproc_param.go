@@ -9,10 +9,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/onlysumitg/GoQhttp/go_ibm_db"
 	"github.com/onlysumitg/GoQhttp/internal/validator"
 	"github.com/onlysumitg/GoQhttp/utils/floatutils"
 	"github.com/onlysumitg/GoQhttp/utils/stringutils"
+	"github.com/onlysumitg/godbc"
 )
 
 // -----------------------------------------------------------------
@@ -167,7 +167,7 @@ func (p *StoredProcParamter) ConvertToType(v any) (any, error) {
 //
 // -----------------------------------------------------------------
 func (p *StoredProcParamter) IsString() bool {
-	_, found := go_ibm_db.SPParamStringTypes[p.Datatype]
+	_, found := godbc.SPParamStringTypes[p.Datatype]
 
 	//_, found2 := go_ibm_db.SPParamDateTypes[p.Datatype]
 
@@ -178,7 +178,7 @@ func (p *StoredProcParamter) IsString() bool {
 //
 // -----------------------------------------------------------------
 func (p *StoredProcParamter) IsNumeric() bool {
-	_, found := go_ibm_db.SPParamNumericTypes[p.Datatype]
+	_, found := godbc.SPParamNumericTypes[p.Datatype]
 	return found
 }
 
@@ -186,7 +186,7 @@ func (p *StoredProcParamter) IsNumeric() bool {
 //
 // -----------------------------------------------------------------
 func (p *StoredProcParamter) IsInt() bool {
-	_, found := go_ibm_db.SPParamIntegerTypes[p.Datatype]
+	_, found := godbc.SPParamIntegerTypes[p.Datatype]
 	return found
 }
 
@@ -194,7 +194,7 @@ func (p *StoredProcParamter) IsInt() bool {
 //
 // -----------------------------------------------------------------
 func (p *StoredProcParamter) NeedQuote(value string) bool {
-	if go_ibm_db.IsSepecialRegister(value) {
+	if godbc.IsSepecialRegister(value) {
 		return false
 	}
 

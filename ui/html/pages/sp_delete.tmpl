@@ -93,14 +93,14 @@ Endpoint
 
 
 
-
+                {{if not .StoredProc.IsSpecial}}
                 <form method="post" action="/sp/delete">
                     <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
                       <input type="hidden" name="spId" value="{{.StoredProc.ID}}">
                 <button type="submit" class="btn btn-danger">Confirm</button>
                 
                 </form>
-            
+                {{end}}
             
             
             </div>

@@ -6,8 +6,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/onlysumitg/GoQhttp/go_ibm_db"
 	"github.com/onlysumitg/GoQhttp/internal/storedProc"
+	"github.com/onlysumitg/godbc"
 )
 
 // ------------------------------------------------------------
@@ -18,7 +18,7 @@ func (s *Server) listAutoPromotion() ([]*storedProc.PromotionRecord, error) {
 	if strings.TrimSpace(s.AutoPromotePrefix) != "" && strings.TrimSpace(s.ConfigFileLib) != "" {
 		prefixToCheck := strings.ToUpper(strings.TrimSpace(s.AutoPromotePrefix)) + "%"
 		if s.LastAutoPromoteDate == "" {
-			s.LastAutoPromoteDate = time.Now().Format(go_ibm_db.TimestampFormat)
+			s.LastAutoPromoteDate = time.Now().Format(godbc.TimestampFormat)
 		}
 
 		sqlToUse := fmt.Sprintf("select upper(trim(SPECIFIC_NAME)) from qsys2.sysprocs where upper(SPECIFIC_NAME) like '%s' and SPECIFIC_SCHEMA='%s' and ROUTINE_CREATED >= '%s'", strings.ToUpper(prefixToCheck), strings.ToUpper(s.ConfigFileLib), s.LastAutoPromoteDate)

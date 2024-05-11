@@ -101,17 +101,17 @@ func (app *application) APIHandlers(router *chi.Mux) {
 // ------------------------------------------------------
 func (app *application) RequireUnAuthEndPoint(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		response := &storedProc.StoredProcResponse{ReferenceId: middleware.GetReqID(r.Context())}
+		// response := &storedProc.StoredProcResponse{ReferenceId: middleware.GetReqID(r.Context())}
 
-		namespace, endpointName, _ := app.GetPathParameters(r)
-		endPoint, err := app.GetEndPoint(namespace, endpointName, r.Method)
+		// namespace, endpointName, _ := app.GetPathParameters(r)
+		// endPoint, err := app.GetEndPoint(namespace, endpointName, r.Method)
 
-		if err != nil || !endPoint.AllowWithoutAuth {
-			response.Status = http.StatusNotFound
-			response.Message = http.StatusText(http.StatusNotFound)
-			app.writeJSONAPI(w, response, nil)
-			return
-		}
+		// if err != nil || !endPoint.AllowWithoutAuth {
+		// 	response.Status = http.StatusNotFound
+		// 	response.Message = http.StatusText(http.StatusNotFound)
+		// 	app.writeJSONAPI(w, response, nil)
+		// 	return
+		// }
 
 		next.ServeHTTP(w, r)
 	})
@@ -332,11 +332,53 @@ func (app *application) POST(w http.ResponseWriter, r *http.Request) {
 //	actual api call processing
 //
 // ------------------------------------------------------
+func (app *application) CheckAPIType(r *http.Request, namespace string, endpointName string) string {
+
+	endPointType := "SQLSP"
+
+	_, endPointNotfoundError := app.GetEndPoint(namespace, endpointName, r.Method)
+	if endPointNotfoundError != nil {
+		_, rpgErr := app.GetRPGEndPoint(namespace, endpointName, r.Method)
+		if rpgErr == nil {
+			endPointType = "PGM"
+		}
+	}
+
+	return endPointType
+}
+
+// ------------------------------------------------------
+//
+//	actual api call processing
+//
+// ------------------------------------------------------
 func (app *application) ProcessAPICall(w http.ResponseWriter, r *http.Request, namespace string, endpointName string,
 	pathParams []httputils.PathParam,
 	requesyBodyFlatMap map[string]xmlutils.ValueDatatype) {
 
+	endPointType := app.CheckAPIType(r, namespace, endpointName)
+
+	switch endPointType {
+	case "PGM":
+		app.ProcessRPGAPICall(w, r, namespace, endpointName, pathParams, requesyBodyFlatMap)
+	default:
+		app.ProcessSQLSPAPICall(w, r, namespace, endpointName, pathParams, requesyBodyFlatMap)
+	}
+
+}
+
+// ------------------------------------------------------
+//
+//	actual api call processing
+//
+// ------------------------------------------------------
+func (app *application) ProcessSQLSPAPICall(w http.ResponseWriter, r *http.Request, namespace string, endpointName string,
+	pathParams []httputils.PathParam,
+	requesyBodyFlatMap map[string]xmlutils.ValueDatatype) {
+
 	defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
+
+	endPoint, endPointNotfoundError := app.GetEndPoint(namespace, endpointName, r.Method)
 
 	requestId := middleware.GetReqID(r.Context())
 
@@ -363,13 +405,11 @@ func (app *application) ProcessAPICall(w http.ResponseWriter, r *http.Request, n
 	}()
 
 	apiCall.Logger("INFO", fmt.Sprintf("Received call for EndPoint %s | Method %s", endpointName, strings.ToUpper(r.Method)), false)
-	endPoint, err := app.GetEndPoint(namespace, endpointName, r.Method)
 
-	if err != nil {
+	if endPointNotfoundError != nil {
 		apiCall.Logger("INFO", fmt.Sprintf("%s endpoint %s/%s not found", r.Method, namespace, endpointName), false)
-
 		response.Status = http.StatusNotImplemented
-		response.Message = err.Error()
+		response.Message = endPointNotfoundError.Error()
 		app.writeJSONAPI(w, response, nil)
 		return
 
@@ -463,7 +503,7 @@ func (app *application) ProcessAPICall(w http.ResponseWriter, r *http.Request, n
 		defer concurrent.Recoverer("Recovered in AddLogid")
 		defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
 
-		l := models.SPCallLogEntry{SpID: apiCall.CurrentSP.ID, LogId: apiCall.ID}
+		l := models.SPCallLogEntry{EndPoint: apiCall.CurrentSP, LogId: apiCall.ID}
 		app.spCallLogModel.DataChan <- l
 	}()
 

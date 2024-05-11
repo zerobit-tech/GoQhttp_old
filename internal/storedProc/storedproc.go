@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/gosimple/slug"
+	"github.com/onlysumitg/GoQhttp/internal/inbuiltparam"
 	"github.com/onlysumitg/GoQhttp/internal/validator"
 	"github.com/onlysumitg/GoQhttp/logger"
 	"github.com/onlysumitg/GoQhttp/utils/stringutils"
@@ -65,6 +66,9 @@ type StoredProc struct {
 
 	HtmlTemplate string `json:"htmltemplate" db:"htmltemplate" form:"htmltemplate"`
 	Namespace    string `json:"namespace" db:"namespace" form:"namespace"`
+
+	IsSpecial     bool `json:"isspecial" db:"isspecial" form:"-"`
+	MaxlogEntries int  `json:"maxlogentries" db:"maxlogentries" form:"maxlogentries"`
 }
 
 // ------------------------------------------------------------
@@ -231,7 +235,7 @@ outerloop:
 		}
 		nameToUse := p.GetNameToUse(false)
 		// dont display inbuilt param
-		for _, ibp := range InbuiltParams {
+		for _, ibp := range inbuiltparam.InbuiltParams {
 			if strings.EqualFold(ibp, nameToUse) {
 				continue outerloop
 			}
@@ -294,7 +298,7 @@ outerloop:
 		}
 
 		// dont display inbuilt param
-		for _, ibp := range InbuiltParams {
+		for _, ibp := range inbuiltparam.InbuiltParams {
 			if strings.EqualFold(ibp, nameToUse) {
 				continue outerloop
 			}
@@ -336,7 +340,7 @@ outerloop:
 		nameToUse := p.GetNameToUse(false)
 
 		// dont display inbuilt param
-		for _, ibp := range InbuiltParams {
+		for _, ibp := range inbuiltparam.InbuiltParams {
 			if strings.EqualFold(ibp, nameToUse) {
 				continue outerloop
 			}

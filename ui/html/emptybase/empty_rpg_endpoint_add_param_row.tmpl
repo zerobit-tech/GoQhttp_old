@@ -1,0 +1,95 @@
+ {{define "content"}}
+ 
+                    {{if .ProgramParam}}
+                  
+                    <tr>
+                        
+                        <td>
+                                <input name="Parameters[{{.Index}}].Seq" value="{{.Index}}" type="hidden"/>
+                                <div class="form-group">
+                                   
+                                    <!-- Use the `with` action to render the value of .Form.FieldErrors.title if it is not empty. -->
+                                    <SELECT class="form-control" name="Parameters[{{.Index}}].InOutType">
+                                        <OPTION {{if eq .ProgramParam.InOutType "both" }}selected{{end}} value="both">INOUT
+                                        </OPTION>
+                                        <OPTION {{if eq .ProgramParam.InOutType "in" }}selected{{end}} value="in">IN</OPTION>
+                                        <OPTION {{if eq .ProgramParam.InOutType "out" }}selected{{end}} value="out">OUT</OPTION>
+                                    </SELECT>
+                                </div>
+                        </td>
+                        <td>
+                            <div class="form-group">
+                                 
+                                <input id="Parameters[{{.Index}}].NameToUs" class="form-control {{with .ProgramParam.FieldErrors.name}} is-invalid {{end}}"
+                                    type="text" name="Parameters[{{.Index}}].NameToUse" aria-describedby="libhelp" placeholder="Param Name"
+                                    value='{{.ProgramParam.NameToUse}}'></input>
+        
+                                {{with .ProgramParam.FieldErrors.name}}
+                                <div class='invalid-feedback'>{{.}}</div>
+                                {{end}}
+                            </div>
+                        </td>
+
+                        <td style="width: 50%;">
+                            <div class="form-group">
+                             
+                                <SELECT class="form-control" name="Parameters[{{.Index}}].FieldID">
+                                    <OPTION value="">Select Field</OPTION>
+                                    {{if $.RpgParams}}
+                                    {{range $i2, $rpgParam := $.RpgParams}}
+                                    <OPTION 
+                                        value="{{$rpgParam.ID}}">
+
+                                        {{$rpgParam.ID|getrpgparamstring}}
+                                    </OPTION>
+                                    {{end}}
+                                    {{end}}
+                                </SELECT>
+                            </div>
+
+                        </td>
+
+                        <td>
+                            <div class="form-group">
+                             
+                                <input id="Parameters[{{.Index}}].Dim" class="form-control {{with .ProgramParam.FieldErrors.dim}} is-invalid {{end}}"
+                                    type="number" name="Parameters[{{.Index}}].Dim" aria-describedby="libhelp" placeholder=""
+                                    value='{{.ProgramParam.Dim}}' min="0" ></input>
+        
+                                {{with .ProgramParam.FieldErrors.dim}}
+                                <div class='invalid-feedback'>{{.}}</div>
+                                {{end}}
+                            </div>
+                        </td>
+
+                    </tr>
+
+
+
+
+
+
+ 
+
+                    {{end}}
+
+               
+
+
+                <tr>
+                            
+                               
+                    <td colspan="4">
+                    <button   
+                   
+                    hx-target="closest tr" 
+                    hx-indicator = "#processing" 
+               
+                    class="btn btn-ghost-info" 
+                    hx-get="/pgmendpoints/fieldrow?index={{.Index}}"     
+                    hx-swap="outerHTML" >+ Add Parameter</button>
+                   </td>
+                </tr>
+
+
+{{end}}

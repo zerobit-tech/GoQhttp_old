@@ -126,10 +126,12 @@ Server detail
 
 </div>
 
+
+<!--  Endpoints -->
 <div class="row p-2">
   <div class="col">
     
-    <span  hx-get="/sp?server={{$.Server.ID}}" hx-trigger="load" hx-select="#splistcard">
+    <span  hx-get="/endpoints?server={{$.Server.ID}}" hx-trigger="load" hx-select="#eplistcard">
       <p>Loading...</p>
   </span>
   </div>
@@ -138,7 +140,7 @@ Server detail
 
 
 
-
+ 
 
 
 

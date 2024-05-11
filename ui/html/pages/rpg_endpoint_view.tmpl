@@ -1,0 +1,389 @@
+{{define "title"}}
+Endpoint
+{{end}}
+
+{{define "content"}}
+<div class="row p-2">
+    <div class="col-xl-6">
+        <div class="card " style="height: 100%;">
+            <div class="card-header">
+                <p class="h5">
+                    EndPoint details:{{.RpgEndPoint.EndPointName}}
+                    <a class="btn btn-ghost-info" 
+                    data-toggle="tooltip"
+                    hx-indicator = "#processing"
+                     data-placement="bottom" title="Reload" 
+                    href="/pgmendpoints/refresh/{{.RpgEndPoint.ID}}">
+                        <svg class="c-icon mfe-2">
+                            <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-reload"></use>
+                        </svg>
+                    </a>
+                 </p>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col">
+                        <table class="table   table-borderless table-responsive-sm table-striped    ">
+                            <tbody>
+                                {{if .RpgEndPoint.AllowWithoutAuth}}
+                                <tr>
+                                    <th scope="row" class="text-danger">Allowed Without Auth</th>
+                                    <td  class="text-danger">{{.RpgEndPoint.AllowWithoutAuth| yesNo}}</td>
+                                </tr>
+                                {{end}}
+
+                                <tr>
+                                    <th scope="row">EndPoint name</th>
+                                    <td>{{.RpgEndPoint.EndPointName}}</td>
+                                </tr>
+
+                                <tr>
+                                    <th scope="row">Http Method</th>
+                                    <td>{{.RpgEndPoint.HttpMethod}}</td>
+                                </tr>
+                                {{if .RpgEndPoint.AllowWithoutAuth}}
+                                <tr>
+                                    <th class="text-danger" scope="row">URL without Auth</th>
+                                    <td class="text-danger" >
+                                        <span class="copyclip" data-clipboard-text="{{$.HostUrl}}/{{.RpgEndPoint.MockUrlWithoutAuth}}">
+                                            {{$.HostUrl}}/{{.RpgEndPoint.MockUrlWithoutAuth}}
+                                        </span></td>
+                                </tr>
+                                {{end}}
+                                <tr>
+                                    <th scope="row">URL</th>
+                                    <td>
+                                        <span class="copyclip" data-clipboard-text="{{$.HostUrl}}/{{.RpgEndPoint.MockUrl}}">
+                                        {{$.HostUrl}}/{{.RpgEndPoint.MockUrl}}
+                                    </span>
+                                    
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Payload</th>
+                                    <td>
+                                        <pre>{{.RpgEndPoint.InputPayload}}</pre>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Namespace</th>
+                                    <td>{{.RpgEndPoint.Namespace}}</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Default Server</th>
+                                    <td> {{.RpgEndPoint.DefaultServerId|servername}} </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">RPG Program</th>
+                                    <td>{{.RpgEndPoint.Lib}}/{{.RpgEndPoint.Name}}</td>
+                                </tr>
+                               
+                                <tr>
+                                    <th scope="row">URL</th>
+                                    <td>{{.RpgEndPoint.MockUrl}}</td>
+                                </tr>
+
+                                <tr>
+                                    <th scope="row">Unauth URL</th>
+                                    <td>{{.RpgEndPoint.MockUrlWithoutAuth}}</td>
+                                </tr>
+
+                            
+
+
+ 
+
+                          
+ 
+
+                                {{if .Features.AllowHtmlTemplates}}
+                                <tr>
+                                    <th scope="row">HTML Template</th>
+                                    <td>{{.RpgEndPoint.HtmlTemplate}}</td>
+                                </tr>
+                                {{end}}
+
+                                <tr>
+                                    <th scope="row">Maximum log entries</th>
+                                    <td>{{.RpgEndPoint.MaxlogEntries}}</td>
+                                </tr>
+
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Parameter -->
+
+
+
+
+
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-6">
+        <div class="card " style="height: 100%;">
+            <div class="card-header">
+                <p class="h5">
+                    Allowed for servers
+                </p>
+            </div>
+            <div class="card-body">
+                <table id="logids" class="table   table-borderless table-responsive-sm table-striped    ">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th>Name</th>
+                            
+                            <th>Option</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                {{range .RpgEndPoint.AllowedOnServers}}
+                <tr>
+                    <td>{{.|servername}}</td>
+                
+
+                <td>
+                    <form class="form-inline" method="POST" action="/pgmendpoints/deleteassignserver">
+                        <input type="hidden" name="csrf_token" value="{{$.CSRFToken}}">
+                        <input type="hidden" name="spid" value="{{$.RpgEndPoint.ID}}">
+                        <input type="hidden" name="serverid" value="{{.}}">
+                        
+                        <button type="submit" class="btn btn-danger mb-2">Delete</button>
+                    </div>
+                    </form>
+
+                </td>
+                </tr>
+                {{end}}
+                    </tbody>
+                    </table>
+            </div>
+            <hr />
+
+
+
+
+
+
+
+
+
+
+
+
+            <form class="form-inline" method="POST" action="/pgmendpoints/assignserver">
+                <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+                <input type="hidden" name="spid" value="{{.RpgEndPoint.ID}}">
+                <div class="form-group">
+                    <div class="form-group mx-sm-3 mb-2">
+                    <label for="defaultserver">Assign Server ...: </label>
+                <SELECT id="defaultserver" class="form-control" name="serverid">
+                    
+    
+                    {{if .Servers}}
+                    {{range .Servers}}
+                    <OPTION  value="{{.ID}}">{{.Name}}</OPTION>
+                    {{end}}
+                    {{end}}
+                </SELECT>
+                </div>
+                <button type="submit" class="btn btn-ghost-primary mb-2">Assign</button>
+            </div>
+            </form>
+
+        </div>
+    </div>
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- Parameter -->
+ 
+<div class="row p-2">
+    <div class="col">
+        
+            <div class="card ">
+                <div class="card-header">
+                    <p class="h5">
+                       Parameters
+                    </p>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col">
+
+
+                        
+
+                            <table id="savedqlist"
+                                class="table   table-borderless table-responsive-sm table-striped    ">
+                                <thead class="thead-dark">
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Mode</th>
+                                        <th>Is DS?</th>
+                                        <th>Name</th>
+                                      
+
+                                        <th>Data Type</th>
+                                        <th>Precision</th>
+                                        <th>Scale</th>
+                                 
+                                        <th>Dim</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {{if .RpgEndPoint.Parameters}}
+                                    {{range .RpgEndPoint.Parameters}}
+                                    <tr>
+                                        <td>{{.Seq}}</td>
+                                        <td>{{.InOutType}}</td>
+                                        <td>{{.Param.IsDs}}</td>
+                                        <td>{{.NameToUse}}</td>
+                                     
+                                        <td>{{.Param.DataType}}</td>
+                                        <td>{{.Param.Length}}</td>
+                                        <td>{{.Param.DecimalPostions}}</td>
+                                        <td>{{.Dim}}</td>
+
+
+
+
+                                    </tr>
+                                    {{end}}
+
+                                    {{else}}
+                                    {{end}}
+                                </tbody>
+                            </table>
+
+
+                            
+                        </div>
+                    </div>
+                </div>
+            </div>            
+        
+    </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- Response Structure -->
+
+<div class="row p-2">
+    <div class="col-xl ">
+        <div class="card ">
+            <div class="card-header">
+                <p class="h5">
+                    Response Structure
+                </p>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col">
+                        <pre>{{.RpgEndPoint.OutputStructureJson}}</pre>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+  
+</div>
+
+{{if .Features.AllowPromotion}}
+{{ if .RpgEndPoint.Promotionsql }}
+
+<div class="row p-2">
+    <div class="col-xl ">
+        <div class="card ">
+            <div class="card-header">
+                <p class="h5">
+                    Promotion query
+                </p>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col">
+                        <pre>{{.RpgEndPoint.Promotionsql}}</pre>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+  
+</div>
+{{end}}
+
+{{end}}
+
+{{end}}
+
+
+{{block "aftercontent" .}}
+<script>
+  var clipboard = new ClipboardJS('.copyclip');
+
+
+clipboard.on('success', function(e) {
+  
+
+    Swal.fire({
+      position: 'top-end',
+      icon: "success",
+      text: "Copied to clipboard",
+      showConfirmButton: false,
+      timer: 2000,
+      showCloseButton: true
+    })
+
+    e.clearSelection();
+});
+
+clipboard.on('error', function(e) {
+    console.error('Action:', e.action);
+    console.error('Trigger:', e.trigger);
+});
+</script>
+{{end}}

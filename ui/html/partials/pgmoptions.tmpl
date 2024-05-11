@@ -1,0 +1,100 @@
+{{define "pgmoptions"}}
+
+{{if .RpgEndPoint.EndPointName}}
+ 
+
+
+<li class="c-sidebar-nav-title">EndPoint: 
+</li>
+        
+<li class="c-sidebar-nav-item">
+  <a class="c-sidebar-nav-link"  href='/pgmendpoints/{{.RpgEndPoint.ID}}'>{{.RpgEndPoint.EndPointName}}</a>
+
+    
+ 
+
+</li>
+
+{{end}}
+
+
+
+<li class="c-sidebar-nav-item">
+      
+<a class="c-sidebar-nav-link" href='/pgmendpoints/logs/{{.RpgEndPoint.ID}}' >
+    <svg class="c-icon mfe-2">
+        <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-speech"></use>
+    </svg>
+
+    Logs</a>
+</li>
+
+ 
+ 
+
+ 
+
+
+ {{if $.Features.AllowParamPlacement}}
+ <li class="c-sidebar-nav-item">
+     <a class="c-sidebar-nav-link" href='/pgmendpoints/paramplacement/{{.RpgEndPoint.ID}}' >
+          
+           <svg class="c-icon mfe-2">
+             <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-swap-vertical"></use>
+         </svg>
+ 
+         Param Placement</a>
+  </li>
+  {{end}}
+
+
+
+ <li class="c-sidebar-nav-item">
+      
+
+ 
+    <a class="c-sidebar-nav-link" href='/pgmendpoints/update/{{.RpgEndPoint.ID}}' >
+
+      <svg class="c-icon mfe-2">
+        <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-pencil"></use>
+    </svg>Edit</a>
+    
+</li>
+
+
+<li class="c-sidebar-nav-item">
+    <a class="c-sidebar-nav-link" href='/pgmendpoints/delete/{{.RpgEndPoint.ID}}' >
+         
+          <svg class="c-icon mfe-2">
+            <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-trash"></use>
+        </svg>
+
+        Delete</a>
+ </li>
+ 
+
+
+ 
+
+
+ <li class="c-sidebar-nav-item">
+  <a class="c-sidebar-nav-link" href='/pgmendpoints/refresh/{{.RpgEndPoint.ID}}' >
+       
+    <svg class="c-icon mfe-2">
+      <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-reload"></use>
+  </svg>
+
+      Reload</a>
+</li>
+
+<li class="c-sidebar-nav-divider"></li>
+
+
+ 
+ 
+ 
+ 
+ <li class="c-sidebar-nav-title">----------------</li>
+       
+ 
+{{end}}

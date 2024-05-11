@@ -14,12 +14,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/onlysumitg/GoQhttp/go_ibm_db"
 	"github.com/onlysumitg/GoQhttp/internal/storedProc"
 	"github.com/onlysumitg/GoQhttp/internal/validator"
 	"github.com/onlysumitg/GoQhttp/logger"
 	"github.com/onlysumitg/GoQhttp/utils/httputils"
 	"github.com/onlysumitg/GoQhttp/utils/stringutils"
+	"github.com/onlysumitg/godbc"
 )
 
 type Server struct {
@@ -464,45 +464,19 @@ func (s *Server) call(ctx context.Context, callID string, sp *storedProc.StoredP
 			}
 
 			if p.Mode == "OUT" && keyToUse == "QHTTP_STATUS_CODE" && p.IsInt() {
-				intval, ok := 0, false
 
-				switch reflect.ValueOf(*v).Kind() {
-				case reflect.Int32:
-					if intval32, ok2 := (*v).(int32); ok2 {
-						intval = int(intval32)
-						ok = ok2
-					}
-				case reflect.Int64:
-					if intval64, ok2 := (*v).(int64); ok2 {
-						intval = int(intval64)
-						ok = ok2
-					}
-				case reflect.Int16:
-					if intval16, ok2 := (*v).(int16); ok2 {
-						intval = int(intval16)
-						ok = ok2
-					}
-				case reflect.Int8:
-					if intval8, ok2 := (*v).(int8); ok2 {
-						intval = int(intval8)
-						ok = ok2
-					}
-				default:
-					intval, ok = (*v).(int)
-				}
+				httpCode,message := httputils.GetValidHttpCode(*v)
 
-				if ok {
-					validCode, message := httputils.IsValidHttpCode(int(intval))
-					if validCode {
-						qhttp_status_code = int(intval)
+				if httpCode > 0 {
+					qhttp_status_code = httpCode
 
-						// remove QHTTP_STATUS_CODE from out params
-						delete(preparedCallStatements.ResponseFormat, keyToUse)
+					// remove QHTTP_STATUS_CODE from out params
+					delete(preparedCallStatements.ResponseFormat, keyToUse)
 
-						if qhttp_status_message == "" {
-							qhttp_status_message = message
-						}
+					if qhttp_status_message == "" {
+						qhttp_status_message = message
 					}
+
 				}
 
 			}
@@ -540,8 +514,8 @@ func (s *Server) SeversCall(ctx context.Context, sp *storedProc.StoredProc, prep
 	}
 
 	resultsets := make(map[string][]map[string]any, 0)
-	ctx = context.WithValue(ctx, go_ibm_db.LOAD_SP_RESULT_SETS, resultsets)
-	ctx = context.WithValue(ctx, go_ibm_db.DUMMY_SP_CALL, dummyCall)
+	ctx = context.WithValue(ctx, godbc.LOAD_SP_RESULT_SETS, resultsets)
+	ctx = context.WithValue(ctx, godbc.DUMMY_SP_CALL, dummyCall)
 	//ctx = context.WithValue(ctx, go_ibm_db.ESCAPE_QUOTE, true)  // use strconv.Quote on result set
 
 	_, err = db.ExecContext(ctx, preparedCallStatements.FinalCallStatement, preparedCallStatements.InOutParams...)

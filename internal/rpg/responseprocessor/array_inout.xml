@@ -1,0 +1,64 @@
+<?xml version="1.0" ?><xmlservice><pgm error="off" lib="sumitg1" name="QHTTPTEST5" var="QHTTPTEST5">
+<parm io="both" var="i1">
+<data type="5s0" var="Ti1"><![CDATA[10]]></data>
+<data type="5s0" var="Ti1"><![CDATA[11]]></data>
+<data type="5s0" var="Ti1"><![CDATA[12]]></data>
+<data type="5s0" var="Ti1"><![CDATA[13]]></data>
+<data type="5s0" var="Ti1"><![CDATA[14]]></data>
+<data type="5s0" var="Ti1"><![CDATA[15]]></data>
+<data type="5s0" var="Ti1"><![CDATA[16]]></data>
+<data type="5s0" var="Ti1"><![CDATA[17]]></data>
+<data type="5s0" var="Ti1"><![CDATA[18]]></data>
+<data type="5s0" var="Ti1"><![CDATA[19]]></data>
+</parm>
+<parm io="both" var="out1">
+<data type="5s0" var="Tout1"><![CDATA[145]]></data>
+</parm>
+<success><![CDATA[+++ success sumitg1 QHTTPTEST5 ]]></success>
+</pgm>
+</xmlservice>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<xmlservice><pgm error="off" lib="sumitg1" name="qhttptest6" var="qhttptest6">
+<parm io="both" var="i1">
+<data type="5s0" var="Ti1"><![CDATA[10]]></data>
+<data type="5s0" var="Ti1"><![CDATA[11]]></data>
+<data type="5s0" var="Ti1"><![CDATA[12]]></data>
+<data type="5s0" var="Ti1"><![CDATA[13]]></data>
+<data type="5s0" var="Ti1"><![CDATA[14]]></data>
+<data type="5s0" var="Ti1"><![CDATA[15]]></data>
+<data type="5s0" var="Ti1"><![CDATA[16]]></data>
+<data type="5s0" var="Ti1"><![CDATA[17]]></data>
+<data type="5s0" var="Ti1"><![CDATA[18]]></data>
+<data type="5s0" var="Ti1"><![CDATA[19]]></data>
+</parm>
+<parm io="both" var="o1">
+<data type="5s0" var="To1"><![CDATA[11]]></data>
+<data type="5s0" var="To1"><![CDATA[12]]></data>
+<data type="5s0" var="To1"><![CDATA[13]]></data>
+<data type="5s0" var="To1"><![CDATA[14]]></data>
+<data type="5s0" var="To1"><![CDATA[15]]></data>
+<data type="5s0" var="To1"><![CDATA[16]]></data>
+<data type="5s0" var="To1"><![CDATA[17]]></data>
+<data type="5s0" var="To1"><![CDATA[18]]></data>
+<data type="5s0" var="To1"><![CDATA[19]]></data>
+<data type="5s0" var="To1"><![CDATA[20]]></data>
+</parm>
+<success><![CDATA[+++ success sumitg1 qhttptest6 ]]></success>
+</pgm>
+</xmlservice>

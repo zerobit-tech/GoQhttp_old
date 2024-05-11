@@ -1,0 +1,21 @@
+"
+<?xml version=\"1.0\" ?>
+<xmlservice>
+    <pgm error=\"off\" lib=\"sumitg1\" name=\"QHTTPTEST1\" var=\"QHTTPTEST1\">\n<parm io=\"both\" var=\"out1\">\n<data
+                type=\"5s0\" var=\"Tout1\">
+                <![CDATA[35]]></data>\n</parm>\n<success>
+            <![CDATA[+++ success sumitg1 QHTTPTEST1 ]]>
+        </success>\n</pgm>\n
+</xmlservice>
+
+
+"
+<?xml version=\"1.0\" ?>
+<xmlservice>
+    <pgm error=\"off\" lib=\"sumitg1\" name=\"QHTTPTEST1\" var=\"QHTTPTEST1\">
+        <parm io=\"in\" var=\"in1\"> <data type=\"5s0\" var=\"Tin1\">
+                <![CDATA[10]]></data> </parm>\n<parm io=\"in\" var=\"in2\"> <data type=\"5s0\" var=\"Tin2\">
+                <![CDATA[25]]></data> </parm>\n<parm io=\"both\" var=\"out1\"> <data type=\"5s0\" var=\"Tout1\">
+                <![CDATA[0]]></data> </parm>
+    </pgm>
+</xmlservice>"

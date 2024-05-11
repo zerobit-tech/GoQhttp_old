@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/onlysumitg/GoQhttp/go_ibm_db"
 	"github.com/onlysumitg/GoQhttp/internal/ibmiServer"
+	"github.com/onlysumitg/godbc"
 
 	bolt "go.etcd.io/bbolt"
 )
@@ -34,7 +34,7 @@ func (m *ServerModel) Insert(u *ibmiServer.Server) (string, error) {
 	u.ID = id
 	err := m.Update(u, false)
 
-	u.LastAutoPromoteDate = time.Now().Format(go_ibm_db.TimestampFormat)
+	u.LastAutoPromoteDate = time.Now().Format(godbc.TimestampFormat)
 
 	return id, err
 }

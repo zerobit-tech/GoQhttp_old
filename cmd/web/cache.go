@@ -1,14 +1,17 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"regexp"
 	"runtime/debug"
 	"strings"
 	"time"
 
+	"github.com/onlysumitg/GoQhttp/env"
 	"github.com/onlysumitg/GoQhttp/internal/ibmiServer"
 	"github.com/onlysumitg/GoQhttp/internal/models"
+	"github.com/onlysumitg/GoQhttp/internal/rpg"
 	"github.com/onlysumitg/GoQhttp/internal/storedProc"
 	"github.com/onlysumitg/GoQhttp/utils/concurrent"
 	"github.com/onlysumitg/GoQhttp/utils/regexutil"
@@ -31,7 +34,7 @@ func (app *application) GetEndPoint(namespace, endpointName, httpmethod string) 
 	if !found || app.invalidEndPointCache {
 		app.endPointCache = make(map[string]*storedProc.StoredProc)
 		app.endPointMutex.Lock()
-		for _, sp := range app.storedProcs.List() {
+		for _, sp := range app.storedProcs.List(true) {
 			app.endPointCache[fmt.Sprintf("%s_%s_%s", strings.ToUpper(sp.Namespace), strings.ToUpper(sp.EndPointName), strings.ToUpper(sp.HttpMethod))] = sp
 		}
 		endPoint, found = app.endPointCache[endPointKey]
@@ -46,6 +49,34 @@ func (app *application) GetEndPoint(namespace, endpointName, httpmethod string) 
 	}
 
 	return endPoint, nil
+
+}
+
+// ------------------------------------------------------
+//
+// ------------------------------------------------------
+func (app *application) GetRPGEndPoint(namespace, endpointName, httpmethod string) (*rpg.RpgEndPoint, error) {
+
+	rpgEndPointId := fmt.Sprintf("%s_%s_%s", strings.ToLower(namespace), strings.ToLower(endpointName), strings.ToLower(httpmethod))
+
+	rpgEndPoint, err := app.RpgEndpointModel.Get(rpgEndPointId)
+
+	return rpgEndPoint, err
+
+}
+
+// ------------------------------------------------------
+//
+// ------------------------------------------------------
+func (app *application) GetRPGDriver(server *ibmiServer.Server) (*storedProc.StoredProc, error) {
+
+	sp, err := app.GetEndPoint(env.RpgDriverNameSpace(server.Name), env.RpgDefaultDriverprogram(server.Name), "post") //iPLUGR512K
+
+	if err != nil {
+		return nil, errors.New("RPG Driver not found!")
+	}
+
+	return sp, err
 
 }
 

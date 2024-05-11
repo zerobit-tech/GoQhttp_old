@@ -8,8 +8,8 @@ import (
 	"net/http"
 	"runtime/debug"
 	"strings"
+	"time"
 
-	"github.com/onlysumitg/GoQhttp/env"
 	"github.com/onlysumitg/GoQhttp/internal/validator"
 	"github.com/onlysumitg/GoQhttp/utils/concurrent"
 	"github.com/onlysumitg/GoQhttp/utils/jwtutils"
@@ -242,6 +242,35 @@ func (app *application) isSuperAdmin(r *http.Request) bool {
 // ------------------------------------------------------
 // Return true if the current request is from an authenticated user, otherwise
 // return false.
+func (app *application) RemoveSessionUser(r *http.Request) {
+	//app.sessionManager.Remove(r.Context(), "authenticatedUserID")
+	app.sessionManager.Remove(r.Context(), "authenticatedUserToken")
+
+}
+
+// ------------------------------------------------------
+//
+// ------------------------------------------------------
+
+func (app *application) UpdateSessionUserToketn(r *http.Request, user models.User) error {
+
+	jwtString, err := user.GetNewToken(120 * time.Minute)
+	if err != nil {
+		return err
+	}
+
+	// Add the ID of the current user to the session, so that they are now
+	// 'logged in'.
+	// app.sessionManager.Put(r.Context(), "authenticatedUserID", user.ID)
+	app.sessionManager.Put(r.Context(), "authenticatedUserToken", jwtString)
+	return nil
+}
+
+// ------------------------------------------------------
+//
+// ------------------------------------------------------
+// Return true if the current request is from an authenticated user, otherwise
+// return false.
 func (app *application) isStaff(r *http.Request) bool {
 	user, err := app.GetUser(r)
 
@@ -255,35 +284,6 @@ func (app *application) isStaff(r *http.Request) bool {
 
 	return false
 
-}
-
-// ------------------------------------------------------
-//
-// ------------------------------------------------------
-// Return true if the current request is from an authenticated user, otherwise
-// return false.
-func (app *application) RemoveSessionUser(r *http.Request) {
-	//app.sessionManager.Remove(r.Context(), "authenticatedUserID")
-	app.sessionManager.Remove(r.Context(), "authenticatedUserToken")
-
-}
-
-// ------------------------------------------------------
-//
-// ------------------------------------------------------
-
-func (app *application) UpdateSessionUserToketn(r *http.Request, user models.User) error {
-
-	jwtString, err := user.GetNewToken(env.UserSessionDuration())
-	if err != nil {
-		return err
-	}
-
-	// Add the ID of the current user to the session, so that they are now
-	// 'logged in'.
-	// app.sessionManager.Put(r.Context(), "authenticatedUserID", user.ID)
-	app.sessionManager.Put(r.Context(), "authenticatedUserToken", jwtString)
-	return nil
 }
 
 // ------------------------------------------------------

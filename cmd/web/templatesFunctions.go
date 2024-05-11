@@ -88,6 +88,18 @@ func (app *application) getUserName(id string) string {
 // -----------------------------------------------------------------
 //
 // -----------------------------------------------------------------
+func (app *application) getRpgParamString(id string) string {
+	p, err := app.RpgParamModel.Get(id)
+	if err != nil {
+		return ""
+	}
+
+	return p.ToString()
+}
+
+// -----------------------------------------------------------------
+//
+// -----------------------------------------------------------------
 func (app *application) indexBy1(id int) int {
 	return id + 1
 }
@@ -101,14 +113,15 @@ func (app *application) indexBy1(id int) int {
 
 func (app *application) getFunctionMap() template.FuncMap {
 	var functions = template.FuncMap{
-		"humanDate":      humanDate,
-		"toJson":         toJson,
-		"yesNo":          yesNo,
-		"ispreformatted": IsPreFormatted,
-		"httpCodeText":   httpCodeText,
-		"servername":     app.getServerName,
-		"username":       app.getUserName,
-		"indexby1":       app.indexBy1,
+		"humanDate":         humanDate,
+		"toJson":            toJson,
+		"yesNo":             yesNo,
+		"ispreformatted":    IsPreFormatted,
+		"httpCodeText":      httpCodeText,
+		"servername":        app.getServerName,
+		"username":          app.getUserName,
+		"indexby1":          app.indexBy1,
+		"getrpgparamstring": app.getRpgParamString,
 	}
 
 	return functions

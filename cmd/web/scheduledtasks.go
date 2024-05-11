@@ -2,16 +2,17 @@ package main
 
 import (
 	"context"
+	"errors"
 	"log"
 	"runtime/debug"
 	"strings"
 	"time"
 
-	"github.com/onlysumitg/GoQhttp/go_ibm_db"
 	"github.com/onlysumitg/GoQhttp/internal/ibmiServer"
 	"github.com/onlysumitg/GoQhttp/internal/storedProc"
 	"github.com/onlysumitg/GoQhttp/lic"
 	"github.com/onlysumitg/GoQhttp/utils/concurrent"
+	"github.com/onlysumitg/godbc"
 )
 
 // --------------------------------
@@ -19,7 +20,7 @@ import (
 // --------------------------------
 func (app *application) RefreshStoredProces() {
 	log.Println("Starting scheduled RefreshStoredProces")
-	for _, sp := range app.storedProcs.List() {
+	for _, sp := range app.storedProcs.List(false) {
 		log.Println("Checking sp:", sp.Name)
 		serverRcd := sp.DefaultServer
 		if serverRcd != nil && serverRcd.ID != "" {
@@ -42,7 +43,7 @@ func (app *application) RefreshStoredProces() {
 // --------------------------------
 
 func (app *application) RemoveDeletedStoredProcs() {
-	for _, sp := range app.storedProcs.List() {
+	for _, sp := range app.storedProcs.List(false) {
 		serverRcd := sp.DefaultServer
 		if serverRcd != nil && serverRcd.ID != "" {
 			server, err := app.servers.Get(serverRcd.ID)
@@ -100,7 +101,7 @@ func (app *application) ProcessPromotion(s *ibmiServer.Server) {
 		}
 	}
 
-	s.LastAutoPromoteDate = time.Now().Format(go_ibm_db.TimestampFormat)
+	s.LastAutoPromoteDate = time.Now().Format(godbc.TimestampFormat)
 	//s.Password = s.GetPassword() // make sure it dont update the password
 	app.servers.Update(s, false)
 
@@ -128,8 +129,15 @@ func (app *application) ProcessPromotionRecord(s *ibmiServer.Server, pr *storedP
 			newSP := s.PromotionRecordToStoredProc(*pr)
 			newSP.ID = newSP.Slug() // id is by name_httpmethod --> auto replace old if alreay exits
 
-			err := s.PrepareToSave(context.Background(), newSP)
+			var err error = nil
+			if app.RpgEndpointModel.DuplicateByName(newSP.EndPointName, newSP.HttpMethod, newSP.Namespace) {
 
+				err = errors.New("Duplicate name. Conflict with program endpoint")
+
+			}
+			if err == nil {
+				err = s.PrepareToSave(context.Background(), newSP)
+			}
 			if err == nil {
 				newSP.AddAllowedServer(s.ID, s.Name)
 
@@ -264,5 +272,3 @@ func (app *application) ProcessSyncUserToken(s *ibmiServer.Server, tk *storedPro
 	}
 	s.UpdateStatusUserTokenTable(*tk)
 }
-
- 

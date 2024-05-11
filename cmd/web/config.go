@@ -13,15 +13,17 @@ import (
 
 	"github.com/alexedwards/scs/v2"
 	"github.com/go-co-op/gocron"
-	"github.com/go-playground/form"
+	"github.com/go-playground/form/v4"
 	"github.com/onlysumitg/GoQhttp/cliparams"
 	"github.com/onlysumitg/GoQhttp/env"
 	"github.com/onlysumitg/GoQhttp/featureflags"
 	"github.com/onlysumitg/GoQhttp/session"
 
 	"github.com/onlysumitg/GoQhttp/internal/dbserver"
+	"github.com/onlysumitg/GoQhttp/internal/endpoints"
 	"github.com/onlysumitg/GoQhttp/internal/iwebsocket"
 	"github.com/onlysumitg/GoQhttp/internal/models"
+	"github.com/onlysumitg/GoQhttp/internal/rpg"
 	"github.com/onlysumitg/GoQhttp/internal/storedProc"
 	"github.com/onlysumitg/GoQhttp/logger"
 	"github.com/onlysumitg/GoQhttp/utils/concurrent"
@@ -111,6 +113,14 @@ type application struct {
 	SystemLoggerChan chan *SystemLogEvent
 
 	ServerPingScheduler *gocron.Scheduler
+
+	// ------------ RPG ------------
+	RpgParamModel    *rpg.RpgParamModel
+	RpgEndpointModel *rpg.RpgEndpointModel
+
+	// ----- Generic endpoint ----------------
+	Endpoint  *endpoints.Endpoint
+	Endpoints []*endpoints.Endpoint
 }
 
 // -------------------------------------------------------------------------
@@ -181,6 +191,10 @@ func baseAppConfig(params cliparams.Parameters, db *bolt.DB, userdb *bolt.DB, lo
 		debugMode: env.IsInDebugMode(),
 
 		SystemLoggerChan: make(chan *SystemLogEvent),
+
+		//------------------RPG
+		RpgParamModel:    &rpg.RpgParamModel{DB: db},
+		RpgEndpointModel: &rpg.RpgEndpointModel{DB: db},
 	}
 
 	//--------------------------------------- Setup template cache ----------------------------
@@ -211,6 +225,9 @@ func baseAppConfig(params cliparams.Parameters, db *bolt.DB, userdb *bolt.DB, lo
 
 	go app.LoadDefaultParamValidatorRegex()
 	//app.CreateHttpPathPermissions()
+
+	app.onLoad()
+
 	return app
 
 }
@@ -222,8 +239,8 @@ func (app *application) CleanupAndShutDown() {
 
 	if app.ServerPingScheduler != nil {
 		log.Println("Stoping server pings...")
-		app.ServerPingScheduler.Clear()
-		app.ServerPingScheduler.Stop()
+		go app.ServerPingScheduler.Clear()
+		go app.ServerPingScheduler.Stop()
 
 	}
 

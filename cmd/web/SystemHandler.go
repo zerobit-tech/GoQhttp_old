@@ -47,6 +47,10 @@ func (app *application) reloadSpTemplates(w http.ResponseWriter, r *http.Request
 func (app *application) invalidatecache(w http.ResponseWriter, r *http.Request) {
 	app.LoadSPTemplates()
 	app.invalidateEndPointCache()
+
+	app.deleteRPGDrivers()
+	app.createRPGDrivers()
+
 	app.sessionManager.Put(r.Context(), "flash", "Done")
 	app.goBack(w, r, http.StatusSeeOther)
 }

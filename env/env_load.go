@@ -4,9 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"strconv"
 	"strings"
-	"time"
 
 	"github.com/joho/godotenv"
 )
@@ -82,13 +80,25 @@ func AllowHtmlTemplates() bool {
 // ----------------------------------------------------------------
 //
 // ----------------------------------------------------------------
-func UserSessionDuration() time.Duration {
-	i := strings.TrimSpace(strings.ToUpper(GetEnvVariable("USERSESSIONTIMEOUT", "120")))
+func RpgDriverLib(serverName string) string {
+	return strings.TrimSpace(strings.ToUpper(GetEnvVariable(fmt.Sprintf("%s_PGMDRIVERLIB", strings.ToUpper(serverName)), "QXMLSERV")))
 
-	iDurataion, err := strconv.Atoi(i)
-	if err != nil {
-		iDurataion = 120
-	}
+}
 
-	return time.Duration(iDurataion * int(time.Minute))
+// ----------------------------------------------------------------
+//
+// ----------------------------------------------------------------
+func RpgDriverNameSpace(serverName string) string {
+
+	return strings.TrimSpace(strings.ToUpper(GetEnvVariable(fmt.Sprintf("%s_PGMDRIVERNAMESPACE", strings.ToUpper(serverName)), fmt.Sprintf("%s_PGMDRIVER", strings.ToUpper(serverName)))))
+
+}
+
+// ----------------------------------------------------------------
+//
+// ----------------------------------------------------------------
+func RpgDefaultDriverprogram(serverName string) string {
+
+	return strings.TrimSpace(strings.ToUpper(GetEnvVariable(fmt.Sprintf("%s_PGMDRIVERLIB", strings.ToUpper(serverName)), "iPLUG512K")))
+
 }

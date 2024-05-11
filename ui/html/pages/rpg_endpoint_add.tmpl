@@ -1,0 +1,336 @@
+{{define "title"}}
+Add
+{{end}}
+
+
+{{define "content"}}
+<div class="row p-2" id="endpointa">
+    <div class="col" id="spaddcol">
+        <div class="card " id="spaddcard" style="height: 100%;">
+            <div class="card-header">
+                <p class="h5">
+                    {{if .Form.ID}} Edit {{else}} Add {{end}} Program EndPoint
+
+                    <a id="addrpgparms"  hx-push-url="true"  class="btn btn-ghost-info float-right" href="/pgmfields">Manage Fields</a>
+
+                </p>
+            </div>
+            <div class="card-body">
+
+                <form action="/pgmendpoints/{{if .Form.ID}}update/{{.Form.ID}}{{else}}add{{end}}" method="POST">
+
+                    <div class="row">
+                        <div class="col-4">
+                            <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+                            <input type="hidden" name="id" value="{{.Form.ID}}">
+
+                            <div class="form-group">
+                                <label for="defaultserver">Server</label>
+                                <SELECT id="defaultserver" class="form-control" name="serverid">
+                                    <OPTION value="">Default Server</OPTION>
+
+                                    {{if .Servers}}
+                                    {{range .Servers}}
+                                    <OPTION {{if eq .ID $.Form.DefaultServerId}} selected {{end}} value="{{.ID}}">
+
+                                        {{.Name}}
+                                    </OPTION>
+                                    {{end}}
+                                    {{end}}
+                                </SELECT>
+
+                                {{with .Form.FieldErrors.serverid}}
+
+                                <div class='invalid-feedback-error'>{{.}}</div>
+                                {{end}}
+                            </div>
+
+
+                            <div class="form-group">
+                                <label for="name">Name</label>
+                                <input id="name" class="form-control {{with .Form.FieldErrors.name}} is-invalid {{end}}"
+                                    type="text" name="name" aria-describedby="namehelp" placeholder="Name"
+                                    value='{{.Form.Name}}' required></input>
+
+                                {{with .Form.FieldErrors.name}}
+                                <div class='invalid-feedback'>{{.}}</div>
+                                {{end}}
+                            </div>
+
+                            <div class="form-group">
+                                <label for="lib">Library</label>
+                                <input id="lib" class="form-control {{with .Form.FieldErrors.lib}} is-invalid {{end}}"
+                                    type="text" name="lib" aria-describedby="libhelp" placeholder="Library Name"
+                                    value='{{.Form.Lib}}' required></input>
+
+                                {{with .Form.FieldErrors.lib}}
+                                <div class='invalid-feedback'>{{.}}</div>
+                                {{end}}
+                            </div>
+
+
+
+                            <div class="form-group">
+                                <label for="namespace">Namespace</label>
+                                <input id="namespace" value='{{.Form.Namespace}}' type="text" placeholder="v1"
+                                    class="form-control  {{with .Form.FieldErrors.namespace}} is-invalid {{end}}"
+                                    name="namespace">
+                                </input>
+                                <small id="namespaceh" class="form-text text-muted">
+                                    Default value: V1. {{$.HostUrl}}/api/<strong>{namespace}</strong>/{endpoint name}.
+
+
+                                </small>
+                                {{with .Form.FieldErrors.namespace}}
+                                <div class='invalid-feedback'>{{.}}</div>
+                                {{end}}
+                            </div>
+
+                            <div class="form-group">
+                                <label for="endpointname">EndPoint Name</label>
+                                <input id="endpointname"
+                                    class="form-control {{with .Form.FieldErrors.endpointname}} is-invalid {{end}}"
+                                    type="text" name="endpointname" aria-describedby="endpointnamehelp"
+                                    placeholder="EndPoint name" value='{{.Form.EndPointName}}' required></input>
+
+
+
+                                <small id="endpointnamehelp" class="form-text text-muted">
+                                    {{$.HostUrl}}/api/{namespace}/<strong>{endpoint name}</strong>.
+
+                                </small>
+                                <!-- Use the `with` action to render the value of .Form.FieldErrors.title if it is not empty. -->
+
+                                {{with .Form.FieldErrors.endpointname}}
+                                <div class='invalid-feedback'>{{.}}</div>
+                                {{end}}
+                            </div>
+
+
+
+
+                            <div class="form-group">
+                                <label for="endpointmethod">HTTP Method</label>
+
+
+                                <!-- Use the `with` action to render the value of .Form.FieldErrors.title if it is not empty. -->
+
+                                <SELECT class="form-control" name="httpmethod">
+                                    <OPTION {{if eq .Form.HttpMethod "POST" }}selected{{end}} value="POST">POST</OPTION>
+                                    <OPTION {{if eq .Form.HttpMethod "GET" }}selected{{end}} value="GET">GET</OPTION>
+                                    <OPTION {{if eq .Form.HttpMethod "PUT" }}selected{{end}} value="PUT">PUT</OPTION>
+                                    <OPTION {{if eq .Form.HttpMethod "PATCH" }}selected{{end}} value="PATCH">PATCH
+                                    </OPTION>
+
+                                    <OPTION {{if eq .Form.HttpMethod "DELETE" }}selected{{end}} value="DELETE">DELETE
+                                    </OPTION>
+                                </SELECT>
+
+
+                                {{with .Form.FieldErrors.httpmethod}}
+                                <div class='invalid-feedback-error'>{{.}}</div>
+                                {{end}}
+
+
+                            </div>
+
+
+
+
+
+
+
+                            {{if .Features.AllowHtmlTemplates}}
+                            <div class="form-group">
+                                <label for="htmltemplate">Html Template</label>
+                                <SELECT id="htmltemplate" class="form-control" name="htmltemplate">
+                                    <OPTION value="">None</OPTION>
+
+                                    {{if .SpTemplates}}
+                                    {{range .SpTemplates}}
+                                    <OPTION {{if $.Form.HtmlTemplate}} {{if eq . $.Form.HtmlTemplate}} selected {{end}}
+                                        {{end}} value="{{.}}">
+
+                                        {{.}}
+                                    </OPTION>
+                                    {{end}}
+                                    {{end}}
+                                </SELECT>
+
+                                <small id="htmltemplateh" class="form-text text-muted">If want to return HTML in place
+                                    of
+                                    JSON<br>
+                                </small>
+
+                                {{with .Form.FieldErrors.htmltemplate}}
+
+                                <div class='invalid-feedback-error'>{{.}}</div>
+                                {{end}}
+                            </div>
+
+                            {{end}}
+
+
+
+                            <div class="form-group">
+                                <label for="connectioncount">Max log entries</label>
+        
+                                <input id="maxlogentries" aria-describedby="maxlogentriesh"
+                                    value='{{.Form.MaxlogEntries}}' type="number" class="form-control" min="1" max="100"
+                                    name="maxlogentries"></input>
+        
+         
+                            </div>
+
+                            <br />
+
+                            <div class="form-check">
+                                <input value='true' {{if .Form.AllowWithoutAuth}} checked {{end}} type="checkbox"
+                                    class="form-check-input" name="awoauth" id="awoauth">
+                                <label class="form-check-label text-danger" for="awoauth">Allow without Auth</label>
+                            </div>
+
+
+                            <br />
+
+
+
+
+                            <br />
+                        </div>
+
+
+                        <div class="col-8">
+
+                            <table id="rbackrolelist"
+                                class="table   table-borderless  table-striped    ">
+                                <thead class="thead-dark">
+                                    <tr>
+                                        <th>Usage</th>
+                                        <th>Name</th>
+                                        <th>Field </th>
+                                        <th>Dim </th>
+
+
+
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {{range $i, $params :=.Form.Parameters}}
+                                    <tr>
+
+                                        <td>
+                                            <input name="Parameters[{{$i}}].Seq" value="{{$i}}" type="hidden" />
+                                            <div class="form-group">
+
+                                                <!-- Use the `with` action to render the value of .Form.FieldErrors.title if it is not empty. -->
+                                                <SELECT class="form-control" name="Parameters[{{$i}}].InOutType">
+                                                    <OPTION {{if eq $params.InOutType "both" }}selected{{end}}
+                                                        value="both">INOUT
+                                                    </OPTION>
+                                                    <OPTION {{if eq $params.InOutType "in" }}selected{{end}} value="in">
+                                                        IN</OPTION>
+                                                    <OPTION {{if eq $params.InOutType "out" }}selected{{end}}
+                                                        value="out">OUT</OPTION>
+                                                </SELECT>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="form-group">
+
+                                                <input id="Parameters[{{$i}}].NameToUs"
+                                                    class="form-control {{with $params.FieldErrors.name}} is-invalid {{end}}"
+                                                    type="text" name="Parameters[{{$i}}].NameToUse"
+                                                    aria-describedby="libhelp" placeholder="Param Name"
+                                                    value='{{$params.NameToUse}}'></input>
+
+                                                {{with $params.FieldErrors.name}}
+                                                <div class='invalid-feedback'>{{.}}</div>
+                                                {{end}}
+                                            </div>
+                                        </td>
+
+                                        <td style="width: 50%;">
+                                            <div class="form-group">
+
+                                                <SELECT class="form-control" name="Parameters[{{$i}}].FieldID">
+                                                    <OPTION value="">Select Field</OPTION>
+                                                    {{if $.RpgParams}}
+                                                    {{range $i2, $rpgParam := $.RpgParams}}
+                                                    <OPTION {{if eq $params.FieldID $rpgParam.ID}} selected {{end}}
+                                                        value="{{$rpgParam.ID}}">
+
+                                                        {{$rpgParam.ID|getrpgparamstring}}
+                                                    </OPTION>
+                                                    {{end}}
+                                                    {{end}}
+                                                </SELECT>
+                                            </div>
+
+                                        </td>
+
+                                        <td>
+                                            <div class="form-group">
+
+                                                <input id="Parameters[{{$i}}].Dim"
+                                                    class="form-control {{with $params.FieldErrors.dim}} is-invalid {{end}}"
+                                                    type="number" name="Parameters[{{$i}}].Dim"
+                                                    aria-describedby="libhelp" placeholder=""
+                                                    value='{{$params.Dim}}' min="0"></input>
+
+                                                {{with $params.FieldErrors.dim}}
+                                                <div class='invalid-feedback'>{{.}}</div>
+                                                {{end}}
+                                            </div>
+                                        </td>
+
+                                    </tr>
+
+
+
+
+                                    {{end}}
+
+
+                                    <tr>
+
+
+                                        <td colspan="5">
+                                            <button hx-trigger="revealed" hx-target="closest tr"
+                                                hx-indicator="#processing" class="btn btn-primary"
+                                                hx-get="/pgmendpoints/fieldrow?index={{.Index}}" hx-swap="outerHTML">+
+                                                Add Parameter</button>
+                                        </td>
+                                    </tr>
+
+
+
+                                </tbody>
+                            </table>
+
+
+
+
+
+
+
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Submit</button>
+
+
+                </form>
+            </div>
+
+        </div>
+    </div>
+
+
+
+
+
+
+
+</div>
+
+{{end}}

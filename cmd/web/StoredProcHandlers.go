@@ -83,6 +83,12 @@ func (app *application) SPHelp(w http.ResponseWriter, r *http.Request) {
 func (app *application) SPList(w http.ResponseWriter, r *http.Request) {
 
 	serverID := r.URL.Query().Get("server")
+	loadSpecialparam := r.URL.Query().Get("loadspecial")
+
+	loadSpecial := false
+	if loadSpecialparam == "Y" {
+		loadSpecial = true
+	}
 
 	_, err := app.servers.Get(serverID)
 	if err != nil {
@@ -93,7 +99,7 @@ func (app *application) SPList(w http.ResponseWriter, r *http.Request) {
 	data := app.newTemplateData(r)
 	data.StoredProcs = make([]*storedProc.StoredProc, 0, 10)
 
-	storedPs := app.storedProcs.List()
+	storedPs := app.storedProcs.List(loadSpecial)
 
 	if serverID != "" {
 		for _, s := range storedPs {
@@ -256,7 +262,14 @@ func (app *application) SpParamAlias(w http.ResponseWriter, r *http.Request) {
 
 	sP, err := app.storedProcs.Get(spId)
 	if err != nil {
-		app.serverError500(w, r, err)
+		app.sessionManager.Put(r.Context(), "error", err)
+		app.goBack(w, r, http.StatusBadRequest)
+		return
+	}
+
+	if sP.IsSpecial {
+		app.sessionManager.Put(r.Context(), "error", "Not allowed")
+		app.goBack(w, r, http.StatusBadRequest)
 		return
 	}
 	data.StoredProc = sP
@@ -297,6 +310,8 @@ func (app *application) SPAddPost(w http.ResponseWriter, r *http.Request) {
 		sP.EndPointName = stringutils.RemoveSpecialChars(stringutils.RemoveMultipleSpaces(sP.EndPointName))
 
 		sP.CheckField(!app.storedProcs.Duplicate(&sP), "endpointname", "Endpoint with name and method already exists in this namespace.")
+		sP.CheckField(!app.RpgEndpointModel.DuplicateByName(sP.EndPointName, sP.HttpMethod, sP.Namespace), "endpointname", "Endpoint with name and method already exists in this namespace.")
+
 	}
 	// assign default server
 
@@ -360,7 +375,6 @@ func (app *application) SPAddPost(w http.ResponseWriter, r *http.Request) {
 	go func() {
 		defer concurrent.Recoverer("SPMODIFIED")
 		defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
-
 		userID, _ := app.getCurrentUserID(r)
 
 		logEvent := GetSystemLogEvent(userID, logAction, fmt.Sprintf(" %s %s,IP %s", sP.EndPointName, sP.HttpMethod, r.RemoteAddr), false)
@@ -410,6 +424,20 @@ func (app *application) SPDeleteConfirm(w http.ResponseWriter, r *http.Request) 
 	}
 
 	spId := r.PostForm.Get("spId")
+
+	sP, err := app.storedProcs.Get(spId)
+	if err != nil {
+		app.sessionManager.Put(r.Context(), "error", fmt.Sprintf("Error: %s", err.Error()))
+		app.goBack(w, r, http.StatusSeeOther)
+		return
+	}
+
+	if sP.IsSpecial {
+		app.sessionManager.Put(r.Context(), "error", "Not allowed to delete!")
+		app.goBack(w, r, http.StatusSeeOther)
+		return
+	}
+
 	app.invalidateEndPointCache()
 
 	err = app.storedProcs.Delete(spId)
@@ -514,6 +542,12 @@ func (app *application) SPsaveparamalias(w http.ResponseWriter, r *http.Request)
 	if err != nil {
 		app.sessionManager.Put(r.Context(), "error", fmt.Sprintf("Error  : %s", err.Error()))
 		app.goBack(w, r, http.StatusSeeOther)
+		return
+	}
+
+	if sP.IsSpecial {
+		app.sessionManager.Put(r.Context(), "error", "Not allowed")
+		app.goBack(w, r, http.StatusBadRequest)
 		return
 	}
 
@@ -685,6 +719,13 @@ func (app *application) SpParamPos(w http.ResponseWriter, r *http.Request) {
 		app.serverError500(w, r, err)
 		return
 	}
+
+	if sP.IsSpecial {
+		app.sessionManager.Put(r.Context(), "error", "Not allowed")
+		app.goBack(w, r, http.StatusBadRequest)
+		return
+	}
+
 	data.StoredProc = sP
 	data.ParamPlacements = sP.AvailableParamterPostions()
 	app.render(w, r, http.StatusOK, "sp_param_placement.tmpl", data)
@@ -707,6 +748,12 @@ func (app *application) SpSaveParamPos(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		app.sessionManager.Put(r.Context(), "error", fmt.Sprintf("Error  : %s", err.Error()))
 		app.goBack(w, r, http.StatusSeeOther)
+		return
+	}
+
+	if sP.IsSpecial {
+		app.sessionManager.Put(r.Context(), "error", "Not allowed")
+		app.goBack(w, r, http.StatusBadRequest)
 		return
 	}
 
@@ -756,6 +803,13 @@ func (app *application) spParamValidator(w http.ResponseWriter, r *http.Request)
 		app.serverError500(w, r, err)
 		return
 	}
+
+	if sP.IsSpecial {
+		app.sessionManager.Put(r.Context(), "error", "Not allowed")
+		app.goBack(w, r, http.StatusBadRequest)
+		return
+	}
+
 	data.StoredProc = sP
 
 	data.ParamRegexs = app.paramRegexModel.List()
@@ -776,7 +830,11 @@ func (app *application) spsaveparamValidator(w http.ResponseWriter, r *http.Requ
 		app.goBack(w, r, http.StatusSeeOther)
 		return
 	}
-
+	if sP.IsSpecial {
+		app.sessionManager.Put(r.Context(), "error", "Not allowed")
+		app.goBack(w, r, http.StatusBadRequest)
+		return
+	}
 	//	app.storedProcs.Save(sP)
 	maped := formToMap(r)
 

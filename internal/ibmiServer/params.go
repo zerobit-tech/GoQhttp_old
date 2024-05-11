@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/onlysumitg/GoQhttp/go_ibm_db"
 	"github.com/onlysumitg/GoQhttp/internal/storedProc"
+	"github.com/onlysumitg/godbc"
 )
 
 // -----------------------------------------------------------------
@@ -14,7 +14,7 @@ import (
 func (s *Server) getDefaultValue(p *storedProc.StoredProcParamter) string {
 	if p.DefaultValue.Valid {
 
-		if go_ibm_db.IsSepecialRegister(p.DefaultValue.String) {
+		if godbc.IsSepecialRegister(p.DefaultValue.String) {
 			return getSpecialRegisterValue(s, p.DefaultValue.String)
 		}
 		d := strings.ReplaceAll(p.DefaultValue.String, " ", "")
@@ -57,10 +57,11 @@ func getParameterofType(p *storedProc.StoredProcParamter) *any {
 		x = &decfloac
 		return &x
 	case "ROWID":
-		var r go_ibm_db.ROWID
+		var r godbc.ROWID
 		x = &r
 		return &x
 	}
 
 	return &x
 }
+

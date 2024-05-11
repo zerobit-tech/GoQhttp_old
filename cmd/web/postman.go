@@ -112,7 +112,7 @@ func (app *application) downloadPostmanCollectionForServer(w http.ResponseWriter
 func (app *application) getServerSPs(s *ibmiServer.Server) []*storedProc.StoredProc {
 
 	splist := make([]*storedProc.StoredProc, 0, 10)
-	for _, sp := range app.storedProcs.List() {
+	for _, sp := range app.storedProcs.List(false) {
 		if sp == nil || sp.DefaultServer == nil {
 			continue
 		}

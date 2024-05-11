@@ -12,10 +12,10 @@ import (
 
 	//_ "github.com/go-sql-driver/mysql"
 	_ "github.com/microsoft/go-mssqldb"
-	"github.com/onlysumitg/GoQhttp/go_ibm_db"
 
 	//_ "github.com/onlysumitg/GoQhttp/go_ibm_db"
 	"github.com/onlysumitg/GoQhttp/utils/concurrent"
+	"github.com/onlysumitg/godbc"
 )
 
 var mapLock sync.Mutex
@@ -129,7 +129,7 @@ func getConnectionFromCache(server DBServer) (_ *sql.DB, inuse bool) {
 
 	sqlToPing := server.GetSQLToPing()
 	if sqlToPing != "" {
-		ctx = context.WithValue(ctx, go_ibm_db.SQL_TO_PING, sqlToPing)
+		ctx = context.WithValue(ctx, godbc.SQL_TO_PING, sqlToPing)
 	}
 
 	defer func() {

@@ -15,7 +15,7 @@ import (
 func (app *application) UsersHandlers(router *chi.Mux) {
 	router.Route("/users", func(r chi.Router) {
 		r.Use(app.sessionManager.LoadAndSave)
-
+		r.Use(app.RequireAuthentication)
 		r.Use(app.RequireSuperAdmin)
 		r.Use(CheckLicMiddleware)
 

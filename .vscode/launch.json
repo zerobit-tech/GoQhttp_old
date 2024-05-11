@@ -37,12 +37,27 @@
             "request": "launch",
             "mode": "auto",
             
-            "program": "${workspaceRoot}/cmd/playground/",
+            "program": "${workspaceRoot}/cmd/playground/jwt",
             
       
             "env": {},
             "showLog": true,
          
-            }
+            },
+
+
+            {
+                "name": "Debug Playground rpgcall",
+                "type": "go",
+                "request": "launch",
+                "mode": "auto",
+                
+                "program": "${workspaceRoot}/cmd/playground/rpgcall",
+                
+          
+                "env": {},
+                "showLog": true,
+             
+                }
         ]
 }

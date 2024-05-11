@@ -1,0 +1,118 @@
+{{define "title"}}
+Add
+{{end}}
+
+
+{{define "content"}}
+<div class="row p-2">
+    <div class="col-4" id="spaddcol">
+        <div class="card " id="spaddcard" style="height: 100%;">
+            <div class="card-header">
+                <p class="h5">
+                    {{if .Form.ID}} Edit {{else}} Add {{end}} Program Field
+
+                  
+                </p>
+            </div>
+            <div class="card-body">
+
+                <form action="/pgmfields/{{if .Form.ID}}update/{{.Form.ID}}{{else}}add{{end}}" method="POST">
+                    <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+                    <input type="hidden" id="id" name="id" value="{{.Form.ID}}">
+
+               
+ 
+                    <div class="form-group">
+                        <label for="name">Parameter Name</label>
+                        <input id="name" class="form-control {{with .Form.FieldErrors.name}} is-invalid {{end}}"
+                            type="text" name="name" aria-describedby="namehelp" placeholder="Name"
+                            value='{{.Form.Name}}' required></input>
+
+                        {{with .Form.FieldErrors.name}}
+                        <div class='invalid-feedback'>{{.}}</div>
+                        {{end}}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="datatype">Data Type</label>
+                        <SELECT  hx-get="/pgmfields/dtfields"  
+                        hx-trigger="load, change"
+                        hx-target="#dtfields"
+                         hx-include="#datatype,#id" 
+                         id="datatype" class="form-control" name="datatype">
+ 
+                            {{if .RpgParamDatatypes}}
+                            {{range .RpgParamDatatypes}}
+                            <OPTION {{if $.Form.DataType}} {{if eq . $.Form.DataType}} selected {{end}}
+                                {{end}} value="{{.}}">
+
+                                {{.}}
+                            </OPTION>
+                            {{end}}
+                            {{end}}
+                        </SELECT>
+
+                        {{with .Form.FieldErrors.datatype}}
+
+                        <div class='invalid-feedback-error'>{{.}}</div>
+                        {{end}}
+                    </div>
+
+                    <div id="dtfields"></div>
+            
+
+
+                
+ 
+
+              
+ 
+
+                    <br />
+                    {{if .Form.ID}} 
+                    <div class="alert alert-danger" role="alert">
+
+                        Please check below for impacted Fields and Endpoints.
+              
+                      </div>
+                    {{end}}
+                    <button type="submit" class="btn btn-primary">Submit</button>
+
+
+                </form>
+            </div>
+
+        </div>
+    </div>
+
+
+
+
+
+
+    <!-- Search -->
+
+    <div class="col-8"  id="searchsparea">
+       
+    </div>
+</div>
+
+
+
+<!--- used by DS -->
+{{if .Form.ID}}
+ 
+      
+      <span  hx-get="/pgmfields/usageds/{{.Form.ID}}" hx-trigger="load" hx-select="#mainfieldlist">
+        <p>Loading...</p>
+    </span>
+ 
+    <span  hx-get="/pgmfields/usagepgm/{{.Form.ID}}" hx-trigger="load" hx-select="#pgmeplist">
+        <p>Loading...</p>
+    </span>
+ 
+{{end}}
+
+
+
+{{end}}

@@ -4,12 +4,12 @@ Add
 
 
 {{define "content"}}
-<div class="row p-2">
+<div class="row p-2" id="endpointa">
     <div class="col-4" id="spaddcol">
         <div class="card " id="spaddcard" style="height: 100%;">
             <div class="card-header">
                 <p class="h5">
-                    {{if .Form.ID}} Edit {{else}} Add {{end}} EndPoint
+                    {{if .Form.ID}} Edit {{else}} Add {{end}} Stored Proc EndPoint
 
                     <a id="searchbtn" 
                     data-toggle="tooltip" data-placement="bottom" title="Search stored procedure" 
@@ -47,6 +47,8 @@ Add
                         <div class='invalid-feedback-error'>{{.}}</div>
                         {{end}}
                     </div>
+
+                    
                     <div class="form-group">
                         <label for="lib">Stored Procedure schema</label>
                         <input id="lib" class="form-control {{with .Form.FieldErrors.lib}} is-invalid {{end}}"
@@ -182,6 +184,18 @@ Add
                     </div>
 
                     {{end}}
+
+
+
+                    <div class="form-group">
+                        <label for="connectioncount">Max log entries</label>
+
+                        <input id="maxlogentries" aria-describedby="maxlogentriesh"
+                            value='{{.Form.MaxlogEntries}}' type="number" class="form-control" min="1" max="100"
+                            name="maxlogentries"></input>
+
+ 
+                    </div>
 
 
 

@@ -1,0 +1,24 @@
+https://www.ibm.com/docs/en/db2/11.5?topic=keywords-clientwrkstnname
+
+SQL_ATTR_INFO_WRKSTNNAME
+
+ClientWrkStnName
+
+CLIENT_WRKSTNNAME
+
+
+
+https://www.ibm.com/docs/en/db2/11.5?topic=attributes-connection-list
+
+
+CLI applications can set the SQL_ATTR_INFO_WRKSTNNAME attribute on Db2 for IBM i V6R1 and later servers. Db2 for IBM i servers support a length of up to 255 characters.
+
+
+https://dawnmayi.com/2009/10/09/use-client-special-registers/
+
+
+
+https://www.ibm.com/docs/en/ias?topic=routines-wlm-set-client-info-set-client-information
+
+
+  CALL SYSPROC.WLM_SET_CLIENT_INFO('db2user', 'machine.torolab.ibm.com',    'auditor', 'Accounting department', 'AUTOMATIC');

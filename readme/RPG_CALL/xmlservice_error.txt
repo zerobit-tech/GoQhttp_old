@@ -1,0 +1,8 @@
+====== ERROR===== https://xmlservice.readthedocs.io/en/latest/errors.html
+
+
+<errnoxml>1000005</errnoxml>
+<xmlerrmsg>PASE resolve failed</xmlerrmsg>
+<xmlhint><![CDATA[MYPGM]]></xmlhint>
+
+The program you tried to call, shown here as “MYPGM” (in the CDATA tag), was not found. Make sure you specified the library and program correctly, including upper or lower case (usually upper case).

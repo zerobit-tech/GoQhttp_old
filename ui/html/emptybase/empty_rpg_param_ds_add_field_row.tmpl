@@ -1,0 +1,85 @@
+ {{define "content"}}
+ 
+                    {{if .DsField}}
+                  
+
+                    <tr>
+
+                        
+                        <td>
+                            <div class="form-group">
+                                <input id="DsFields[{{.Index}}].NameToUs"
+                                    class="form-control {{with .DsField.FieldErrors.name}} is-invalid {{end}}"
+                                    type="text" name="DsFields[{{.Index}}].NameToUse" aria-describedby="libhelp"
+                                    placeholder="Name" value='{{.DsField.NameToUse}}'></input>
+
+                                {{with .DsField.FieldErrors.name}}
+                                <div class='invalid-feedback'>{{.}}</div>
+                                {{end}}
+                            </div>
+                        </td>
+
+                        <td>
+
+                            <div class="form-group">
+                                <SELECT class="form-control {{with .DsField.FieldErrors.paramid}} is-invalid {{end}}" name="DsFields[{{.Index}}].ParamID">
+                                    <OPTION value="">Select Field</OPTION>
+                                    {{if $.RpgParams}}
+                                    {{range $i2, $rpgParam := $.RpgParams}}
+                                    <OPTION  
+                                        value="{{$rpgParam.ID}}">
+
+                                        {{$rpgParam.ID|getrpgparamstring}}  
+                                    </OPTION>
+                                    {{end}}
+                                    {{end}}
+
+                                </SELECT>
+
+                                {{with .DsField.FieldErrors.paramid}}
+                                <div class='invalid-feedback'>{{.}}</div>
+                                {{end}}
+                            </div>
+                        </td>
+
+                        <td>
+
+                        <div class="form-group">
+                            <input id="DsFields[{{.Index}}].dim" class="form-control {{with .DsField.FieldErrors.dim}} is-invalid {{end}}"
+                                type="number" name="DsFields[{{.Index}}].Dim" aria-describedby="dsdimhhelp" placeholder=""
+                                value='{{.DsField.Dim}}' min="0"  ></input>
+    
+                            {{with .DsField.FieldErrors.dim}}
+                            <div class='invalid-feedback'>{{.}}</div>
+                            {{end}}
+                        </td>
+
+                    </tr>
+
+
+
+
+
+                    </div>
+                    {{end}}
+
+                    <tr>
+                            
+                               
+                        <td colspan="3">
+                         
+
+                        <button class="btn btn-ghost-info"   
+                        hx-target="closest tr"  
+                        hx-indicator = "#processing" 
+                        hx-get="/pgmfieldsds/fieldrow?index={{.Index}}"     
+                        hx-swap="outerHTML" >+ Add Field</button>
+
+
+                       </td>
+                    </tr>
+ 
+                 
+                    
+
+{{end}}

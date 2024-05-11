@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<xmlservice>
+    <pgm error="off" lib="sumitg1" name="QHTTPTST82" var="QHTTPTST82">
+        <parm io="both" var="iname">
+            <data type="10a" var="iname"><![CDATA[n1]]></data>
+        </parm>
+        <parm io="both" var="inum">
+            <data type="5s0" var="inum"><![CDATA[31]]></data>
+        </parm>
+        <parm io="both" var="iDS">
+            <ds var="iDS">
+                <data type="10a" var="ds3name"><![CDATA[aa]]></data>
+                <data type="5s0" var="ds3multi"><![CDATA[10]]></data>
+                <data type="5s0" var="ds3multi"><![CDATA[11]]></data>
+            </ds>
+            <ds var="iDS">
+                <data type="10a" var="ds3name"><![CDATA[bb]]></data>
+                <data type="5s0" var="ds3multi"><![CDATA[20]]></data>
+                <data type="5s0" var="ds3multi"><![CDATA[21]]></data>
+            </ds>
+        </parm>
+        <parm io="both" var="ODs">
+            <ds var="ODs">
+                <data type="10a" var="ds3name"><![CDATA[aa]]></data>
+                <data type="5s0" var="ds3multi"><![CDATA[10]]></data>
+                <data type="5s0" var="ds3multi"><![CDATA[11]]></data>
+            </ds>
+            <ds var="ODs">
+                <data type="10a" var="ds3name"><![CDATA[bb]]></data>
+                <data type="5s0" var="ds3multi"><![CDATA[20]]></data>
+                <data type="5s0" var="ds3multi"><![CDATA[21]]></data>
+            </ds>
+        </parm>
+        <parm io="both" var="oname">
+            <data type="10a" var="oname"><![CDATA[n1]]></data>
+        </parm>
+        <parm io="both" var="onum">
+            <data type="5s0" var="onum"><![CDATA[31]]></data>
+        </parm>
+        <success><![CDATA[+++ success sumitg1 QHTTPTST82 ]]></success>
+    </pgm>
+</xmlservice>
+    

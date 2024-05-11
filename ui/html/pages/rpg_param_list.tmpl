@@ -1,0 +1,112 @@
+{{define "title"}}
+Field
+{{end}}
+
+{{define "content"}}
+ 
+<div class="row p-2" id="mainfieldlist">
+  <div class="col">
+    <div class="card ">
+      <div class="card-header">
+        <p class="h5">Program Fields 
+
+           <a id="addrpgparms"  hx-push-url="true"  class="btn btn-ghost-info float-right" href="/pgmfields/add">+Add Field</a>
+           <a id="addrpgparms"  hx-push-url="true"  class="btn btn-ghost-info float-right" href="/pgmfieldsds/add">+Add DataStructure</a>
+
+         </p>
+       
+      </div>
+
+ 
+      <div class="card-body">
+
+    <table id="paramslist"           class="table   table-borderless table-responsive-sm table-striped    ">
+      <thead class="thead-dark">
+        <tr>
+          
+           <th>Name</th>
+           
+          
+
+            <th>Options </th>
+
+        </tr>
+          </thead>
+          <tbody>
+            {{if .RpgParams}}
+
+        {{range .RpgParams}}
+        <tr>
+             <td class="tdbreak"> {{.ID|getrpgparamstring}}</td>
+ 
+            
+            
+            
+
+            <td>
+                 
+                  <a  hx-push-url="true"  class="btn btn-ghost-info" href='/pgmfields/{{.ID}}'  >View</a>   
+                  <a  hx-push-url="true"  class="btn btn-ghost-info" 
+                     data-toggle="tooltip" data-placement="bottom" title="Edit" 
+                     href='/pgmfields{{if .IsDs}}ds{{end}}/update/{{.ID}}'  >   <svg class="c-icon mfe-2">
+                      <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-pencil"></use>
+                  </svg></a> 
+               
+                  <a class="btn btn-ghost-danger"   hx-push-url="true" 
+                     data-toggle="tooltip" data-placement="bottom" title="Delete" 
+                     href='/pgmfields/delete/{{.ID}}'  >   
+                      <svg class="c-icon mfe-2">
+                      <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-trash"></use>
+                  </svg></a>
+            </td>
+
+        </tr>
+        {{end}}
+        {{end}}
+          </tbody>
+        </table>
+      </div>
+  </div>
+</div>
+</div>
+    {{end}}
+
+
+{{define "aftercontent"}}
+
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.1/css/jquery.dataTables.css">
+<script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.13.1/js/jquery.dataTables.js"></script>
+
+<script>
+  
+    $(document).ready( function () {
+      $('#paramslist').DataTable(
+        
+          {
+            "pageLength": 100,
+              "language": {
+                "emptyTable": "No records."
+              }
+          }
+      );
+
+
+      {{if not .RpgParams}}
+
+
+introJs().setOptions({
+steps: [ 
+
+{
+  title: 'For new parameter!',
+element: document.querySelector('#addrpgparms'),
+intro: 'Click here to add.'
+},
+
+
+]
+}).start();
+{{end}}
+  } );
+</script>
+{{end}}

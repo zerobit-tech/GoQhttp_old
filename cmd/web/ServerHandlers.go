@@ -88,6 +88,7 @@ func (app *application) ServerHandlers(router *chi.Mux) {
 		//	r.Get("/findsp/{serverid}", app.FindSP)
 
 		superadmingroup := r.Group(nil)
+
 		superadmingroup.Use(app.RequireSuperAdmin)
 		superadmingroup.Get("/add", app.ServerAdd)
 		superadmingroup.Post("/add", app.ServerAddPost)
@@ -202,7 +203,7 @@ func (app *application) ServerDelete(w http.ResponseWriter, r *http.Request) {
 	data.Server = server
 
 	data.StoredProcs = make([]*storedProc.StoredProc, 0, 10)
-	for _, s := range app.storedProcs.List() {
+	for _, s := range app.storedProcs.List(false) {
 		if s == nil || s.DefaultServer == nil {
 			continue
 		}
@@ -306,7 +307,6 @@ func (app *application) RunPromotion(w http.ResponseWriter, r *http.Request) {
 	go func() {
 		defer concurrent.Recoverer("Manual Promotion log")
 		userID, _ := app.getCurrentUserID(r)
-
 		logEvent := GetSystemLogEvent(userID, "Manual Promotion", fmt.Sprintf("Server %s,IP %s", server.Name, r.RemoteAddr), false)
 		logEvent.ImpactedServerId = serverID
 		app.SystemLoggerChan <- logEvent
@@ -505,7 +505,6 @@ func (app *application) ServerAddPost(w http.ResponseWriter, r *http.Request) {
 	go func() {
 		defer concurrent.Recoverer("Server ADD log")
 		userID, _ := app.getCurrentUserID(r)
-
 		logEvent := GetSystemLogEvent(userID, "Server Created", fmt.Sprintf("%s,IP %s", server.Name, r.RemoteAddr), false)
 		logEvent.ImpactedServerId = server.ID
 		logEvent.AfterUpdate = server.LogImage()

@@ -1,0 +1,98 @@
+{{define "title"}}
+Endpoint
+{{end}}
+
+{{define "content"}}
+ 
+
+<!-- Parameter -->
+
+<div class="row p-2">
+    <div class="col">
+        <form action="/pgmendpoints/saveparamplacement" method="POST">
+            <div class="card ">
+                <div class="card-header">
+                    <p class="h5">
+                        Parameter Placement <button type="submit" class="btn btn-ghost-primary  float-right">Update Placement</button>
+                    </p>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col">
+
+
+                            <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+                            <input type="hidden" name="id" value="{{.RpgEndPoint.ID}}">
+
+
+                            <table id="savedqlist"
+                                class="table   table-borderless table-responsive-sm table-striped    ">
+                                <thead class="thead-dark">
+                                    <tr>
+                                       
+                                        <th>Usage</th>
+                                        <th>Name</th>
+                                    
+                                        <th>Data Type</th>
+                                        <th>Dim</th>
+
+                                        <th>Placement</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {{if .RpgEndPoint.Parameters}}
+                                    {{range $param := .RpgEndPoint.Parameters}}
+                                    <tr>
+                                       
+                                        <td>{{$param.InOutType}}</td>
+                                        <td>{{$param.NameToUse}}</td>
+                                     
+                                        <td>{{$param.Param.ID|getrpgparamstring}}</td>
+                                        <td>{{$param.Dim}}</td>
+
+                                     
+
+                                        <td>
+                                            {{if ne "out" $param.InOutType}}
+                                            {{if not $param.Param.IsDs}}
+                                            {{if le $param.Dim  1}}
+                                            <div class="form-group">
+                                                <SELECT id="{{$param.NameToUse}}" class="form-control" name="{{$param.NameToUse}}">
+                                                    <OPTION value="">Default</OPTION>
+                                                    {{range $pos := $.ParamPlacements}}
+                                                    <OPTION {{if eq $pos $param.Placement}} selected {{end}}  value="{{$pos}}"> {{$pos}} </OPTION>
+                                                    {{end}}
+                                                </SELECT>
+
+                                                <small id="{{$param.NameToUse}}f" class="form-text text-muted">
+                                                    "PATH": will change the parameter name
+                                                </small>
+                                            </div>
+                                            {{end}}
+                                            {{end}}
+                                            {{end}}
+                                         </td>
+
+
+
+                                    </tr>
+                                    {{end}}
+
+                                    {{else}}
+                                    {{end}}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>            
+        </form>
+    </div>
+</div>
+ 
+ 
+
+{{end}}
+
+
+ 

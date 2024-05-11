@@ -1,0 +1,29 @@
+<form method="POST">
+  <input type="text" name="Name" value="joeybloggs"/>
+  <input type="text" name="Age" value="3"/>
+  <input type="text" name="Gender" value="Male"/>
+  <input type="text" name="Address[0].Name" value="26 Here Blvd."/>
+  <input type="text" name="Address[0].Phone" value="9(999)999-9999"/>
+  <input type="text" name="Address[1].Name" value="26 There Blvd."/>
+  <input type="text" name="Address[1].Phone" value="1(111)111-1111"/>
+  <input type="text" name="active" value="true"/>
+  <input type="text" name="MapExample[key]" value="value"/>
+  <input type="text" name="NestedMap[key][key]" value="value"/>
+  <input type="text" name="NestedArray[0][0]" value="value"/>
+  <input type="submit"/>
+</form>
+
+
+
+// User contains user information
+type User struct {
+	Name        string
+	Age         uint8
+	Gender      string
+	Address     []Address
+	Active      bool `form:"active"`
+	MapExample  map[string]string
+	NestedMap   map[string]map[string]string
+	NestedArray [][]string
+}
+

@@ -69,12 +69,18 @@
 
 
 
-
+<!--  Pgm options -->
+{{if .RpgEndPoint}}
+{{if .RpgEndPoint.ID}}
+    {{template "pgmoptions" .}}
+{{end}}
+{{end}}
+<!--  PGM options end-->
 <!--  sp options -->
       {{if .StoredProc}}
       {{if .StoredProc.ID}}
           {{template "spoptions" .}}
-          {{end}}
+      {{end}}
       {{end}}
  <!--  sp options end-->
 
@@ -109,7 +115,7 @@
      
 
 
-      <li class="c-sidebar-nav-item"><a class="c-sidebar-nav-link" href="/sp">
+      <li class="c-sidebar-nav-item"><a class="c-sidebar-nav-link" href="/endpoints">
         <svg class="c-icon mfe-2">
           <use xlink:href="/static/coreui/vendors/coreui/icons/svg/free.svg#cil-router"></use>
       </svg>EndPoints</a>

@@ -1,0 +1,185 @@
+{{define "title"}}
+Add
+{{end}}
+
+
+{{define "content"}}
+<div class="row p-2">
+    <div class="col" id="spaddcol">
+        <div class="card " id="spaddcard" style="height: 100%;">
+            <div class="card-header">
+                <p class="h5">
+                    {{if .Form.ID}} Edit {{else}} Add {{end}} Program Datastructure
+
+
+                </p>
+            </div>
+            <div class="card-body">
+
+                <form action="/pgmfieldsds/{{if .Form.ID}}update/{{.Form.ID}}{{else}}add{{end}}" method="POST">
+                    <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+                    <input type="hidden" id="id" name="id" value="{{.Form.ID}}">
+
+
+
+                    <div class="form-group">
+                        <label for="name">Datastructure Name</label>
+                        <input id="name" class="form-control {{with .Form.FieldErrors.name}} is-invalid {{end}}"
+                            type="text" name="name" aria-describedby="namehelp" placeholder="Name"
+                            value='{{.Form.Name}}' required></input>
+
+                        {{with .Form.FieldErrors.name}}
+                        <div class='invalid-feedback'>{{.}}</div>
+                        {{end}}
+                    </div>
+
+
+
+
+                    <label for="paramstable">Fields</label>
+
+
+
+                    <table id="paramstable" class="table   table-borderless table-responsive-sm table-striped    ">
+                        <thead class="thead-dark">
+                            <tr>
+
+                                <th>Subfield Name</th>
+                                <th>Field </th>
+                                <th>Dim </th>
+
+
+
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {{range $i, $dsField :=.Form.DsFields}}
+                            <tr>
+
+                                <td>
+                                    <div class="form-group">
+                                        <input id="DsFields[{{$i}}].NameToUs"
+                                            class="form-control {{with $dsField.FieldErrors.name}} is-invalid {{end}}"
+                                            type="text" name="DsFields[{{$i}}].NameToUse" aria-describedby="libhelp"
+                                            placeholder="Name" value='{{$dsField.NameToUse}}'></input>
+
+                                        {{with $dsField.FieldErrors.name}}
+                                        <div class='invalid-feedback'>{{.}}</div>
+                                        {{end}}
+                                    </div>
+
+                                </td>
+                                <td>
+                                    <div class="form-group">
+                                        <SELECT class="form-control" name="DsFields[{{$i}}].ParamID">
+                                            <OPTION value="">Select Field</OPTION>
+                                            {{if $.RpgParams}}
+                                            {{range $i2, $rpgParam := $.RpgParams}}
+                                            <OPTION {{if eq $dsField.ParamID $rpgParam.ID}} selected {{end}}
+                                                value="{{$rpgParam.ID}}">
+
+                                                {{$rpgParam.ID|getrpgparamstring}}
+                                            </OPTION>
+                                            {{end}}
+                                            {{end}}
+
+                                        </SELECT>
+                                    </div>
+                                </td>
+
+                                <td>
+
+                                    <div class="form-group">
+                                        <input id="DsFields[{{$i}}].dim"
+                                            class="form-control {{with $dsField.FieldErrors.dim}} is-invalid {{end}}"
+                                            type="number" name="DsFields[{{$i}}].Dim" aria-describedby="dsdimhhelp"
+                                            placeholder="" value='{{$dsField.Dim}}' min="0"></input>
+
+                                        {{with $dsField.FieldErrors.dim}}
+                                        <div class='invalid-feedback'>{{.}}</div>
+                                        {{end}}
+                                    </div>
+                                </td>
+
+
+
+                            </tr>
+
+
+
+
+                            {{end}}
+
+
+                            <tr>
+
+
+                                <td colspan="3">
+
+
+                         
+
+                                     
+                                            <button hx-trigger="revealed" hx-target="closest tr"
+                                                hx-indicator="#processing" class="btn btn-primary"
+                                                hx-get="/pgmfieldsds/fieldrow?index={{.Index}}" hx-swap="outerHTML">+
+                                                Add Field</button>
+                                        
+                                </td>
+                            </tr>
+
+
+
+                        </tbody>
+                    </table>
+
+
+
+
+
+
+
+
+
+
+                    <hr />
+                    {{if .Form.ID}} 
+                    <div class="alert alert-danger" role="alert">
+
+                        Please check below for impacted Fields and Endpoints.
+              
+                      </div>
+                    {{end}}
+                    <button type="submit" class="btn btn-primary">Submit</button>
+
+
+                </form>
+            </div>
+
+        </div>
+    </div>
+
+
+
+
+
+
+
+</div>
+
+<!--- used by DS -->
+{{if .Form.ID}}
+ 
+      
+      <span  hx-get="/pgmfields/usageds/{{.Form.ID}}" hx-trigger="load" hx-select="#mainfieldlist">
+        <p>Loading...</p>
+    </span>
+ 
+    <span  hx-get="/pgmfields/usagepgm/{{.Form.ID}}" hx-trigger="load" hx-select="#pgmeplist">
+        <p>Loading...</p>
+    </span>
+ 
+{{end}}
+
+
+{{end}}

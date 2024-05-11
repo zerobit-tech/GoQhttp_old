@@ -1,0 +1,116 @@
+{{define "title"}}
+RPG Paramter
+{{end}}
+
+{{define "content"}}
+
+
+<div class="row p-2">
+  <div class="col">
+    <div class="card " style="height: 100%;">
+      <div class="card-header">
+        <p class="h5">Program field detail</p>
+
+      </div>
+
+
+      <div class="card-body">
+        <table class="table table-bordered  table-responsive-sm table-striped  ">
+          <tbody>
+
+
+            <tr>
+              <td>Name</td>
+              <td>{{.RpgParam.Name}}</td>
+            </tr>
+
+          
+            {{if not .RpgParam.IsDs}}
+            <tr>
+              <td>Data Type</td>
+              <td>{{.RpgParam.DataType}}</td>
+            </tr>
+
+
+
+            <tr>
+              <td>Length</td>
+              <td>{{.RpgParam.Length}}</td>
+            </tr>
+
+
+
+            <tr>
+              <td>Datatype</td>
+              <td>{{.RpgParam.DecimalPostions}}</td>
+            </tr>
+
+            <tr>
+              <td>Varying?</td>
+              <td>{{.RpgParam.IsVarying|yesNo}}</td>
+            </tr>
+         
+
+            {{else}}
+            <tr>
+              <td>Is Datastructure?</td>
+              <td>{{.RpgParam.IsDs|yesNo}}</td>
+            </tr>
+
+          
+            {{end}}
+
+
+          </tbody>
+        </table>
+
+ 
+
+      </div>
+    </div>
+  </div>
+ 
+
+
+
+
+  
+
+</div>
+ 
+
+
+{{if   .RpgParam.IsDs}}
+<div class="row p-2">
+  <div class="col">
+    <div class="card " style="height: 100%;">
+      <div class="card-header">
+        <p class="h5">Data Structure fields</p>
+
+      </div>
+
+
+      <div class="card-body">
+        <ol>
+          {{range $i, $fieldid := .RpgParam.DsFields}}
+          {{if $fieldid.ParamID}}
+          <li>{{$fieldid.ParamID|getrpgparamstring}}  DIM {{$fieldid.Dim}} <br \></li>
+          {{end}}
+          {{end}}
+        </ol>
+      </div>
+    </div>
+  </div>
+ 
+
+
+
+
+  
+
+</div>
+{{end}}
+ 
+{{end}}
+
+ 
