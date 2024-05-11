@@ -62,7 +62,7 @@ go run ./cmd/web
 
 ## Docker file
 
-
+pending
 
 
 ## License
