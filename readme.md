@@ -70,7 +70,7 @@ Default password `adminpass`
   
 
 It's important to ensure that your QHTTP server is adequately secured, especially if it's exposed to the internet. QHTTP comes with an self signed certificate.
-We recommand to use a reverse proxy service like [https://caddyserver.com/] caddy. 
+We recommand to use a reverse proxy service like [caddy](https://caddyserver.com/). 
 
 ## Docker file
 
