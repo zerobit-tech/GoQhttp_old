@@ -84,12 +84,7 @@ MAX_GRAPH_ENTRIES=1000
 
 # Max log entried for one end point
 MAX_LOG_ENTRIES_FOR_ONE_ENDPOINT=1000
-
-
-# Promote endpoints either
-PROMOTE_EVERY=10m
-# ==OR==
-PROMOTE_AT=01:30;03:30;15:54
+ 
 
 
 # Rate limit: 0 ==> disable
