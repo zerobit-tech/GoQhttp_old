@@ -72,6 +72,44 @@ Default password `adminpass`
 It's important to ensure that your QHTTP server is adequately secured, especially if it's exposed to the internet. QHTTP comes with an self signed certificate.
 We recommand to use a reverse proxy service like [caddy](https://caddyserver.com/). 
 
+
+### Environment variables
+```bash
+PORT=4081
+ALLOWEDORIGINS=https://*,http://*
+ 
+
+# Maximum entries for graph
+MAX_GRAPH_ENTRIES=1000
+
+# Max log entried for one end point
+MAX_LOG_ENTRIES_FOR_ONE_ENDPOINT=1000
+
+
+# Promote endpoints either
+PROMOTE_EVERY=10m
+# ==OR==
+PROMOTE_AT=01:30;03:30;15:54
+
+
+# Rate limit: 0 ==> disable
+
+REQUESTS_PER_HOUR_BY_IP=1000
+REQUESTS_PER_HOUR_BY_USER=1000
+
+
+# server credentials
+
+# {SERVERNAME}_USER=someuser
+# {SERVERNAME}_PASSWORD=somepassword
+
+PING_SERVER_EVERY=20s
+
+
+
+ALLOWHTMLTEMPLATES=Y
+```
+
 ## Docker file
 
 pending
