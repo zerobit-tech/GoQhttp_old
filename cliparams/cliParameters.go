@@ -49,7 +49,7 @@ func (p *Parameters) GetHttpAddress() (string, string) {
 
 	//if p.domain == "localhost" || p.domain == "0.0.0.0" {
 	domain := p.Domain
-	if p.Port > 0 {
+	if p.Port > 0 && (p.Domain == "localhost" || p.Domain == "0.0.0.0") {
 		domain = fmt.Sprintf("%s:%d", p.Domain, p.Port)
 	}
 
