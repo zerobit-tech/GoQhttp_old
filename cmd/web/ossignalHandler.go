@@ -9,7 +9,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/onlysumitg/GoQhttp/utils/concurrent"
+	"github.com/zerobit-tech/GoQhttp/utils/concurrent"
 )
 
 // initialize signal handler

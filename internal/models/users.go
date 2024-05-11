@@ -12,9 +12,9 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/onlysumitg/GoQhttp/internal/validator"
-	"github.com/onlysumitg/GoQhttp/utils/concurrent"
-	"github.com/onlysumitg/GoQhttp/utils/jwtutils"
+	"github.com/zerobit-tech/GoQhttp/internal/validator"
+	"github.com/zerobit-tech/GoQhttp/utils/concurrent"
+	"github.com/zerobit-tech/GoQhttp/utils/jwtutils"
 	bolt "go.etcd.io/bbolt"
 	"golang.org/x/crypto/bcrypt"
 )

@@ -8,13 +8,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/onlysumitg/GoQhttp/env"
-	"github.com/onlysumitg/GoQhttp/internal/ibmiServer"
-	"github.com/onlysumitg/GoQhttp/internal/models"
-	"github.com/onlysumitg/GoQhttp/internal/rpg"
-	"github.com/onlysumitg/GoQhttp/internal/storedProc"
-	"github.com/onlysumitg/GoQhttp/utils/concurrent"
-	"github.com/onlysumitg/GoQhttp/utils/regexutil"
+	"github.com/zerobit-tech/GoQhttp/env"
+	"github.com/zerobit-tech/GoQhttp/internal/ibmiServer"
+	"github.com/zerobit-tech/GoQhttp/internal/models"
+	"github.com/zerobit-tech/GoQhttp/internal/rpg"
+	"github.com/zerobit-tech/GoQhttp/internal/storedProc"
+	"github.com/zerobit-tech/GoQhttp/utils/concurrent"
+	"github.com/zerobit-tech/GoQhttp/utils/regexutil"
 )
 
 // ------------------------------------------------------

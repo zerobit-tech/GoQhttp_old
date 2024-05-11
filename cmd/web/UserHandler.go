@@ -10,12 +10,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/onlysumitg/GoQhttp/internal/validator"
-	"github.com/onlysumitg/GoQhttp/utils/concurrent"
-	"github.com/onlysumitg/GoQhttp/utils/jwtutils"
+	"github.com/zerobit-tech/GoQhttp/internal/validator"
+	"github.com/zerobit-tech/GoQhttp/utils/concurrent"
+	"github.com/zerobit-tech/GoQhttp/utils/jwtutils"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/onlysumitg/GoQhttp/internal/models"
+	"github.com/zerobit-tech/GoQhttp/internal/models"
 )
 
 func (app *application) CreateSuperUser(email, password string) {

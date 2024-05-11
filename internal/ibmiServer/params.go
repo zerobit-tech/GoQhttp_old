@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/onlysumitg/GoQhttp/internal/storedProc"
 	"github.com/onlysumitg/godbc"
+	"github.com/zerobit-tech/GoQhttp/internal/storedProc"
 )
 
 // -----------------------------------------------------------------
@@ -64,4 +64,3 @@ func getParameterofType(p *storedProc.StoredProcParamter) *any {
 
 	return &x
 }
-

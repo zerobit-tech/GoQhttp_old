@@ -13,9 +13,9 @@ import (
 	//_ "github.com/go-sql-driver/mysql"
 	_ "github.com/microsoft/go-mssqldb"
 
-	//_ "github.com/onlysumitg/GoQhttp/go_ibm_db"
-	"github.com/onlysumitg/GoQhttp/utils/concurrent"
+	//_ "github.com/zerobit-tech/GoQhttp/go_ibm_db"
 	"github.com/onlysumitg/godbc"
+	"github.com/zerobit-tech/GoQhttp/utils/concurrent"
 )
 
 var mapLock sync.Mutex

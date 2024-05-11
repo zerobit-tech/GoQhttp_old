@@ -15,12 +15,12 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/google/uuid"
 	"github.com/justinas/nosurf" // New import
-	"github.com/onlysumitg/GoQhttp/internal/models"
-	"github.com/onlysumitg/GoQhttp/internal/storedProc"
-	"github.com/onlysumitg/GoQhttp/lic"
-	"github.com/onlysumitg/GoQhttp/logger"
-	"github.com/onlysumitg/GoQhttp/utils/concurrent"
-	"github.com/onlysumitg/GoQhttp/utils/stringutils"
+	"github.com/zerobit-tech/GoQhttp/internal/models"
+	"github.com/zerobit-tech/GoQhttp/internal/storedProc"
+	"github.com/zerobit-tech/GoQhttp/lic"
+	"github.com/zerobit-tech/GoQhttp/logger"
+	"github.com/zerobit-tech/GoQhttp/utils/concurrent"
+	"github.com/zerobit-tech/GoQhttp/utils/stringutils"
 )
 
 // ------------------------------------------------------

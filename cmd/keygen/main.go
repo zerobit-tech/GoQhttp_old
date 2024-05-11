@@ -10,8 +10,8 @@ import (
 	"time"
 
 	"github.com/hyperboloide/lk"
-	"github.com/onlysumitg/GoQhttp/lic"
-	"github.com/onlysumitg/GoQhttp/utils/stringutils"
+	"github.com/zerobit-tech/GoQhttp/lic"
+	"github.com/zerobit-tech/GoQhttp/utils/stringutils"
 )
 
 func main() {

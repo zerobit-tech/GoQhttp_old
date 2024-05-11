@@ -8,9 +8,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/onlysumitg/GoQhttp/env"
-	"github.com/onlysumitg/GoQhttp/internal/dbserver"
-	"github.com/onlysumitg/GoQhttp/utils/concurrent"
+	"github.com/zerobit-tech/GoQhttp/env"
+	"github.com/zerobit-tech/GoQhttp/internal/dbserver"
+	"github.com/zerobit-tech/GoQhttp/utils/concurrent"
 )
 
 // ------------------------------------------------------------

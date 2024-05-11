@@ -9,9 +9,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/onlysumitg/GoQhttp/env"
-	"github.com/onlysumitg/GoQhttp/internal/endpoints"
-	"github.com/onlysumitg/GoQhttp/utils/concurrent"
+	"github.com/zerobit-tech/GoQhttp/env"
+	"github.com/zerobit-tech/GoQhttp/internal/endpoints"
+	"github.com/zerobit-tech/GoQhttp/utils/concurrent"
 	bolt "go.etcd.io/bbolt"
 )
 

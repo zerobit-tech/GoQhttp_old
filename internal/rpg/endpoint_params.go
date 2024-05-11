@@ -3,7 +3,7 @@ package rpg
 import (
 	"strings"
 
-	"github.com/onlysumitg/GoQhttp/internal/validator"
+	"github.com/zerobit-tech/GoQhttp/internal/validator"
 )
 
 // -----------------------------------------------------

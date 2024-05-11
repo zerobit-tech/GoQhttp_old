@@ -8,11 +8,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/onlysumitg/GoQhttp/internal/ibmiServer"
-	"github.com/onlysumitg/GoQhttp/internal/storedProc"
-	"github.com/onlysumitg/GoQhttp/lic"
-	"github.com/onlysumitg/GoQhttp/utils/concurrent"
 	"github.com/onlysumitg/godbc"
+	"github.com/zerobit-tech/GoQhttp/internal/ibmiServer"
+	"github.com/zerobit-tech/GoQhttp/internal/storedProc"
+	"github.com/zerobit-tech/GoQhttp/lic"
+	"github.com/zerobit-tech/GoQhttp/utils/concurrent"
 )
 
 // --------------------------------

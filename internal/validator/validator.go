@@ -7,7 +7,7 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"github.com/onlysumitg/GoQhttp/utils/xmlutils"
+	"github.com/zerobit-tech/GoQhttp/utils/xmlutils"
 )
 
 // Use the regexp.MustCompile() function to parse a regular expression pattern

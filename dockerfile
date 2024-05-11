@@ -26,9 +26,9 @@ RUN apt update && \
 
 CMD [ "./QHttp","--https=false" ]
 
-# docker build -t onlysumitg/qhttp .
-# docker run -p 4081:4081 -v /home/sumit/ideaprojects/GoQhttp/bin/lic:/app/lic           --name=qhttp onlysumitg/qhttp
+# docker build -t zerobittech/qhttp .
+# docker run -p 4081:4081 -v /home/sumit/ideaprojects/GoQhttp/bin/lic:/app/lic           --name=qhttp zerobittech/qhttp
 
 
 
-# docker run -p 4081:4081 -v /home/sumit/ideaprojects/GoQhttp/bin/lic:/app/lic  -v /etc/odbc.ini:/etc/odbc.ini     -d    --name=qhttp onlysumitg/qhttp
+# docker run -p 4081:4081 -v /home/sumit/ideaprojects/GoQhttp/bin/lic:/app/lic  -v /etc/odbc.ini:/etc/odbc.ini     -d    --name=qhttp zerobittech/qhttp

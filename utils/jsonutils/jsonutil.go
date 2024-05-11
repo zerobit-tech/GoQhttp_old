@@ -8,8 +8,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/onlysumitg/GoQhttp/utils/typeutils"
-	"github.com/onlysumitg/GoQhttp/utils/xmlutils"
+	"github.com/zerobit-tech/GoQhttp/utils/typeutils"
+	"github.com/zerobit-tech/GoQhttp/utils/xmlutils"
 )
 
 /*

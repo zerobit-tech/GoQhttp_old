@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/onlysumitg/GoQhttp/utils/jwtutils"
+	"github.com/zerobit-tech/GoQhttp/utils/jwtutils"
 )
 
 func main() {

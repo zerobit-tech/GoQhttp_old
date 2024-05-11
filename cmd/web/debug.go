@@ -7,9 +7,9 @@ import (
 	"net/http"
 	_ "net/http/pprof"
 
-	"github.com/onlysumitg/GoQhttp/cliparams"
-	"github.com/onlysumitg/GoQhttp/env"
-	"github.com/onlysumitg/GoQhttp/utils/concurrent"
+	"github.com/zerobit-tech/GoQhttp/cliparams"
+	"github.com/zerobit-tech/GoQhttp/env"
+	"github.com/zerobit-tech/GoQhttp/utils/concurrent"
 )
 
 func debugMe(params cliparams.Parameters) {

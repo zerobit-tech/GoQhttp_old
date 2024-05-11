@@ -9,10 +9,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/onlysumitg/GoQhttp/internal/validator"
-	"github.com/onlysumitg/GoQhttp/utils/floatutils"
-	"github.com/onlysumitg/GoQhttp/utils/stringutils"
 	"github.com/onlysumitg/godbc"
+	"github.com/zerobit-tech/GoQhttp/internal/validator"
+	"github.com/zerobit-tech/GoQhttp/utils/floatutils"
+	"github.com/zerobit-tech/GoQhttp/utils/stringutils"
 )
 
 // -----------------------------------------------------------------

@@ -5,7 +5,7 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/onlysumitg/GoQhttp/internal/storedProc"
+	"github.com/zerobit-tech/GoQhttp/internal/storedProc"
 	bolt "go.etcd.io/bbolt"
 )
 
@@ -133,7 +133,6 @@ func (m *StoredProcModel) Duplicate(u *storedProc.StoredProc) bool {
 
 	return exists
 }
-
 
 // -----------------------------------------------------------------
 //

@@ -7,12 +7,12 @@ import (
 	"runtime/debug"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/onlysumitg/GoQhttp/internal/ibmiServer"
-	"github.com/onlysumitg/GoQhttp/internal/models"
-	"github.com/onlysumitg/GoQhttp/internal/storedProc"
-	"github.com/onlysumitg/GoQhttp/internal/validator"
-	"github.com/onlysumitg/GoQhttp/utils/concurrent"
-	"github.com/onlysumitg/GoQhttp/utils/stringutils"
+	"github.com/zerobit-tech/GoQhttp/internal/ibmiServer"
+	"github.com/zerobit-tech/GoQhttp/internal/models"
+	"github.com/zerobit-tech/GoQhttp/internal/storedProc"
+	"github.com/zerobit-tech/GoQhttp/internal/validator"
+	"github.com/zerobit-tech/GoQhttp/utils/concurrent"
+	"github.com/zerobit-tech/GoQhttp/utils/stringutils"
 )
 
 // ------------------------------------------------------

@@ -4,9 +4,9 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/onlysumitg/GoQhttp/internal/endpoints"
-	"github.com/onlysumitg/GoQhttp/internal/rpg"
-	"github.com/onlysumitg/GoQhttp/internal/storedProc"
+	"github.com/zerobit-tech/GoQhttp/internal/endpoints"
+	"github.com/zerobit-tech/GoQhttp/internal/rpg"
+	"github.com/zerobit-tech/GoQhttp/internal/storedProc"
 )
 
 // ------------------------------------------------------

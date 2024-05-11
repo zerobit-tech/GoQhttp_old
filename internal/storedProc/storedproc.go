@@ -6,10 +6,10 @@ import (
 	"strings"
 
 	"github.com/gosimple/slug"
-	"github.com/onlysumitg/GoQhttp/internal/inbuiltparam"
-	"github.com/onlysumitg/GoQhttp/internal/validator"
-	"github.com/onlysumitg/GoQhttp/logger"
-	"github.com/onlysumitg/GoQhttp/utils/stringutils"
+	"github.com/zerobit-tech/GoQhttp/internal/inbuiltparam"
+	"github.com/zerobit-tech/GoQhttp/internal/validator"
+	"github.com/zerobit-tech/GoQhttp/logger"
+	"github.com/zerobit-tech/GoQhttp/utils/stringutils"
 )
 
 // type LogByType struct {

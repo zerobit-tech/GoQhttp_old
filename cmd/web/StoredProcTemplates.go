@@ -7,8 +7,8 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/onlysumitg/GoQhttp/internal/models"
-	"github.com/onlysumitg/GoQhttp/utils/templateutil"
+	"github.com/zerobit-tech/GoQhttp/internal/models"
+	"github.com/zerobit-tech/GoQhttp/utils/templateutil"
 )
 
 // ------------------------------------------------------

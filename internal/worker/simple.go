@@ -8,8 +8,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/onlysumitg/GoQhttp/utils/concurrent"
 	"github.com/sirupsen/logrus"
+	"github.com/zerobit-tech/GoQhttp/utils/concurrent"
 )
 
 var _ Worker = &Simple{}

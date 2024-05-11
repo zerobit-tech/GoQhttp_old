@@ -4,7 +4,7 @@ package main
 // 	"fmt"
 // 	"strings"
 
-// 	"github.com/onlysumitg/GoQhttp/utils/typeutils"
+// 	"github.com/zerobit-tech/GoQhttp/utils/typeutils"
 // )
 
 // // ------------------------------------------------------------------

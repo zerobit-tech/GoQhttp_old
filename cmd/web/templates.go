@@ -13,14 +13,14 @@ import (
 	"time"
 
 	"github.com/justinas/nosurf"
-	"github.com/onlysumitg/GoQhttp/featureflags"
-	"github.com/onlysumitg/GoQhttp/internal/endpoints"
-	"github.com/onlysumitg/GoQhttp/internal/ibmiServer"
-	"github.com/onlysumitg/GoQhttp/internal/models"
-	"github.com/onlysumitg/GoQhttp/internal/rpg"
-	"github.com/onlysumitg/GoQhttp/internal/storedProc"
-	"github.com/onlysumitg/GoQhttp/lic"
-	"github.com/onlysumitg/GoQhttp/ui"
+	"github.com/zerobit-tech/GoQhttp/featureflags"
+	"github.com/zerobit-tech/GoQhttp/internal/endpoints"
+	"github.com/zerobit-tech/GoQhttp/internal/ibmiServer"
+	"github.com/zerobit-tech/GoQhttp/internal/models"
+	"github.com/zerobit-tech/GoQhttp/internal/rpg"
+	"github.com/zerobit-tech/GoQhttp/internal/storedProc"
+	"github.com/zerobit-tech/GoQhttp/lic"
+	"github.com/zerobit-tech/GoQhttp/ui"
 )
 
 type templateData struct {

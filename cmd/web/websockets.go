@@ -8,8 +8,8 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/gorilla/websocket"
-	"github.com/onlysumitg/GoQhttp/internal/iwebsocket"
-	"github.com/onlysumitg/GoQhttp/utils/concurrent"
+	"github.com/zerobit-tech/GoQhttp/internal/iwebsocket"
+	"github.com/zerobit-tech/GoQhttp/utils/concurrent"
 )
 
 // ------------------------------------------------------

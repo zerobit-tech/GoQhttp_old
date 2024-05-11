@@ -8,13 +8,13 @@ import (
 	"runtime/debug"
 	"time"
 
-	"github.com/onlysumitg/GoQhttp/internal/rpg"
-	"github.com/onlysumitg/GoQhttp/internal/rpg/responseprocessor"
-	"github.com/onlysumitg/GoQhttp/internal/storedProc"
-	"github.com/onlysumitg/GoQhttp/logger"
-	"github.com/onlysumitg/GoQhttp/utils/httputils"
-	"github.com/onlysumitg/GoQhttp/utils/stringutils"
-	"github.com/onlysumitg/GoQhttp/utils/xmlutils"
+	"github.com/zerobit-tech/GoQhttp/internal/rpg"
+	"github.com/zerobit-tech/GoQhttp/internal/rpg/responseprocessor"
+	"github.com/zerobit-tech/GoQhttp/internal/storedProc"
+	"github.com/zerobit-tech/GoQhttp/logger"
+	"github.com/zerobit-tech/GoQhttp/utils/httputils"
+	"github.com/zerobit-tech/GoQhttp/utils/stringutils"
+	"github.com/zerobit-tech/GoQhttp/utils/xmlutils"
 )
 
 //-----------------------------------------------------------------

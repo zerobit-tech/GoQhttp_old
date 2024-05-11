@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/onlysumitg/GoQhttp/env"
+	"github.com/zerobit-tech/GoQhttp/env"
 )
 
 func getSecret() []byte {

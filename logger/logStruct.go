@@ -5,8 +5,8 @@ import (
 	"runtime/debug"
 	"time"
 
-	"github.com/onlysumitg/GoQhttp/utils/concurrent"
-	"github.com/onlysumitg/GoQhttp/utils/stringutils"
+	"github.com/zerobit-tech/GoQhttp/utils/concurrent"
+	"github.com/zerobit-tech/GoQhttp/utils/stringutils"
 
 	bolt "go.etcd.io/bbolt"
 )

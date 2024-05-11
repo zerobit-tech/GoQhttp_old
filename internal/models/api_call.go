@@ -11,13 +11,13 @@ import (
 	"sync"
 	"time"
 
-	"github.com/onlysumitg/GoQhttp/internal/ibmiServer"
-	"github.com/onlysumitg/GoQhttp/internal/rpg"
-	"github.com/onlysumitg/GoQhttp/internal/storedProc"
-	"github.com/onlysumitg/GoQhttp/logger"
-	"github.com/onlysumitg/GoQhttp/utils/concurrent"
-	"github.com/onlysumitg/GoQhttp/utils/stringutils"
-	"github.com/onlysumitg/GoQhttp/utils/xmlutils"
+	"github.com/zerobit-tech/GoQhttp/internal/ibmiServer"
+	"github.com/zerobit-tech/GoQhttp/internal/rpg"
+	"github.com/zerobit-tech/GoQhttp/internal/storedProc"
+	"github.com/zerobit-tech/GoQhttp/logger"
+	"github.com/zerobit-tech/GoQhttp/utils/concurrent"
+	"github.com/zerobit-tech/GoQhttp/utils/stringutils"
+	"github.com/zerobit-tech/GoQhttp/utils/xmlutils"
 	bolt "go.etcd.io/bbolt"
 )
 

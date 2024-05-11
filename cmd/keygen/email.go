@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/jprobinson/eazye"
-	"github.com/onlysumitg/GoQhttp/utils/concurrent"
+	"github.com/zerobit-tech/GoQhttp/utils/concurrent"
 
 	mail "github.com/xhit/go-simple-mail/v2"
 )
@@ -18,7 +18,7 @@ import (
 // ------------------------------------------------------
 // func (app *application) SampleEmail() {
 // 	e := &models.EmailRequest{
-// 		To:       []string{"onlysumitg@gmail.com"},
+// 		To:       []string{"support@zerobit.tech"},
 // 		Subject:  "Test email 32",
 // 		Body:     " this is test email2",
 // 		Template: "email_verify_email.tmpl",
@@ -102,9 +102,9 @@ func ReadEmails(waitC chan<- int) {
 			if strings.EqualFold(strings.ToUpper(strings.TrimSpace(email.Subject)), "QHTTP LIC") {
 
 				params := &parameters{
-					client:     email.From.Name,
-					email:      email.From.Address,
-					days: 35,
+					client: email.From.Name,
+					email:  email.From.Address,
+					days:   35,
 				}
 
 				processLicRequest(params)

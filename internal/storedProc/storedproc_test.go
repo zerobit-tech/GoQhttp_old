@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/onlysumitg/GoQhttp/internal/storedProc"
+	"github.com/zerobit-tech/GoQhttp/internal/storedProc"
 )
 
 func TestMain(m *testing.M) {

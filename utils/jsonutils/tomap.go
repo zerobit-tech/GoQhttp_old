@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/onlysumitg/GoQhttp/utils/typeutils"
+	"github.com/zerobit-tech/GoQhttp/utils/typeutils"
 )
 
 func JsonToMapPlaceholder(stringJson string) (map[string]any, error) {

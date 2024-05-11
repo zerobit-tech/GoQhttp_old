@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/onlysumitg/GoQhttp/internal/validator"
-	"github.com/onlysumitg/GoQhttp/utils/stringutils"
-	"github.com/onlysumitg/GoQhttp/utils/xmlutils"
+	"github.com/zerobit-tech/GoQhttp/internal/validator"
+	"github.com/zerobit-tech/GoQhttp/utils/stringutils"
+	"github.com/zerobit-tech/GoQhttp/utils/xmlutils"
 )
 
 // -----------------------------------------------------

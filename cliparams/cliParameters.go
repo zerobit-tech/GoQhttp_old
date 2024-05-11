@@ -8,7 +8,7 @@ import (
 	"runtime"
 	"strconv"
 
-	"github.com/onlysumitg/GoQhttp/env"
+	"github.com/zerobit-tech/GoQhttp/env"
 )
 
 // ------------------------------------------------------

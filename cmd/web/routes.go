@@ -32,8 +32,8 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
 	"github.com/go-chi/httprate"
-	"github.com/onlysumitg/GoQhttp/env"
-	"github.com/onlysumitg/GoQhttp/ui" // New import
+	"github.com/zerobit-tech/GoQhttp/env"
+	"github.com/zerobit-tech/GoQhttp/ui" // New import
 )
 
 // -----------------------------------------------------------------

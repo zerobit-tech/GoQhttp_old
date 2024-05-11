@@ -6,8 +6,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/onlysumitg/GoQhttp/internal/storedProc"
 	"github.com/onlysumitg/godbc"
+	"github.com/zerobit-tech/GoQhttp/internal/storedProc"
 )
 
 // ------------------------------------------------------------

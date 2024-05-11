@@ -13,9 +13,9 @@ go build  -ldflags="-X 'main.FeatureSet=ALL'  -X 'main.Version=${APP_VERSION}'" 
 
 ls -al ./bin
 #scp bin/${output_name}${APP_VERSION} sumit@154.49.243.18:~/qhttp/
-docker build -t onlysumitg/qhttp .
+docker build -t zerobittech/qhttp .
 docker login
-docker push onlysumitg/qhttp
+docker push zerobittech/qhttp
 # copy db folder
 #scp -r db/ sumit@154.49.243.18:~/qhttp/
 
@@ -25,4 +25,4 @@ docker push onlysumitg/qhttp
 # nohup ./qhttp/QHttp_v1.3.2 --https=false &
 
 
-#sudo docker run  -p 4091:4091 -e DOMAIN=qhttp.zerobit.tech -v /home/sumit/qhttp/lic:/app/lic -v /home/sumit/qhttp/db:/app/db -v /home/sumit/qhttp/env:/app/env --name=qhttp -d onlysumitg/qhttp
+#sudo docker run  -p 4091:4091 -e DOMAIN=qhttp.zerobit.tech -v /home/sumit/qhttp/lic:/app/lic -v /home/sumit/qhttp/db:/app/db -v /home/sumit/qhttp/env:/app/env --name=qhttp -d zerobittech/qhttp

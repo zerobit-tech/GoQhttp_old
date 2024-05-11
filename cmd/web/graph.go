@@ -7,8 +7,8 @@ import (
 	"strings"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/onlysumitg/GoQhttp/env"
-	"github.com/onlysumitg/GoQhttp/internal/iwebsocket"
+	"github.com/zerobit-tech/GoQhttp/env"
+	"github.com/zerobit-tech/GoQhttp/internal/iwebsocket"
 )
 
 // ------------------------------------------------------

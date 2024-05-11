@@ -5,8 +5,8 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/onlysumitg/GoQhttp/internal/validator"
-	"github.com/onlysumitg/GoQhttp/utils/stringutils"
+	"github.com/zerobit-tech/GoQhttp/internal/validator"
+	"github.com/zerobit-tech/GoQhttp/utils/stringutils"
 	bolt "go.etcd.io/bbolt"
 )
 

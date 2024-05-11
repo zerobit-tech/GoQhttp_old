@@ -9,11 +9,11 @@ import (
 	"time"
 
 	"github.com/go-co-op/gocron"
-	"github.com/onlysumitg/GoQhttp/cliparams"
-	"github.com/onlysumitg/GoQhttp/env"
-	"github.com/onlysumitg/GoQhttp/internal/models"
-	"github.com/onlysumitg/GoQhttp/utils/concurrent"
-	"github.com/onlysumitg/GoQhttp/utils/stringutils"
+	"github.com/zerobit-tech/GoQhttp/cliparams"
+	"github.com/zerobit-tech/GoQhttp/env"
+	"github.com/zerobit-tech/GoQhttp/internal/models"
+	"github.com/zerobit-tech/GoQhttp/utils/concurrent"
+	"github.com/zerobit-tech/GoQhttp/utils/stringutils"
 	bolt "go.etcd.io/bbolt"
 	"golang.org/x/crypto/acme/autocert"
 )

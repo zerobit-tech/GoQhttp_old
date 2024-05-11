@@ -5,8 +5,8 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/onlysumitg/GoQhttp/internal/validator"
-	"github.com/onlysumitg/GoQhttp/utils/typeutils"
+	"github.com/zerobit-tech/GoQhttp/internal/validator"
+	"github.com/zerobit-tech/GoQhttp/utils/typeutils"
 )
 
 type PathParam struct {

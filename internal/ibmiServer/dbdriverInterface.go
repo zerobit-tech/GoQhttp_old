@@ -11,14 +11,14 @@ import (
 	"strings"
 	"time"
 
-	"github.com/onlysumitg/GoQhttp/env"
 	"github.com/onlysumitg/godbc"
+	"github.com/zerobit-tech/GoQhttp/env"
 
-	"github.com/onlysumitg/GoQhttp/internal/storedProc"
-	"github.com/onlysumitg/GoQhttp/internal/validator"
-	"github.com/onlysumitg/GoQhttp/logger"
-	"github.com/onlysumitg/GoQhttp/utils/stringutils"
-	"github.com/onlysumitg/GoQhttp/utils/xmlutils"
+	"github.com/zerobit-tech/GoQhttp/internal/storedProc"
+	"github.com/zerobit-tech/GoQhttp/internal/validator"
+	"github.com/zerobit-tech/GoQhttp/logger"
+	"github.com/zerobit-tech/GoQhttp/utils/stringutils"
+	"github.com/zerobit-tech/GoQhttp/utils/xmlutils"
 )
 
 // -----------------------------------------------------------------

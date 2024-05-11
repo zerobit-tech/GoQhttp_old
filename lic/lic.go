@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/hyperboloide/lk"
-	"github.com/onlysumitg/GoQhttp/utils/stringutils"
+	"github.com/zerobit-tech/GoQhttp/utils/stringutils"
 )
 
 type MyLicence struct {

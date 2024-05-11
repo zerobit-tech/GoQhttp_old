@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/onlysumitg/GoQhttp/utils/templateutil"
+	"github.com/zerobit-tech/GoQhttp/utils/templateutil"
 )
 
 func main() {

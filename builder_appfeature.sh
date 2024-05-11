@@ -19,8 +19,8 @@ echo 'Building..: '${output_name}${APP_VERSION}
 go build  -ldflags="-X 'main.FeatureSet=ALL'  -X 'main.Version=${APP_VERSION}'" -o ./bin/${output_name}${APP_VERSION}  ./cmd/web
 
 
-docker build --build-arg="APP_VERSION=${APP_VERSION}"  -t onlysumitg/qhttp:${APP_VERSION} .
-docker push onlysumitg/qhttp:${APP_VERSION}
+docker build --build-arg="APP_VERSION=${APP_VERSION}"  -t zerobittech/qhttp:${APP_VERSION} .
+docker push zerobittech/qhttp:${APP_VERSION}
 
 
 

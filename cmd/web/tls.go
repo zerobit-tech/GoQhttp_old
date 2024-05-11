@@ -8,7 +8,7 @@ import (
 	"os"
 	"time"
 
-	embdedTLS "github.com/onlysumitg/GoQhttp/tls"
+	embdedTLS "github.com/zerobit-tech/GoQhttp/tls"
 	"golang.org/x/crypto/acme/autocert"
 	"golang.org/x/net/http2"
 )
@@ -34,7 +34,7 @@ func (app *application) getCertificateAndManager() (*tls.Config, *autocert.Manag
 		MinVersion:     tls.VersionTLS12,
 		GetCertificate: app.getSelfSignedOrLetsEncryptCert(certManager),
 	}
-	return tlsConfig,certManager
+	return tlsConfig, certManager
 }
 
 // -----------------------------------------------------------------

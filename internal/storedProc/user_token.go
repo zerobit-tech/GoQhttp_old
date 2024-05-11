@@ -1,6 +1,6 @@
 package storedProc
 
-import "github.com/onlysumitg/GoQhttp/internal/validator"
+import "github.com/zerobit-tech/GoQhttp/internal/validator"
 
 // -----------------------------------------------------------------
 //

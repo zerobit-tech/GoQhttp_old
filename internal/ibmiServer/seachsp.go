@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/onlysumitg/GoQhttp/internal/storedProc"
+	"github.com/zerobit-tech/GoQhttp/internal/storedProc"
 )
 
 // ------------------------------------------------------------

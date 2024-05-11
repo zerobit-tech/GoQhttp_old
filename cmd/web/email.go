@@ -3,8 +3,8 @@ package main
 import (
 	"log"
 
-	"github.com/onlysumitg/GoQhttp/internal/models"
 	mail "github.com/xhit/go-simple-mail/v2"
+	"github.com/zerobit-tech/GoQhttp/internal/models"
 )
 
 // ------------------------------------------------------
@@ -12,7 +12,7 @@ import (
 // ------------------------------------------------------
 // func (app *application) SampleEmail() {
 // 	e := &models.EmailRequest{
-// 		To:       []string{"onlysumitg@gmail.com"},
+// 		To:       []string{"support@zerobit.tech"},
 // 		Subject:  "Test email 32",
 // 		Body:     " this is test email2",
 // 		Template: "email_verify_email.tmpl",

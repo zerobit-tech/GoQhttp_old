@@ -1,4 +1,4 @@
-module github.com/onlysumitg/GoQhttp
+module github.com/zerobit-tech/GoQhttp
 
 go 1.20
 

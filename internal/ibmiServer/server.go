@@ -14,12 +14,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/onlysumitg/GoQhttp/internal/storedProc"
-	"github.com/onlysumitg/GoQhttp/internal/validator"
-	"github.com/onlysumitg/GoQhttp/logger"
-	"github.com/onlysumitg/GoQhttp/utils/httputils"
-	"github.com/onlysumitg/GoQhttp/utils/stringutils"
 	"github.com/onlysumitg/godbc"
+	"github.com/zerobit-tech/GoQhttp/internal/storedProc"
+	"github.com/zerobit-tech/GoQhttp/internal/validator"
+	"github.com/zerobit-tech/GoQhttp/logger"
+	"github.com/zerobit-tech/GoQhttp/utils/httputils"
+	"github.com/zerobit-tech/GoQhttp/utils/stringutils"
 )
 
 type Server struct {
@@ -465,7 +465,7 @@ func (s *Server) call(ctx context.Context, callID string, sp *storedProc.StoredP
 
 			if p.Mode == "OUT" && keyToUse == "QHTTP_STATUS_CODE" && p.IsInt() {
 
-				httpCode,message := httputils.GetValidHttpCode(*v)
+				httpCode, message := httputils.GetValidHttpCode(*v)
 
 				if httpCode > 0 {
 					qhttp_status_code = httpCode
