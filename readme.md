@@ -58,7 +58,19 @@ go run ./cmd/web
 
 ```
 
+By default, qhttp will listen on port 4081. You can customize the port by modifying the `PORT` env var if needed.
 
+Default user name `admin2@example.com`
+Default password `adminpass`
+
+
+
+### Security Considerations
+
+  
+
+It's important to ensure that your QHTTP server is adequately secured, especially if it's exposed to the internet. QHTTP comes with an self signed certificate.
+We recommand to use a reverse proxy service like [https://caddyserver.com/] caddy. 
 
 ## Docker file
 
