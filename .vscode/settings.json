@@ -1,0 +1,117 @@
+{
+    "github.copilot.enable": {
+        "*": true,
+        "yaml": true,
+        "plaintext": true,
+        "markdown": true,
+        "go": true,
+        "json": true,
+        "javascript": true,
+        "typescript": true
+    },
+    "github.copilot.advanced": {
+        "secret_key": "github-copilot",
+        "length": 500,
+        "temperature": 0.1,
+        "top_p": 1,
+        "indentationMode": {
+            "python": "space",
+            "javascript": "space",
+            "go": "tab"
+        }
+    },
+    "github.copilot.chat.enabled": true,
+    "github.copilot.chat.welcomeMessage": "enabled",
+    
+    "go.useLanguageServer": true,
+    "go.languageServerExperimentalFeatures": {
+        "diagnostics": true,
+        "documentLink": true
+    },
+    "go.lintOnSave": "package",
+    "go.formatTool": "goimports",
+    "go.lintTool": "golint",
+    "go.testFlags": ["-v"],
+    "go.buildTags": "",
+    "go.testTimeout": "30s",
+    
+    "editor.suggestSelection": "first",
+    "editor.acceptSuggestionOnCommitCharacter": false,
+    "editor.acceptSuggestionOnEnter": "on",
+    "editor.quickSuggestions": {
+        "other": true,
+        "comments": true,
+        "strings": true
+    },
+    "editor.suggestOnTriggerCharacters": true,
+    "editor.wordBasedSuggestions": "matchingDocuments",
+    "editor.parameterHints.enabled": true,
+    "editor.inlineSuggest.enabled": true,
+    
+    "editor.inlineSuggest.showToolbar": "onHover",
+    
+    "editor.quickSuggestionsDelay": 10,
+    "editor.suggest.snippetsPreventQuickSuggestions": false,
+    "editor.suggest.localityBonus": true,
+    "editor.suggest.shareSuggestSelections": true,
+    "editor.suggest.selectionMode": "always",
+    
+    "files.associations": {
+        "*.tmpl": "html",
+        "*.gohtml": "html",
+        "dockerfile": "dockerfile",
+        "Dockerfile*": "dockerfile"
+    },
+    
+    "files.exclude": {
+        "**/node_modules": true,
+        "**/vendor": true,
+        "**/.git": true,
+        "**/tmp": true,
+        "**/dist": true,
+        "**/build": true
+    },
+    
+    "search.exclude": {
+        "**/node_modules": true,
+        "**/vendor": true,
+        "**/tmp": true,
+        "**/dist": true,
+        "**/build": true,
+        "**/*.log": true
+    },
+    
+    "terminal.integrated.shell.linux": "/bin/bash",
+    "terminal.integrated.cwd": "${workspaceFolder}",
+    
+    "git.autofetch": true,
+    "git.enableSmartCommit": true,
+    "git.confirmSync": false,
+    
+    "editor.formatOnSave": true,
+    "editor.formatOnType": true,
+    "editor.formatOnPaste": true,
+    
+    "editor.insertSpaces": false,
+    "editor.detectIndentation": true,
+    "[go]": {
+        "editor.insertSpaces": false,
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+            "source.organizeImports": "explicit"
+        }
+    },
+    "[json]": {
+        "editor.insertSpaces": true,
+        "editor.tabSize": 2
+    },
+    "[yaml]": {
+        "editor.insertSpaces": true,
+        "editor.tabSize": 2
+    },
+    "[markdown]": {
+        "editor.insertSpaces": true,
+        "editor.tabSize": 2,
+        "editor.wordWrap": "on"
+    }
+}

@@ -38,6 +38,18 @@ Before installing and running qhttp, ensure you have the following prerequisites
 
 - Go 1.20.5 or latest installed on your development machine
 
+### Development Environment Setup
+
+This project is configured to work optimally with **GitHub Copilot Pro** for enhanced coding assistance.
+
+#### Quick Setup for VS Code + Copilot Pro:
+1. Open this project in Visual Studio Code
+2. Install the recommended extensions (you'll see a popup)
+3. Sign in to GitHub Copilot Pro
+4. Start coding with AI-powered assistance!
+
+📖 **Detailed Setup Guide**: See [.vscode/COPILOT_SETUP.md](.vscode/COPILOT_SETUP.md) for complete GitHub Copilot Pro integration instructions.
+
 
 ### Installation
 
